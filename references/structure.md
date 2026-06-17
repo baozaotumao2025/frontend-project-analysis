@@ -47,6 +47,23 @@ specs/
 - `docs/gwt/[feature-name].feature`: acceptance behavior
 - `specs/features/[feature-name]-spec.md`: implementation boundary and detail
 
+## Managed Frontmatter
+
+Managed Markdown files should include frontmatter like:
+
+```yaml
+---
+artifact_type: feature
+slug: customer-assignment
+round: 4
+status: draft
+project: crm-web
+title: Customer Assignment
+---
+```
+
+The CLI validates these fields during structural review.
+
 ## Design Rules
 
 - One Markdown file should describe either one entity or one relationship view

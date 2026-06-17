@@ -1,0 +1,40 @@
+[project]
+name = "frontend-project-analysis"
+version = "0.1.0"
+description = "Document-first frontend project analysis infrastructure with SQLite-backed workflow governance."
+readme = "README.md"
+requires-python = "==3.12.*"
+dependencies = [
+  "alembic>=1.14,<2",
+  "pydantic>=2.11,<3",
+  "pydantic-settings>=2.10,<3",
+  "pyyaml>=6.0.2,<7",
+  "sqlalchemy>=2.0.41,<3",
+  "typer>=0.16,<1",
+]
+
+[project.scripts]
+fpa = "frontend_project_analysis.cli:app"
+
+[dependency-groups]
+dev = [
+  "pytest>=8.4,<9",
+  "ruff>=0.12,<1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/frontend_project_analysis"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]

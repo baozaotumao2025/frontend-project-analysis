@@ -1,8 +1,8 @@
 # Frontend Project Analysis
 
-一个用于前端项目分析与拆解的 Codex skill。
+一个用于前端项目分析与拆解的 Codex skill，同时内置一套可跨项目复用的 Python 工作流基础设施。
 
-这个 skill 适合在新项目启动、需求澄清、方案收敛和实现前分析阶段使用。它通过一套文档优先的工作流，把一个前端产品或功能范围逐步拆解为 `Persona`、`Story Map`、`Page Map`、`Feature`、`Given-When-Then` 和 `Feature Spec` 等结构化产物，帮助团队减少“直接开写、边做边改”的重复成本。
+这个 skill 适合在新项目启动、需求澄清、方案收敛和实现前分析阶段使用。它通过一套文档优先的工作流，把一个前端产品或功能范围逐步拆解为 `Persona`、`Story Map`、`Page Map`、`Feature`、`Given-When-Then` 和 `Feature Spec` 等结构化产物，并用 SQLite 持久化这些中间产物、依赖关系与审核状态，帮助团队减少“直接开写、边做边改”的重复成本。
 
 ## 这个 skill 能做什么
 
@@ -12,6 +12,7 @@
 - 按 Vertical Slice 思路拆分 `Feature`
 - 为单个 `Feature` 生成 Gherkin 格式的 `Given-When-Then`
 - 为后续实现规划交付顺序与依赖关系
+- 以 `uv run fpa ...` 命令管理数据库、依赖 DAG、审核记录与导出物
 
 ## 适用场景
 
@@ -50,10 +51,13 @@
 ├── SKILL.md
 ├── README.md
 ├── AGENTS.md
+├── pyproject.toml
+├── .python-version
 ├── agents/
 │   └── openai.yaml
 └── references/
     ├── glossary.md
+    ├── infrastructure.md
     ├── methodology.md
     ├── quality-gates.md
     ├── structure.md
@@ -64,13 +68,89 @@
 各文件职责如下：
 
 - `SKILL.md`：skill 主入口，给 Codex 读取
+- `pyproject.toml`：`uv` / Python 项目配置
 - `agents/openai.yaml`：skill 的 UI 元数据与默认 prompt
+- `references/infrastructure.md`：数据库、审核分层与 CLI 约定
 - `references/methodology.md`：方法论与完整 6 轮工作流
 - `references/workflow.md`：每一轮的输入与输出要求
 - `references/quality-gates.md`：每一轮的质量门与自检标准
 - `references/structure.md`：推荐产物目录结构
 - `references/templates.md`：文档模板
 - `references/glossary.md`：术语规范
+
+## Python 基础设施
+
+这个仓库现在使用：
+
+- `uv`
+- Python `3.12`
+- `SQLite` 作为工作流状态数据库
+- `Alembic` 作为数据库迁移管理
+- `Typer` 作为 CLI
+- `SQLAlchemy` 作为数据层
+
+代码层面现在也按职责分层：
+
+- `domain` 只放稳定业务规则
+- `schemas` 只放结构化载荷
+- `storage` 和 `migrations` 只管持久化与 schema 演进
+- `repositories` 只做兼容转发，实际实现拆在 `repository_artifacts` / `repository_reviews`
+- `workflow_state` 只做兼容转发，实际实现拆在 `state_checks` / `state_transitions` / `state_packets`
+- `llm` 只负责 provider 路由
+- `llm_common` 和 `llm_*` 负责 provider 适配、重试、payload 校验和审计
+- `service` 只管用例编排
+- `cli` 只做命令入口，具体命令拆在 `project_commands` / `artifact_commands` / `review_commands` / `export_commands` / `import_commands` / `db_commands`
+
+默认状态目录位于目标项目根目录下：
+
+```text
+.frontend-project-analysis/
+  state.db
+  backups/
+  exports/
+  logs/
+```
+
+这意味着：
+
+- Markdown 负责面向人阅读
+- 数据库负责依赖、审核、状态与审计
+- 关系矩阵优先由 CLI 导出，而不是手工维护
+
+## `.env` 配置
+
+所有运行时配置现在都可以通过项目根目录下的 `.env` 控制。你可以从 [.env.example](/Users/cherubines/Documents/MaxCPA/.env.example:1) 复制一份开始。
+
+当前重点配置包括：
+
+- `FPA_LLM_PROVIDER`
+- `FPA_LLM_MODEL`
+- `FPA_LLM_BASE_URL`
+- `FPA_LLM_API_KEY`
+- `FPA_LLM_API_PATH`
+- `FPA_LLM_TIMEOUT_SECONDS`
+- `FPA_LLM_MAX_OUTPUT_TOKENS`
+- `FPA_LLM_MAX_RETRIES`
+- `FPA_LLM_RETRY_INITIAL_BACKOFF_SECONDS`
+- `FPA_LLM_RETRY_MAX_BACKOFF_SECONDS`
+- `FPA_STATE_DIR`
+- `FPA_DB_PATH`
+- `FPA_EXPORT_DIR`
+- `FPA_LOG_DIR`
+- `FPA_AUDIT_DIR`
+- `FPA_LOG_LEVEL`
+- `FPA_LOG_JSON`
+- `FPA_SEMANTIC_REVIEW_AUTO_APPROVE`
+- `FPA_ANTHROPIC_VERSION`
+
+日志现在支持两种格式：
+
+- 默认文本日志，便于本地阅读
+- `FPA_LOG_JSON=true` 时输出结构化 JSON，便于接入后续审计系统
+
+Provider 审计也会保留更细的事件时间线，方便回放一次调用经历了哪些请求、重试和解析步骤。
+
+这让后续切换 provider、调整本地目录结构、修改日志输出策略时不需要改代码。
 
 ## 如何安装
 
@@ -82,11 +162,39 @@
 ~/.codex/skills/frontend-project-analysis/
 ```
 
-只要目录内包含 `SKILL.md`、`agents/openai.yaml` 和 `references/`，Codex 就可以识别这个 skill。
+只要目录内包含 `SKILL.md`、`agents/openai.yaml`、`references/` 和 Python 包配置，Codex 就可以识别并调用这套 skill。
 
 如果你的团队已经有统一的 skill 安装方式，也可以直接把这个仓库接入现有流程。
 
 ## 如何使用
+
+### 初始化 Python 环境
+
+```bash
+uv python install 3.12
+uv sync
+```
+
+### 初始化一个项目状态库
+
+```bash
+uv run fpa project init --project crm-web --name "CRM Web"
+```
+
+### 常用命令
+
+```bash
+uv run fpa artifact add --project crm-web --type persona --slug sales-rep --title "Sales Rep" --source-path docs/personas/sales-rep.md
+uv run fpa artifact link --project crm-web --from story_map:sales-rep --to persona:sales-rep
+uv run fpa review structural --project crm-web --artifact persona:sales-rep
+uv run fpa review semantic-packet --project crm-web --artifact feature:customer-assignment --output /tmp/feature-review.json
+uv run fpa review semantic-run --project crm-web --artifact feature:customer-assignment
+uv run fpa review semantic-record --project crm-web --artifact feature:customer-assignment --input /tmp/review-result.json
+uv run fpa review approve --project crm-web --artifact feature:customer-assignment
+uv run fpa export relations --project crm-web
+uv run fpa db migrate
+uv run fpa db backup
+```
 
 ### 方式一：显式调用 skill
 
@@ -129,6 +237,73 @@
 - 是否已有页面草图或需求文档
 
 输入越具体，后续 `Persona`、`Story Map` 和 `Feature` 拆分越稳定。
+
+## 审核模型
+
+审核分为两层：
+
+- `structural review`：纯代码逻辑校验，负责前后依赖、前置审批、frontmatter、文件存在性、环检测、一致性
+- `semantic review`：由 LLM 审核 `Persona` 合理性、`Story Map` 业务性、`Feature` 切分质量等语义问题
+
+`semantic-packet` 命令会把当前 `.env` 中的 LLM provider 配置一并写入 review packet，方便后续 skill 或脚本直接消费。
+
+如果你希望 CLI 直接发起 provider 请求，可以使用：
+
+```bash
+uv run fpa review semantic-run --project crm-web --artifact feature:customer-assignment
+```
+
+当前内置支持：
+
+- `openai`
+- `openai-compatible`
+- `anthropic`
+- `gemini`
+- `mock`
+
+## Log 与异常处理
+
+当前已经有一层基础架构：
+
+- CLI 启动时统一初始化 logging
+- 日志默认写入 `.frontend-project-analysis/logs/app.log`
+- 支持通过 `.env` 控制日志级别和是否输出到 stderr
+- 统一的应用异常基类：配置异常、存储异常、审核异常
+- CLI 顶层有兜底异常处理，未预期错误会写日志并给出简短终端提示
+- provider 调用带指数退避重试
+- provider 请求/响应会归档到 `.frontend-project-analysis/audits/`
+- 数据库会记录 provider 调用摘要，便于后续查询和审计
+
+这几项现在已经补齐：
+
+- 结构化 JSON log 可通过 `FPA_LOG_JSON=true` 打开
+- `request_id` / `trace_id` 已贯穿日志、审计和归档文件名
+- provider-specific error taxonomy 已拆分为更细的异常类
+- 审计日志事件模型已支持事件时间线
+
+推荐顺序：
+
+1. 先生成或更新文档
+2. 用 `uv run fpa import markdown-scan --project <key> --apply` 注册结构化状态
+3. 用 `uv run fpa review structural ...` 跑硬校验
+4. 用 `uv run fpa review semantic-packet ...` 生成审查上下文给 skill / LLM
+5. 将结构化语义审查结果写回 `uv run fpa review semantic-record ...`
+6. 人工或流程调用 `uv run fpa review approve ...`
+
+## 数据库维护
+
+内置维护命令如下：
+
+- `uv run fpa db init`
+- `uv run fpa db check`
+- `uv run fpa db backup`
+- `uv run fpa db restore --from <backup.db>`
+- `uv run fpa db reset-project --project <key> --yes`
+- `uv run fpa db wipe --yes`
+- `uv run fpa import manifest --project <key> --input <manifest.json> [--apply]`
+- `uv run fpa import markdown-scan --project <key> [--apply]`
+- `uv run fpa export manifest --project <key>`
+- `uv run fpa export sql`
 
 ## 典型使用示例
 
@@ -175,7 +350,7 @@
 
 - 文档优先，不直接产出实现代码
 - 渐进式披露，优先小文件
-- 关系密集内容放在索引或矩阵文件中
+- 关系密集内容放在索引或矩阵文件中，但数据库是结构事实源
 - 按轮次推进，降低一次性拆解过深的风险
 - 把分析过程标准化，方便团队协作与复用
 

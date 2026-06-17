@@ -7,3 +7,11 @@ specs/
 
 # Legacy local reference kept outside the published skill package
 frontend-decomposition-methodology.md
+
+# Python and local workflow state
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.env
+.frontend-project-analysis/

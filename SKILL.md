@@ -23,8 +23,9 @@ Read these files before doing the workflow:
 1. `references/methodology.md`
 2. `references/glossary.md`
 3. `references/structure.md`
-4. `references/workflow.md`
-5. `references/quality-gates.md`
+4. `references/infrastructure.md`
+5. `references/workflow.md`
+6. `references/quality-gates.md`
 
 Only read `references/templates.md` when you need to create or expand output files.
 
@@ -33,6 +34,7 @@ Only read `references/templates.md` when you need to create or expand output fil
 - Follow the workflow round by round; do not skip rounds unless the user explicitly asks to do so
 - If the user already has approved outputs from earlier rounds, resume from the latest approved round
 - For each round, produce the artifact first, then a self-check against the matching quality gate, then pause
+- Use `uv run fpa ...` commands to read or mutate workflow state instead of inferring graph consistency from Markdown alone
 - Prefer small focused files and progressive disclosure over large catch-all documents
 - Keep relationship-dense information in index or matrix files rather than inflating entity files
 - Keep terminology aligned with `references/glossary.md`
@@ -42,6 +44,7 @@ Only read `references/templates.md` when you need to create or expand output fil
 - Default output roots are `docs/` and `specs/features/`
 - Default document layout and file naming follow `references/structure.md`
 - Use the templates in `references/templates.md` only as a starting point; adapt them to the project context
+- Add structured frontmatter to managed Markdown files so the CLI can validate type, round, status, and project alignment
 - Professional terms such as `Persona`, `Story Map`, `Feature`, `Feature Spec`, `Happy Path`, `Edge Case`, `Permission Case`, and `Error Case` should remain in English
 
 ## Boundaries

@@ -5,6 +5,7 @@
 - Input: project description
 - Output: `docs/personas/index.md` and `docs/personas/[persona-name].md`
 - Each Persona should include name, core goal, key differences, permission boundary, and invisible pages or capabilities
+- Before approval, register or import the resulting artifacts into the SQLite workflow state
 
 Persona split rules:
 
@@ -18,6 +19,7 @@ Persona split rules:
 - One Story Map per Persona
 - Format: `Activity -> Step -> Story`
 - Do not mention pages or Features
+- Semantic review should judge business coherence; structural review still runs via CLI
 
 ## Round 3: Page Mapping
 
@@ -43,3 +45,4 @@ Persona split rules:
 - Input: all approved artifacts
 - Output: `specs/features/[feature-name]-spec.md`
 - Generate one Feature Spec per Feature
+- Final release planning should rely on recorded dependency edges and approval state, not on manual matrix edits alone
