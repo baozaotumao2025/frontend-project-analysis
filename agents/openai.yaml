@@ -1,0 +1,7 @@
+interface:
+  display_name: "Frontend Project Analysis"
+  short_description: "Document-first frontend decomposition"
+  default_prompt: "Use $frontend-project-analysis to decompose this frontend project into Persona, Story Map, Page Map, Features, GWT, and Feature Specs."
+
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,9 @@
+# Local repo-skill development artifacts
+.agents/
+
+# Analysis output artifacts that do not belong in the published skill package
+docs/
+specs/
+
+# Legacy local reference kept outside the published skill package
+frontend-decomposition-methodology.md
