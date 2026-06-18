@@ -3,13 +3,21 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 
 from sqlalchemy.orm import Session
 
-from ...core.domain import REQUIRED_FRONTMATTER_FIELDS, ROUND_BY_TYPE, ArtifactStatus
+from ...core.domain import ArtifactStatus, ArtifactType, REQUIRED_FRONTMATTER_FIELDS, ROUND_BY_TYPE
 from ...infrastructure.documents import read_document
 from ...models import Project
 from .definitions import CheckFinding, WorkflowStateError
+
+_STRUCTURED_FRONTMATTER_TYPES = {
+    ArtifactType.PERSONA,
+    ArtifactType.STORY_MAP,
+    ArtifactType.PAGE,
+    ArtifactType.FEATURE,
+}
 
 
 def run_structural_checks(
@@ -58,8 +66,10 @@ def run_structural_checks(
                         artifact_ref=ref,
                     )
                 )
-            else:
-                metadata, _body = read_document(source)
+                continue
+
+            metadata, body = read_document(source)
+            if artifact.artifact_type in _STRUCTURED_FRONTMATTER_TYPES:
                 missing = [field for field in REQUIRED_FRONTMATTER_FIELDS if field not in metadata]
                 if missing:
                     findings.append(
@@ -70,10 +80,7 @@ def run_structural_checks(
                             artifact_ref=ref,
                         )
                     )
-                if (
-                    metadata.get("artifact_type")
-                    and metadata["artifact_type"] != artifact.artifact_type.value
-                ):
+                if metadata.get("artifact_type") and metadata["artifact_type"] != artifact.artifact_type.value:
                     findings.append(
                         CheckFinding(
                             severity="FAIL",
@@ -112,6 +119,116 @@ def run_structural_checks(
                             artifact_ref=ref,
                         )
                     )
+
+            if artifact.artifact_type == ArtifactType.STORY_MAP:
+                _append_missing_sections(
+                    findings,
+                    ref,
+                    body,
+                    "missing_story_map_sections",
+                    ("Start", "End"),
+                    "Story Map",
+                )
+            elif artifact.artifact_type == ArtifactType.PAGE:
+                _append_missing_sections(
+                    findings,
+                    ref,
+                    body,
+                    "missing_page_sections",
+                    (
+                        "Route Information",
+                        "Accessible Persona",
+                        "Story Steps Covered",
+                        "Related Features",
+                    ),
+                    "Page",
+                )
+                if not _has_any_section(body, ("Page Responsibility", "Responsibility")):
+                    findings.append(
+                        CheckFinding(
+                            severity="FAIL",
+                            code="missing_page_responsibility",
+                            message=(
+                                "Missing clear page responsibility statement: "
+                                "expected either 'Page Responsibility' or 'Responsibility'."
+                            ),
+                            artifact_ref=ref,
+                        )
+                    )
+                _append_unknown_references(
+                    findings,
+                    ref,
+                    _section_items(body, "Accessible Persona"),
+                    ArtifactType.PERSONA,
+                    artifacts,
+                    "accessible persona",
+                )
+                _append_unknown_references(
+                    findings,
+                    ref,
+                    _section_items(body, "Related Features"),
+                    ArtifactType.FEATURE,
+                    artifacts,
+                    "related feature",
+                )
+            elif artifact.artifact_type == ArtifactType.FEATURE:
+                _append_missing_sections(
+                    findings,
+                    ref,
+                    body,
+                    "missing_feature_sections",
+                    (
+                        "Page",
+                        "Persona Served",
+                        "Business Responsibility",
+                        "State Type",
+                        "Cross-Page Reuse",
+                        "Source Story",
+                    ),
+                    "Feature",
+                )
+                _append_unknown_references(
+                    findings,
+                    ref,
+                    _section_items(body, "Page"),
+                    ArtifactType.PAGE,
+                    artifacts,
+                    "page",
+                )
+                _append_unknown_references(
+                    findings,
+                    ref,
+                    _section_items(body, "Persona Served"),
+                    ArtifactType.PERSONA,
+                    artifacts,
+                    "persona",
+                )
+            elif artifact.artifact_type == ArtifactType.GWT:
+                _append_missing_gherkin_scenarios(
+                    findings,
+                    ref,
+                    body,
+                    ("Happy Path", "Permission Case", "Error Case", "Edge Case"),
+                )
+                _append_incomplete_gherkin_scenarios(findings, ref, body)
+            elif artifact.artifact_type == ArtifactType.FEATURE_SPEC:
+                _append_missing_sections(
+                    findings,
+                    ref,
+                    body,
+                    "missing_feature_spec_sections",
+                    (
+                        "Basic Information",
+                        "Roles And Permissions",
+                        "Component Breakdown",
+                        "State Boundary",
+                        "Cross-Feature Dependencies",
+                        "Given-When-Then Acceptance Spec",
+                    ),
+                    "Feature Spec",
+                )
+                _append_state_boundary_terms(findings, ref, body)
+
         for dependency in artifact.outgoing_dependencies:
             if dependency.is_hard and dependency.to_artifact.status != ArtifactStatus.APPROVED:
                 findings.append(
@@ -126,3 +243,177 @@ def run_structural_checks(
                     )
                 )
     return findings
+
+
+def _append_missing_sections(
+    findings: list[CheckFinding],
+    artifact_ref: str,
+    body: str,
+    code: str,
+    headings: tuple[str, ...],
+    label: str,
+) -> None:
+    normalized_body = body.replace("\r\n", "\n")
+    missing = [heading for heading in headings if f"## {heading}" not in normalized_body]
+    if missing:
+        findings.append(
+            CheckFinding(
+                severity="FAIL",
+                code=code,
+                message=f"Missing required {label} sections: {', '.join(missing)}.",
+                artifact_ref=artifact_ref,
+            )
+        )
+
+
+def _has_any_section(body: str, headings: tuple[str, ...]) -> bool:
+    normalized_body = body.replace("\r\n", "\n")
+    return any(f"## {heading}" in normalized_body for heading in headings)
+
+
+def _section_items(body: str, heading: str) -> list[str]:
+    lines = _split_body_sections(body).get(_normalize_heading(heading), [])
+    items: list[str] = []
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if stripped.startswith("- "):
+            items.append(stripped[2:].strip())
+        else:
+            items.append(stripped)
+    return items
+
+
+def _split_body_sections(body: str) -> dict[str, list[str]]:
+    sections: dict[str, list[str]] = {}
+    current: str | None = None
+    for line in body.replace("\r\n", "\n").splitlines():
+        if line.startswith("## "):
+            current = _normalize_heading(line[3:].strip())
+            sections.setdefault(current, [])
+            continue
+        if current is not None:
+            sections[current].append(line)
+    return sections
+
+
+def _normalize_heading(value: str) -> str:
+    return " ".join(value.strip().lower().split())
+
+
+def _append_unknown_references(
+    findings: list[CheckFinding],
+    artifact_ref: str,
+    items: list[str],
+    expected_type: ArtifactType,
+    artifacts: list,
+    label: str,
+) -> None:
+    known_labels = {
+        _normalize_reference_label(artifact.slug): artifact
+        for artifact in artifacts
+        if artifact.artifact_type == expected_type
+    }
+    known_labels.update(
+        {
+            _normalize_reference_label(artifact.title): artifact
+            for artifact in artifacts
+            if artifact.artifact_type == expected_type
+        }
+    )
+    unknown = [item for item in items if _normalize_reference_label(item) not in known_labels]
+    if unknown:
+        findings.append(
+            CheckFinding(
+                severity="FAIL",
+                code=f"unknown_{expected_type.value}_reference",
+                message=(
+                    f"Unknown {label} reference(s): "
+                    f"{', '.join(unknown)}."
+                ),
+                artifact_ref=artifact_ref,
+            )
+        )
+
+
+def _append_missing_gherkin_scenarios(
+    findings: list[CheckFinding],
+    artifact_ref: str,
+    body: str,
+    scenario_names: tuple[str, ...],
+) -> None:
+    normalized_body = body.replace("\r\n", "\n")
+    missing = [name for name in scenario_names if f"Scenario: {name}" not in normalized_body]
+    if missing:
+        findings.append(
+            CheckFinding(
+                severity="FAIL",
+                code="missing_gwt_scenarios",
+                message=f"Missing required GWT scenarios: {', '.join(missing)}.",
+                artifact_ref=artifact_ref,
+            )
+        )
+
+
+def _append_incomplete_gherkin_scenarios(
+    findings: list[CheckFinding],
+    artifact_ref: str,
+    body: str,
+) -> None:
+    normalized = body.replace("\r\n", "\n")
+    scenario_headers = list(re.finditer(r"^  Scenario:\s*(.+?)\s*$", normalized, flags=re.MULTILINE))
+    if not scenario_headers:
+        return
+    missing_steps: list[str] = []
+    for index, header in enumerate(scenario_headers):
+        start = header.end()
+        end = scenario_headers[index + 1].start() if index + 1 < len(scenario_headers) else len(normalized)
+        block = normalized[start:end]
+        present = {
+            "Given": "Given" in block,
+            "When": "When" in block,
+            "Then": "Then" in block,
+        }
+        for step, has_step in present.items():
+            if not has_step:
+                missing_steps.append(f"{header.group(1).strip()}: {step}")
+    if missing_steps:
+        findings.append(
+            CheckFinding(
+                severity="FAIL",
+                code="incomplete_gwt_scenarios",
+                message=(
+                    "Each GWT scenario must include Given, When, and Then; missing "
+                    f"{', '.join(missing_steps)}."
+                ),
+                artifact_ref=artifact_ref,
+            )
+        )
+
+
+def _append_state_boundary_terms(
+    findings: list[CheckFinding],
+    artifact_ref: str,
+    body: str,
+) -> None:
+    sections = _split_body_sections(body)
+    lines = sections.get(_normalize_heading("State Boundary"), [])
+    text = "\n".join(line.strip() for line in lines if line.strip()).lower()
+    missing_terms = [term for term in ("server state", "client state") if term not in text]
+    if missing_terms:
+        findings.append(
+            CheckFinding(
+                severity="FAIL",
+                code="missing_state_boundary_terms",
+                message=(
+                    "State Boundary must explicitly separate server state and client state: "
+                    f"{', '.join(missing_terms)} missing."
+                ),
+                artifact_ref=artifact_ref,
+            )
+        )
+
+
+def _normalize_reference_label(value: str) -> str:
+    return " ".join(value.strip().lower().split())

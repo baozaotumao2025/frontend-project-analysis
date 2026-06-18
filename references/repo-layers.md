@@ -1,22 +1,24 @@
 # Repository Layers
 
-This page explains how the repository is organized and how each layer should be read.
+This page shows the repository layers and their reading order.
 
 ## Layer Map
 
 ```mermaid
 flowchart TB
-    A[SKILL.md] --> B[references/methodology.md]
-    A --> C[references/workflow.md]
-    A --> D[references/infrastructure.md]
-    A --> E[references/state-machine.md]
-    A --> F[references/quality-gates.md]
-    A --> G[references/cli-contract.md]
-    A --> H[references/state-entrypoints.md]
-    A --> I[references/adr/index.md]
-    J[README.md] --> K[project overview]
-    J --> L[how to use]
-    J --> M[how to maintain]
+A[SKILL.md] --> B[references/methodology.md]
+A --> C[references/workflow.md]
+A --> D[references/infrastructure.md]
+A --> E[references/state-machine.md]
+A --> F[references/quality-gates.md]
+A --> F2[references/glossary.md]
+A --> G[references/structure.md]
+A --> H[references/cli-contract.md]
+A --> I[references/state-entrypoints.md]
+A --> J[references/adr/index.md]
+J[README.md] --> K[project overview]
+J --> L[how to use]
+J --> M[how to maintain]
     B --> N[workflow semantics]
     C --> N
     D --> O[runtime model]
@@ -32,7 +34,7 @@ flowchart TB
 
 - `SKILL.md` is the operational entrypoint
 - `AGENTS.md` stores repository-wide rules
-- `frontend-decomposition-methodology.md` is only a lightweight working note
+- `frontend-decomposition-methodology.md` is only a lightweight working note and index
 
 ### 2. Canonical reference layer
 
@@ -40,16 +42,17 @@ flowchart TB
 - `references/workflow.md` defines round outputs
 - `references/infrastructure.md` defines runtime architecture and storage behavior
 - `references/state-machine.md` defines lifecycle semantics
+- `references/glossary.md` defines preferred terminology
+- `references/structure.md` defines output layout, naming rules, and file responsibilities
 - `references/cli-contract.md` defines command behavior under the lifecycle gates
 - `references/state-entrypoints.md` defines which commands may write state and which are read-only
 - `references/quality-gates.md` defines validation criteria
 - `references/adr/index.md` defines the ADR index and points to architectural decision records and rationale
-- `references/glossary.md` defines terms and naming
+- `references/document-map.md` defines which document is authoritative for each concern
 
 ### 3. Product summary layer
 
 - `README.md` explains what the project is, what it does, how to use it, and how to maintain it
-- `references/document-map.md` explains which document is authoritative for each concern
 
 ### 4. Implementation layer
 
@@ -68,9 +71,13 @@ If you are new to the repository, read in this order:
 1. `README.md`
 2. `references/document-map.md`
 3. `references/methodology.md`
-4. `references/infrastructure.md`
-5. `references/state-machine.md`
-6. `references/cli-contract.md`
-7. `references/state-entrypoints.md`
-8. `src/frontend_project_analysis/`
-9. `tests/`
+4. `references/glossary.md`
+5. `references/structure.md`
+6. `references/infrastructure.md`
+7. `references/state-machine.md`
+8. `references/workflow.md`
+9. `references/quality-gates.md`
+10. `references/cli-contract.md`
+11. `references/state-entrypoints.md`
+12. `src/frontend_project_analysis/`
+13. `tests/`

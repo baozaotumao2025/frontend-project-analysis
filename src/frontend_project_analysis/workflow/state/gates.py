@@ -76,3 +76,25 @@ def assert_artifact_status_in(
         f"Cannot {action} {artifact_ref(artifact)} while it is '{artifact.status.value}'. "
         f"Expected one of: {expected}."
     )
+
+
+def assert_artifact_can_be_approved(artifact: Artifact) -> None:
+    """Require an artifact to have fresh hard dependencies before approval.
+
+    Approval is the point where a revision becomes fresh and publishable, so we
+    reject the transition if any hard dependency is no longer approved.
+    """
+
+    from ...repositories.dependencies import artifact_ref
+
+    blocked_refs = [
+        f"{artifact_ref(dependency.to_artifact)} ({dependency.to_artifact.status.value})"
+        for dependency in artifact.outgoing_dependencies
+        if dependency.is_hard and dependency.to_artifact.status != ArtifactStatus.APPROVED
+    ]
+    if blocked_refs:
+        blocked = ", ".join(blocked_refs)
+        raise WorkflowStateError(
+            f"Cannot approve {artifact_ref(artifact)} because hard dependencies are not "
+            f"approved: {blocked}."
+        )

@@ -11,6 +11,8 @@ from ...core.domain import ArtifactStatus
 from ...infrastructure.documents import infer_artifact_type, read_document
 from ...models import Project
 from ...repositories.versions import upsert_artifact
+from .document_indexes import refresh_document_indexes
+from .relations import render_relations_markdown
 
 
 def initialize_project(paths, project_key: str, project_name: str) -> dict[str, str]:
@@ -25,6 +27,28 @@ def initialize_project(paths, project_key: str, project_name: str) -> dict[str, 
         "specs/features",
     ):
         (paths.root / relative).mkdir(parents=True, exist_ok=True)
+    refresh_document_indexes(paths.root)
+    (paths.root / "docs" / "relations").mkdir(parents=True, exist_ok=True)
+    for filename, title, headers in (
+        (
+            "persona-story-page-matrix.md",
+            "# Persona Story Page Matrix",
+            (
+                "| Persona | Story Map | Page | Feature |\n"
+                "| --- | --- | --- | --- |"
+            ),
+        ),
+        (
+            "feature-coverage-matrix.md",
+            "# Feature Coverage Matrix",
+            (
+                "| Feature | Service Persona | Source Page | Covered Story |\n"
+                "| --- | --- | --- | --- |"
+            ),
+        ),
+    ):
+        path = paths.root / "docs" / "relations" / filename
+        path.write_text(f"{title}\n\n{headers}\n", encoding="utf-8")
     return {
         "project_key": project_key,
         "project_name": project_name,
@@ -71,4 +95,7 @@ def import_markdown_files(
                 metadata=metadata,
                 created_by="markdown-scan",
             )
+    if apply_changes:
+        refresh_document_indexes(root)
+        render_relations_markdown(session, project, root)
     return previews

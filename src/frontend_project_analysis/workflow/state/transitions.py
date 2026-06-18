@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from ...core.domain import ArtifactStatus
 from ...infrastructure.logging_utils import get_logger
 from ...models import Artifact, ArtifactDependency, ArtifactTransition
-from .gates import assert_transition_allowed
+from .gates import assert_artifact_can_be_approved, assert_transition_allowed
 
 logger = get_logger(__name__)
 
@@ -24,6 +24,8 @@ def transition_artifact(
 
     from_status = artifact.status.value
     assert_transition_allowed(artifact.status, to_status)
+    if to_status == ArtifactStatus.APPROVED:
+        assert_artifact_can_be_approved(artifact)
     artifact.status = to_status
     session.add(
         ArtifactTransition(

@@ -46,7 +46,7 @@ Rejected because rollback and recovery would be under-specified and hard to enfo
 - The workflow becomes stricter, but also easier to reason about.
 - Gate failures are deterministic and local to a revision.
 - Historical approvals remain available for audits and reviews.
-- Recovery requires re-approving the earliest affected stage and replaying the downstream path.
+- Recovery requires revalidating and approving the earliest affected stage, then replaying the downstream path.
 
 ## Notes
 

@@ -10,7 +10,10 @@
 
 - `Persona`
 - `Story Map`
+- `Page Map`
 - `Feature`
+- `Feature Slicing`
+- `Given-When-Then`
 - `Feature Spec`
 - `Happy Path`
 - `Edge Case`
@@ -33,7 +36,9 @@
 
 - Write `Persona definition`, not a translated substitute
 - Write `Story Map`, not a translated substitute
-- Write `Feature Slicing`, not mixed variants for the same concept
+- Write `Page Map`, not a translated substitute
+- Write `Feature Slicing`, not a translated substitute
+- Write `Given-When-Then`, not a translated substitute
 - Write `Feature Spec` as the primary heading
 - Write `Happy Path`, `Edge Case`, `Permission Case`, and `Error Case` in English
 - Write `Given / When / Then` in English
@@ -42,3 +47,6 @@
 - Write `fresh` for an approved revision that is not invalidated by upstream change
 - Write `stale` for a revision that must be revalidated because upstream changed
 - Write `superseded` for a revision replaced by a newer approved revision
+- Write `archived` for a retained revision that is no longer part of active workflow
+- Write `server state` for persisted workflow or backend-owned state
+- Write `client state` for local UI-owned state or transient presentation state

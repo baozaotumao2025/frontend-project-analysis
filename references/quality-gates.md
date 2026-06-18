@@ -29,6 +29,7 @@
 
 - [ ] Every Story Step maps to a page or contextual surface
 - [ ] Every page lists accessible Persona
+- [ ] Every page includes a clear responsibility statement
 - [ ] Page index and page files are consistent
 - [ ] Persona-Story-Page matrix covers all main paths
 - [ ] No orphan pages exist
@@ -37,6 +38,7 @@
 
 - [ ] Every Feature in the current page batch has its own file
 - [ ] Feature index and coverage matrix are updated
+- [ ] Every Feature file includes `Source Story`
 - [ ] `Shared Component` items are identified and not mislabeled as Features
 - [ ] Each Feature meets at least 3 independence signals
 

@@ -9,27 +9,41 @@ from frontend_project_analysis.repositories.versions import upsert_artifact
 
 
 def approve_artifact(session, artifact: Artifact) -> None:
-    transition_artifact(
-        session=session,
-        artifact=artifact,
-        to_status=ArtifactStatus.STRUCTURALLY_VALID,
-        actor="test",
-        reason="structural checks passed",
-    )
-    transition_artifact(
-        session=session,
-        artifact=artifact,
-        to_status=ArtifactStatus.SEMANTIC_REVIEW,
-        actor="test",
-        reason="semantic review recorded",
-    )
-    transition_artifact(
-        session=session,
-        artifact=artifact,
-        to_status=ArtifactStatus.APPROVED,
-        actor="test",
-        reason="approved for downstream use",
-    )
+    if artifact.status in {ArtifactStatus.DRAFT, ArtifactStatus.STALE, ArtifactStatus.REJECTED}:
+        transition_artifact(
+            session=session,
+            artifact=artifact,
+            to_status=ArtifactStatus.STRUCTURALLY_VALID,
+            actor="test",
+            reason="structural checks passed",
+        )
+    if artifact.status in {
+        ArtifactStatus.DRAFT,
+        ArtifactStatus.STALE,
+        ArtifactStatus.REJECTED,
+        ArtifactStatus.STRUCTURALLY_VALID,
+    }:
+        transition_artifact(
+            session=session,
+            artifact=artifact,
+            to_status=ArtifactStatus.SEMANTIC_REVIEW,
+            actor="test",
+            reason="semantic review recorded",
+        )
+    if artifact.status in {
+        ArtifactStatus.DRAFT,
+        ArtifactStatus.STALE,
+        ArtifactStatus.REJECTED,
+        ArtifactStatus.STRUCTURALLY_VALID,
+        ArtifactStatus.SEMANTIC_REVIEW,
+    }:
+        transition_artifact(
+            session=session,
+            artifact=artifact,
+            to_status=ArtifactStatus.APPROVED,
+            actor="test",
+            reason="approved for downstream use",
+        )
 
 
 def artifact_in_status(

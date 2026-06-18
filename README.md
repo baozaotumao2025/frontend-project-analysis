@@ -55,6 +55,8 @@ uv run fpa review structural --project crm-web --artifact persona:sales-rep
 - [AGENTS.md](AGENTS.md)
 - [pyproject.toml](pyproject.toml)
 - [README.md](README.md)
+- [frontend-decomposition-methodology.md](frontend-decomposition-methodology.md)
+- [agents/](agents)
 - [references/](references)
 - [scripts/](scripts)
 - [migrations/](migrations)
@@ -78,11 +80,18 @@ uv run fpa review structural --project crm-web --artifact persona:sales-rep
 执行 `uv run fpa project init ...` 后，会创建这些文档目录：
 
 ```text
+docs/index.md
 docs/personas/
+docs/personas/index.md
 docs/story-maps/
+docs/story-maps/index.md
 docs/pages/
+docs/pages/index.md
 docs/features/
+docs/features/index.md
 docs/relations/
+docs/relations/persona-story-page-matrix.md
+docs/relations/feature-coverage-matrix.md
 docs/gwt/
 specs/features/
 ```
@@ -106,14 +115,14 @@ CLI 层面的用户影响和命令约束见 [references/cli-contract.md](referen
 
 ### Artifact 流程
 
-- `artifact add`：注册 `persona`、`story_map`、`page`、`feature`、`gwt` 或 `feature_spec`
+- `artifact add`：注册 `persona`、`story_map`、`page`、`feature`、`gwt` 或 `feature_spec`，且新建内容只会进入 `draft`
 - `artifact link`：建立 artifact 之间的依赖边
 - `artifact list`：列出项目下的 artifact
 - `artifact ready`：输出当前可以继续推进的 artifact
 
 ### Review 流程
 
-- `review structural`：做确定性的结构校验
+- `review structural`：做确定性的结构校验，并把通过的 `draft` 推到 `structurally_valid`
 - `review semantic-packet`：生成语义审查 packet
 - `review semantic-run`：在 `host` 或外部 LLM 模式下执行语义审查
 - `review semantic-record`：把语义审查结果写回数据库
@@ -200,6 +209,7 @@ uv run fpa review reject --project crm-web --artifact feature:customer-assignmen
 ```
 
 `host` 模式下，`semantic-run` 不会调用外部模型，而是直接把 packet 交给当前 Codex 或 Claude Code 会话做判断，再用 `semantic-record` 记录结果。
+`review approve` 只接受已经进入 `semantic_review` 的 revision；如果 revision 变成 `stale`，需要先重新做 `review structural` 再继续后续审查。
 
 ### 3.7 命令与 gate 影响
 
@@ -215,6 +225,8 @@ uv run fpa import manifest --project crm-web --input /tmp/manifest.json --apply
 uv run fpa import markdown-scan --project crm-web
 uv run fpa import markdown-scan --project crm-web --apply
 ```
+
+`import markdown-scan --apply` 不只会把 Markdown frontmatter 同步进数据库，还会刷新 `docs/index.md`、各层级的 index 页，以及 `docs/relations/` 下的关系矩阵。
 
 ### 3.9 维护数据库
 

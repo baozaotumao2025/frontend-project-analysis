@@ -49,7 +49,7 @@ If you need to check which document is authoritative for a topic, read `referenc
 - Default output roots are `docs/` and `specs/features/`
 - Default document layout and file naming follow `references/structure.md`
 - Use the templates in `references/templates.md` only as a starting point; adapt them to the project context
-- Add structured frontmatter to managed Markdown files so the CLI can validate type, round, status, and project alignment
+- Add structured frontmatter to workflow-managed Markdown artifact files so the CLI can validate type, round, status, and project alignment
 - Professional terms such as `Persona`, `Story Map`, `Feature`, `Feature Spec`, `Happy Path`, `Edge Case`, `Permission Case`, and `Error Case` should remain in English
 
 ## Boundaries

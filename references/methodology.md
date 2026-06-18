@@ -55,6 +55,7 @@ Create a User Story Map for each Persona.
 ## Output Requirements
 - One Story Map per Persona
 - Format: Activity -> Step -> Story
+- Include explicit `Start` and `End` markers or sections so the map boundaries are unambiguous
 - Use a tree-like code block format
 - Describe user behavior only
 - Do not mention page names or feature names
@@ -197,6 +198,6 @@ Plan the frontend implementation order using vertical-slice delivery.
 | Round 3 | Page Map | Round 2 | Route tree and page inventory | Whole project |
 | Round 4 | Feature Slicing | Round 3 | Feature list and directory structure | Per page batch |
 | Round 5 | Given-When-Then | One Feature from Round 4 | Gherkin file | Per Feature |
-| Round 6 | Feature Spec and planning | All approved artifacts | Specs and delivery order | Whole project |
+| Round 6 | Feature Spec And Delivery Planning | All approved artifacts | Specs and delivery order | Whole project |
 
 The original methodology had 7 steps. `Component` and `State Boundary` are merged into Round 4 because they depend on Feature definitions and do not need a separate round.

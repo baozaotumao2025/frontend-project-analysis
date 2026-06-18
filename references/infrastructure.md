@@ -49,12 +49,14 @@ Each target project keeps its workflow state inside:
   backups/
   exports/
   logs/
+  audits/
 ```
 
 - `state.db`: SQLite source of truth
 - `backups/`: timestamped database backups
 - `exports/`: JSON manifests and exported relation files
 - `logs/`: reserved for future automation logs
+- `audits/`: provider request/response archives and event timelines
 
 ## Source Of Truth
 
@@ -118,6 +120,8 @@ This is the same wiring `project init` relies on when bootstrapping a fresh targ
 - `uv run fpa import markdown-scan --project <key> --apply`
 - `uv run fpa export manifest --project <key>`
 - `uv run fpa export relations --project <key>`
+
+When `markdown-scan --apply` runs, the importer refreshes the document indexes and relation matrices from the current SQLite state.
 
 ## Skill Integration Rule
 

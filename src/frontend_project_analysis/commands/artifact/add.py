@@ -22,11 +22,6 @@ def artifact_add(
     slug: str = typer.Option(..., "--slug"),
     title: str = typer.Option(..., "--title"),
     source_path: str | None = typer.Option(None, "--source-path"),
-    status: ArtifactStatus = typer.Option(
-        ArtifactStatus.DRAFT,
-        "--status",
-        help="New artifacts must start as draft; lifecycle changes happen via review commands.",
-    ),
 ) -> None:
     paths = get_paths()
     initialize_database(paths)
@@ -39,7 +34,7 @@ def artifact_add(
             slug=slug,
             title=title,
             source_path=source_path,
-            status=status,
+            status=ArtifactStatus.DRAFT,
             metadata={},
             created_by="cli",
         )

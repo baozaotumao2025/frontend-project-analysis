@@ -1,6 +1,6 @@
 # Documentation Map
 
-This page explains which document is authoritative for which concern.
+This page maps each concern to its canonical document.
 
 | Document | Layer | Purpose | Authority |
 | --- | --- | --- | --- |
@@ -13,11 +13,13 @@ This page explains which document is authoritative for which concern.
 | `references/state-machine.md` | Reference | Artifact lifecycle semantics | Canonical status semantics |
 | `references/cli-contract.md` | Reference | CLI behavior under code-enforced gates | Canonical user-facing command contract |
 | `references/state-entrypoints.md` | Reference | Which commands can mutate workflow state | Canonical entrypoint map |
+| `references/structure.md` | Reference | Output layout, naming rules, and responsibility boundaries | Canonical file layout guide |
+| `references/templates.md` | Reference | Managed file templates and required section shapes | Canonical file shape guide |
 | `references/adr/index.md` | ADR | Architectural decision records | Canonical design rationale |
 | `references/repo-layers.md` | Reference | Repository layout and reading order | Structural navigation guide |
 | `references/release-checklist.md` | Reference | Public release boundary and preflight checks | Release preparation guide |
 | `references/glossary.md` | Reference | Terms and naming rules | Canonical vocabulary |
-| `frontend-decomposition-methodology.md` | Working note | Lightweight working note | Non-authoritative index only |
+| `frontend-decomposition-methodology.md` | Working note | Lightweight working note and index | Non-authoritative index only |
 
 ## Rules
 

@@ -10,6 +10,7 @@ from frontend_project_analysis.infrastructure.storage import session_scope
 from frontend_project_analysis.repositories.dependencies import add_dependency, get_artifact_by_ref
 from frontend_project_analysis.repositories.projects import ensure_project, get_project
 from frontend_project_analysis.repositories.versions import upsert_artifact
+from frontend_project_analysis.workflow.state.definitions import WorkflowStateError
 from tests.cli_support import (
     bootstrap_project,
     invoke_with_root,
@@ -265,8 +266,8 @@ def test_workflow_start_stays_blocked_when_only_a_lower_downstream_layer_is_reva
     with session_scope(paths) as session:
         project = get_project(session, "crm-web")
         recovery_artifact = get_artifact_by_ref(session, project, case.wrong_recovery_ref)
-        approve_artifact(session, recovery_artifact)
-        session.commit()
+        with pytest.raises(WorkflowStateError, match="hard dependencies are not approved"):
+            approve_artifact(session, recovery_artifact)
 
     still_blocked_gate = invoke_with_root(
         tmp_path,
@@ -286,8 +287,29 @@ def test_workflow_start_stays_blocked_when_only_a_lower_downstream_layer_is_reva
     with session_scope(paths) as session:
         project = get_project(session, "crm-web")
         correct_recovery = get_artifact_by_ref(session, project, case.correct_recovery_ref)
-        approve_artifact(session, correct_recovery)
-        session.commit()
+        if case.round_number == 4:
+            approve_artifact(session, correct_recovery)
+            session.commit()
+        elif case.round_number == 5:
+            with pytest.raises(WorkflowStateError, match="hard dependencies are not approved"):
+                approve_artifact(session, correct_recovery)
+            page = get_artifact_by_ref(session, project, "page:customer-profile")
+            approve_artifact(session, page)
+            approve_artifact(session, correct_recovery)
+            session.commit()
+        elif case.round_number == 6:
+            with pytest.raises(WorkflowStateError, match="hard dependencies are not approved"):
+                approve_artifact(session, correct_recovery)
+            page = get_artifact_by_ref(session, project, "page:customer-profile")
+            feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
+            approve_artifact(session, page)
+            approve_artifact(session, feature)
+            approve_artifact(session, correct_recovery)
+            feature_spec = get_artifact_by_ref(session, project, "feature_spec:customer-assignment")
+            approve_artifact(session, feature_spec)
+            session.commit()
+        else:
+            raise AssertionError(f"Unexpected round number: {case.round_number}")
 
     restored_gate = invoke_with_root(
         tmp_path,
@@ -528,28 +550,23 @@ def test_workflow_start_blocks_round_4_when_page_becomes_stale(tmp_path: Path) -
     with session_scope(paths) as session:
         project = get_project(session, "crm-web")
         feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
-        approve_artifact(session, feature)
-        session.commit()
-
-    still_blocked_gate = invoke_with_root(
-        tmp_path,
-        [
-            "workflow",
-            "start",
-            "--project",
-            "crm-web",
-            "--round",
-            "4",
-        ],
-    )
-    assert still_blocked_gate.exit_code == 1, still_blocked_gate.output
-    assert "page:customer-profile" in still_blocked_gate.output
-    assert "stale" in still_blocked_gate.output.lower()
+        with pytest.raises(WorkflowStateError, match="hard dependencies are not approved"):
+            approve_artifact(session, feature)
 
     with session_scope(paths) as session:
         project = get_project(session, "crm-web")
         page = get_artifact_by_ref(session, project, "page:customer-profile")
         approve_artifact(session, page)
+        feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
+        approve_artifact(session, feature)
+        session.commit()
+
+    with session_scope(paths) as session:
+        project = get_project(session, "crm-web")
+        page = get_artifact_by_ref(session, project, "page:customer-profile")
+        approve_artifact(session, page)
+        feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
+        approve_artifact(session, feature)
         session.commit()
 
     restored_gate = invoke_with_root(
@@ -619,27 +636,13 @@ def test_workflow_start_blocks_round_5_when_feature_becomes_stale(tmp_path: Path
     with session_scope(paths) as session:
         project = get_project(session, "crm-web")
         gwt = get_artifact_by_ref(session, project, "gwt:customer-assignment")
-        approve_artifact(session, gwt)
-        session.commit()
-
-    still_blocked_gate = invoke_with_root(
-        tmp_path,
-        [
-            "workflow",
-            "start",
-            "--project",
-            "crm-web",
-            "--round",
-            "5",
-        ],
-    )
-    assert still_blocked_gate.exit_code == 1, still_blocked_gate.output
-    assert "feature:customer-assignment" in still_blocked_gate.output
-    assert "stale" in still_blocked_gate.output.lower()
+        with pytest.raises(WorkflowStateError, match="hard dependencies are not approved"):
+            approve_artifact(session, gwt)
 
     with session_scope(paths) as session:
         project = get_project(session, "crm-web")
         page = get_artifact_by_ref(session, project, "page:customer-profile")
+        approve_artifact(session, page)
         feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
         approve_artifact(session, feature)
         session.commit()
@@ -716,6 +719,8 @@ def test_workflow_start_blocks_round_6_when_feature_spec_becomes_stale(
     with session_scope(paths) as session:
         project = get_project(session, "crm-web")
         page = get_artifact_by_ref(session, project, "page:customer-profile")
+        with pytest.raises(WorkflowStateError, match="hard dependencies are not approved"):
+            approve_artifact(session, get_artifact_by_ref(session, project, "feature_spec:customer-assignment"))
         approve_artifact(session, page)
         feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
         approve_artifact(session, feature)

@@ -1,6 +1,6 @@
 # CLI Contract Under State Gates
 
-This page explains the user-facing impact of the code-enforced state gates.
+This page summarizes the user impact of the code-enforced state gates.
 
 ## What Changed
 
@@ -20,22 +20,22 @@ This page explains the user-facing impact of the code-enforced state gates.
 
 - `fpa artifact add` is now a draft-only registration command.
 - `fpa workflow start` hard-checks that a downstream round can start only after the required upstream revisions are approved and fresh.
-- `fpa review structural` remains the first gate that can move a `draft` artifact forward.
-- `fpa review semantic-run`, `fpa review semantic-record`, `fpa review approve`, and `fpa review reject` remain the only supported lifecycle advancement commands.
+- `fpa review structural` remains the first gate that can move a `draft` artifact to `structurally_valid`.
+- Beyond the structural gate, lifecycle changes only happen through `fpa review semantic-run`, `fpa review semantic-record`, `fpa review approve`, and `fpa review reject`.
 - `fpa artifact link` can invalidate approval lineage when it introduces a new hard dependency.
 - `fpa artifact ready` continues to report artifacts whose hard dependencies are approved, but it should be read as a scheduling hint, not a lifecycle override.
 
 ## Related Files
 
-- [`src/frontend_project_analysis/repositories/versions.py`](/Users/cherubines/Documents/MaxCPA/src/frontend_project_analysis/repositories/versions.py)
-- [`src/frontend_project_analysis/repositories/dependencies.py`](/Users/cherubines/Documents/MaxCPA/src/frontend_project_analysis/repositories/dependencies.py)
-- [`src/frontend_project_analysis/workflow/state/gates.py`](/Users/cherubines/Documents/MaxCPA/src/frontend_project_analysis/workflow/state/gates.py)
-- [`src/frontend_project_analysis/workflow/state/transitions.py`](/Users/cherubines/Documents/MaxCPA/src/frontend_project_analysis/workflow/state/transitions.py)
-- [`src/frontend_project_analysis/workflow/io/import_manifest.py`](/Users/cherubines/Documents/MaxCPA/src/frontend_project_analysis/workflow/io/import_manifest.py)
-- [`src/frontend_project_analysis/workflow/io/import_markdown.py`](/Users/cherubines/Documents/MaxCPA/src/frontend_project_analysis/workflow/io/import_markdown.py)
-- [`references/state-entrypoints.md`](/Users/cherubines/Documents/MaxCPA/references/state-entrypoints.md)
-- [`src/frontend_project_analysis/commands/artifact/add.py`](/Users/cherubines/Documents/MaxCPA/src/frontend_project_analysis/commands/artifact/add.py)
-- [`src/frontend_project_analysis/commands/artifact/link.py`](/Users/cherubines/Documents/MaxCPA/src/frontend_project_analysis/commands/artifact/link.py)
+- [`src/frontend_project_analysis/repositories/versions.py`](../src/frontend_project_analysis/repositories/versions.py)
+- [`src/frontend_project_analysis/repositories/dependencies.py`](../src/frontend_project_analysis/repositories/dependencies.py)
+- [`src/frontend_project_analysis/workflow/state/gates.py`](../src/frontend_project_analysis/workflow/state/gates.py)
+- [`src/frontend_project_analysis/workflow/state/transitions.py`](../src/frontend_project_analysis/workflow/state/transitions.py)
+- [`src/frontend_project_analysis/workflow/io/import_manifest.py`](../src/frontend_project_analysis/workflow/io/import_manifest.py)
+- [`src/frontend_project_analysis/workflow/io/import_markdown.py`](../src/frontend_project_analysis/workflow/io/import_markdown.py)
+- [`references/state-entrypoints.md`](state-entrypoints.md)
+- [`src/frontend_project_analysis/commands/artifact/add.py`](../src/frontend_project_analysis/commands/artifact/add.py)
+- [`src/frontend_project_analysis/commands/artifact/link.py`](../src/frontend_project_analysis/commands/artifact/link.py)
 
 ## Operational Notes
 

@@ -25,7 +25,7 @@ This page defines the lifecycle semantics for `ArtifactStatus`.
 | `semantic_review` | Semantic review completed and the revision is waiting for explicit human approval. It is a holding state, not a final verdict. | `review semantic-run` or `review semantic-record` when semantic review passes and auto-approve is off | `review approve`, `review reject`, `review semantic-run` or `review semantic-record` with auto-approve on and `passed`, new revision creation |
 | `approved` | The revision has been explicitly accepted and is currently fresh. | `review approve`, or semantic review with auto-approve on and `passed` | `review reject`, upstream invalidation can mark dependents stale, a newer approved revision can supersede it |
 | `rejected` | The revision was rejected by semantic or human review. | `review semantic-run`, `review semantic-record`, `review reject` | new revision creation, re-import, or explicit rework |
-| `stale` | The revision is no longer fresh because an upstream approved revision changed. | upstream approval of a dependency that this revision consumes | `review structural`, `review semantic-run`, `review approve`, `review reject`, replacement by a newer revision, re-import |
+| `stale` | The revision is no longer fresh because an upstream approved revision changed. | upstream approval of a dependency that this revision consumes | `review structural`, `review reject`, replacement by a newer revision, re-import |
 | `superseded` | A newer revision has replaced this one as the current working truth for the same artifact. | explicit replacement by a newer approved revision | archival or historical retention only |
 | `archived` | The revision is retained for history but is no longer part of active workflow. | retention or release closure | none in normal workflow |
 
@@ -55,8 +55,6 @@ stateDiagram-v2
     stale --> draft: re-import or new revision created
     stale --> structurally_valid: review structural passes
     stale --> rejected: review reject
-    stale --> semantic_review: semantic review passes
-    stale --> approved: semantic review passes with auto-approve
 
     superseded --> archived: explicit archival
     rejected --> draft: new revision created
@@ -94,8 +92,8 @@ When a new Persona revision is created after later rounds already exist:
 - the new Persona revision starts in `draft`
 - the previous Persona revision may be marked `superseded` once the new revision is approved
 - every downstream Story Map, Page, Feature, GWT, or Feature Spec revision that depended on the previous Persona revision becomes `stale`
-- downstream work may stay editable, but it cannot pass its next gate until the new upstream revision is re-approved
+- downstream work may stay editable, but it cannot pass its next gate until the new upstream revision is revalidated and approved
 
 The same rule applies to any earlier-round artifact that changes after later rounds have been approved.
 
-For operator-oriented examples and the round-by-round recovery lookup, see [`references/workflow.md`](/Users/cherubines/Documents/MaxCPA/references/workflow.md).
+For operator-oriented examples and the round-by-round recovery lookup, see [`references/workflow.md`](workflow.md).

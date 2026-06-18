@@ -40,8 +40,8 @@ specs/
 
 - `docs/personas/[persona-name].md`: Persona definition only
 - `docs/story-maps/[persona-name].md`: `Activity -> Step -> Story` only
-- `docs/pages/[page-slug].md`: page scope, accessible Persona, Story Steps, related Features
-- `docs/features/[feature-name].md`: Feature summary only
+- `docs/pages/[page-slug].md`: page scope, accessible Persona, Story Steps, page responsibility, related Features
+- `docs/features/[feature-name].md`: Feature summary with page, Persona, responsibility, state type, reuse, and source story
 - `docs/relations/persona-story-page-matrix.md`: Persona to Story to Page to Feature mapping
 - `docs/relations/feature-coverage-matrix.md`: Feature to Persona, Page, and Story mapping
 - `docs/gwt/[feature-name].feature`: acceptance behavior
@@ -49,7 +49,7 @@ specs/
 
 ## Managed Frontmatter
 
-Managed Markdown files should include frontmatter like:
+Structured Markdown artifact files that participate in workflow state should include frontmatter like:
 
 ```yaml
 ---
@@ -62,7 +62,7 @@ title: Customer Assignment
 ---
 ```
 
-The CLI validates these fields during structural review.
+The CLI validates these fields during structural review for Persona, Story Map, Page, and Feature artifacts.
 
 ## Design Rules
 

@@ -83,6 +83,12 @@ def test_review_semantic_packet_and_exports(
     assert feature_path.exists()
     assert "Persona Story Page Matrix" in psp_path.read_text(encoding="utf-8")
     assert "Feature Coverage Matrix" in feature_path.read_text(encoding="utf-8")
+    assert "| Persona | Story Map | Page | Feature |" in psp_path.read_text(
+        encoding="utf-8"
+    )
+    assert "| Feature | Service Persona | Source Page | Covered Story |" in feature_path.read_text(
+        encoding="utf-8"
+    )
 
 
 def test_review_semantic_run_updates_state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -250,3 +256,88 @@ def test_review_semantic_run_passed_can_auto_approve(
         )
         assert artifact_row.status == ArtifactStatus.APPROVED
         assert review is not None
+
+
+def test_review_approve_rejects_stale_hard_dependencies(
+    tmp_path: Path,
+) -> None:
+    bootstrap_project(tmp_path)
+    prepare_feature_for_semantic_review(tmp_path)
+
+    feature_review_path = tmp_path / "feature-semantic-review.json"
+    feature_review_path.write_text(
+        json.dumps(
+            {
+                "decision": "passed",
+                "summary": "Feature semantic review passed.",
+                "reviewer_ref": "fake-llm",
+                "model": "fake-model",
+                "findings": [],
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    feature_record = invoke_with_root(
+        tmp_path,
+        [
+            "review",
+            "semantic-record",
+            "--project",
+            "crm-web",
+            "--artifact",
+            "feature:customer-assignment",
+            "--input",
+            str(feature_review_path),
+        ],
+    )
+    assert feature_record.exit_code == 0, feature_record.output
+
+    add_page = invoke_with_root(
+        tmp_path,
+        [
+            "artifact",
+            "add",
+            "--project",
+            "crm-web",
+            "--type",
+            "page",
+            "--slug",
+            "ops-overview",
+            "--title",
+            "Ops Overview",
+        ],
+    )
+    assert add_page.exit_code == 0, add_page.output
+
+    link_page = invoke_with_root(
+        tmp_path,
+        [
+            "artifact",
+            "link",
+            "--project",
+            "crm-web",
+            "--from",
+            "persona:sales-rep",
+            "--to",
+            "page:ops-overview",
+        ],
+    )
+    assert link_page.exit_code == 0, link_page.output
+
+    approve_result = invoke_with_root(
+        tmp_path,
+        [
+            "review",
+            "approve",
+            "--project",
+            "crm-web",
+            "--artifact",
+            "feature:customer-assignment",
+        ],
+    )
+    assert approve_result.exit_code == 1, approve_result.output
+    assert "hard dependencies are not approved" in approve_result.output.lower()
+    assert "persona:sales-rep" in approve_result.output
+    assert "stale" in approve_result.output.lower()

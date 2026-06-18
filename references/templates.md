@@ -49,9 +49,15 @@
 ```md
 # [Persona Name] Story Map
 
+## Start
+- []
+
 ## Activity 1: []
 - Step 1: []
   - Story: []
+
+## End
+- []
 ```
 
 `docs/pages/index.md`
@@ -76,6 +82,8 @@
 
 ## Story Steps Covered
 - []
+
+## Page Responsibility
 
 ## Related Features
 - []
@@ -109,6 +117,21 @@ Feature: [feature-name]
     Given []
     When []
     Then []
+
+  Scenario: Permission Case
+    Given []
+    When []
+    Then []
+
+  Scenario: Error Case
+    Given []
+    When []
+    Then []
+
+  Scenario: Edge Case
+    Given []
+    When []
+    Then []
 ```
 
 `specs/features/[feature-name]-spec.md`
@@ -120,6 +143,8 @@ Feature: [feature-name]
 ## Roles And Permissions
 ## Component Breakdown
 ## State Boundary
+### server state
+### client state
 ## Cross-Feature Dependencies
 ## Given-When-Then Acceptance Spec
 ```

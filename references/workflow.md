@@ -1,6 +1,6 @@
 # Workflow
 
-This page defines the round-by-round contract for the analysis workflow.
+This page defines the analysis workflow round contract.
 
 ## Gate Contract
 
@@ -25,7 +25,7 @@ Use this matrix as the operator-facing lookup when a later round reveals that an
 | 5 | `page:customer-profile` | `gwt:customer-assignment` | `feature:customer-assignment` | `feature:customer-assignment` |
 | 6 | `page:customer-profile` | `feature_spec:customer-assignment` | `gwt:customer-assignment` | `gwt:customer-assignment` |
 
-The table mirrors the regression matrix in `tests/test_cli_workflow_gate.py`: a lower downstream layer may be revalidated, but the gate remains blocked until the exact round input has been re-approved.
+The table mirrors the regression matrix in `tests/test_cli_workflow_gate.py`: a lower downstream layer may be revalidated, but the gate remains blocked until the exact round input has been revalidated and approved.
 
 ## Round 1: Persona Definition
 
@@ -51,9 +51,9 @@ Persona split rules:
 - Semantic review should judge business coherence; structural review still runs via CLI
 - If no external LLM is configured, use `FPA_LLM_PROVIDER=host` and let the current Codex or Claude Code session automatically judge the semantic packet
 - Round 2 MUST consume only `approved` Persona revisions that are not `stale`
-- If a Persona revision changes later, any Story Map revision that depends on it becomes stale and MUST be re-approved before it can feed Round 3
+- If a Persona revision changes later, any Story Map revision that depends on it becomes stale and MUST be revalidated and approved before it can feed Round 3
 
-## Round 3: Page Mapping
+## Round 3: Page Map
 
 - Input: approved `docs/story-maps/*.md`
 - Output: `docs/pages/index.md`, `docs/pages/[page-slug].md`, and `docs/relations/persona-story-page-matrix.md`
@@ -66,7 +66,7 @@ Persona split rules:
 - Input: approved `docs/pages/*.md`
 - Output: `docs/features/index.md`, `docs/features/[feature-name].md`, and `docs/relations/feature-coverage-matrix.md`
 - Process 1-3 pages at a time, then pause
-- Each Feature should record name, page, responsibility, state type, and cross-page reuse
+- Each Feature should record name, page, responsibility, state type, cross-page reuse, and source story
 - Round 4 MUST consume only `approved` Page revisions that are not `stale`
 - If a Page revision changes later, derived Feature revisions become stale and MUST be revalidated
 
@@ -78,7 +78,7 @@ Persona split rules:
 - Round 5 MUST consume only `approved` Feature revisions that are not `stale`
 - If a Feature revision changes later, its GWT revision becomes stale
 
-## Round 6: Feature Spec
+## Round 6: Feature Spec And Delivery Planning
 
 - Input: all approved artifacts
 - Output: `specs/features/[feature-name]-spec.md`

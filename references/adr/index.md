@@ -1,6 +1,6 @@
 # ADR Index
 
-This directory records architectural and workflow decisions that are important enough to keep as durable rationale.
+This directory records durable architectural and workflow decisions.
 
 ## Records
 

@@ -1,6 +1,6 @@
 # State Entrypoints
 
-This page explains which commands are allowed to change workflow state and which commands are read-only.
+This page lists the commands that can mutate workflow state and the ones that are read-only.
 
 ## Source Of Truth
 
@@ -24,7 +24,7 @@ These commands can create or mutate workflow state:
 | `fpa review structural` | Moves eligible revisions to `structurally_valid` | Can also be used to revalidate `stale` revisions |
 | `fpa review semantic-run` | Records semantic review and advances state according to the review result | May stop at `semantic_review` when human approval is still required |
 | `fpa review semantic-record` | Records an externally produced semantic review result | Same state effect as `semantic-run` record mode |
-| `fpa review approve` | Moves a revision to `approved` | Also propagates freshness invalidation through dependents when needed |
+| `fpa review approve` | Moves a `semantic_review` revision to `approved` | Also propagates freshness invalidation through dependents when needed |
 | `fpa review reject` | Moves a revision to `rejected` | Ends the current revision's approval path |
 
 ## Gate Entrypoints

@@ -138,7 +138,17 @@ def test_import_markdown_content_change_resets_to_draft(tmp_path: Path) -> None:
         "---\n"
         "# Customer Profile\n"
         "\n"
-        "Profile content.\n",
+        "## Route Information\n"
+        "- Route: `/customer-profile`\n"
+        "\n"
+        "## Accessible Persona\n"
+        "- Sales Rep\n"
+        "\n"
+        "## Story Steps Covered\n"
+        "- Review customer details\n"
+        "\n"
+        "## Related Features\n"
+        "- Customer Assignment\n",
         encoding="utf-8",
     )
 
@@ -178,7 +188,17 @@ def test_import_markdown_content_change_resets_to_draft(tmp_path: Path) -> None:
         "---\n"
         "# Customer Profile\n"
         "\n"
-        "Profile content updated.\n",
+        "## Route Information\n"
+        "- Route: `/customer-profile`\n"
+        "\n"
+        "## Accessible Persona\n"
+        "- Sales Rep\n"
+        "\n"
+        "## Story Steps Covered\n"
+        "- Review customer details\n"
+        "\n"
+        "## Related Features\n"
+        "- Customer Assignment\n",
         encoding="utf-8",
     )
 
@@ -214,7 +234,17 @@ def test_import_markdown_scan_ignores_frontmatter_status_override(tmp_path: Path
         "---\n"
         "# Customer Profile\n"
         "\n"
-        "Profile content.\n",
+        "## Route Information\n"
+        "- Route: `/customer-profile`\n"
+        "\n"
+        "## Accessible Persona\n"
+        "- Sales Rep\n"
+        "\n"
+        "## Story Steps Covered\n"
+        "- Review customer details\n"
+        "\n"
+        "## Related Features\n"
+        "- Customer Assignment\n",
         encoding="utf-8",
     )
 
@@ -295,7 +325,17 @@ def test_import_markdown_scan_apply_updates_state(tmp_path: Path) -> None:
         "---\n"
         "# Customer Profile\n"
         "\n"
-        "Profile content.\n",
+        "## Route Information\n"
+        "- Route: `/customer-profile`\n"
+        "\n"
+        "## Accessible Persona\n"
+        "- Sales Rep\n"
+        "\n"
+        "## Story Steps Covered\n"
+        "- Review customer details\n"
+        "\n"
+        "## Related Features\n"
+        "- Customer Assignment\n",
         encoding="utf-8",
     )
 

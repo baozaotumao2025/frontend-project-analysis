@@ -55,9 +55,9 @@ Before publishing, verify:
 
 1. `uv run pytest`
 2. `uv run ruff check src/frontend_project_analysis tests`
-3. `rg -n "/Users/cherubines/Documents/MaxCPA" README.md SKILL.md references frontend-decomposition-methodology.md AGENTS.md` returns no matches
+3. `rg -n "/Users/cherubines/Documents/MaxCPA" README.md SKILL.md references frontend-decomposition-methodology.md AGENTS.md --glob '!references/release-checklist.md'` returns no matches
 4. `git status --short` shows no runtime data such as `.frontend-project-analysis/`
-5. `README.md`, `SKILL.md`, and `references/document-map.md` agree on the authoritative source order
+5. `README.md`, `SKILL.md`, and `references/document-map.md` agree on document authority and reading order
 
 ## Release Notes
 
