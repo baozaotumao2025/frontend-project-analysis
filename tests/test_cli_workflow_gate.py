@@ -552,3 +552,53 @@ def test_workflow_start_blocks_round_6_when_feature_spec_becomes_stale(
         ],
     )
     assert restored_gate.exit_code == 0, restored_gate.output
+
+
+def test_workflow_start_keeps_round_6_blocked_until_all_downstream_revalidated(
+    tmp_path: Path,
+) -> None:
+    paths, files = _seed_full_chain(tmp_path)
+
+    files["page"].write_text("Page v2", encoding="utf-8")
+    with session_scope(paths) as session:
+        project = get_project(session, "crm-web")
+        page = upsert_artifact(
+            session=session,
+            project=project,
+            artifact_type=ArtifactType.PAGE,
+            slug="customer-profile",
+            title="Customer Profile",
+            source_path=str(files["page"].relative_to(tmp_path)),
+            status=ArtifactStatus.DRAFT,
+            metadata={},
+            created_by="test",
+        )
+        feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
+        gwt = get_artifact_by_ref(session, project, "gwt:customer-assignment")
+        feature_spec = get_artifact_by_ref(session, project, "feature_spec:customer-assignment")
+        assert page.status == ArtifactStatus.STALE
+        assert feature.status == ArtifactStatus.STALE
+        assert gwt.status == ArtifactStatus.STALE
+        assert feature_spec.status == ArtifactStatus.STALE
+        session.commit()
+
+    with session_scope(paths) as session:
+        project = get_project(session, "crm-web")
+        page = get_artifact_by_ref(session, project, "page:customer-profile")
+        approve_artifact(session, page)
+        session.commit()
+
+    still_blocked_gate = invoke_with_root(
+        tmp_path,
+        [
+            "workflow",
+            "start",
+            "--project",
+            "crm-web",
+            "--round",
+            "6",
+        ],
+    )
+    assert still_blocked_gate.exit_code == 1, still_blocked_gate.output
+    assert "gwt:customer-assignment" in still_blocked_gate.output
+    assert "stale" in still_blocked_gate.output.lower()
