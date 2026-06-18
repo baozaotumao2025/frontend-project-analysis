@@ -1,6 +1,6 @@
 [project]
 name = "frontend-project-analysis"
-version = "0.1.0"
+version = "1.0.0"
 description = "Document-first frontend project analysis infrastructure with SQLite-backed workflow governance."
 readme = "README.md"
 requires-python = "==3.12.*"
@@ -31,6 +31,9 @@ packages = ["src/frontend_project_analysis"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+  "smoke: fast regression checks for CLI wiring and compatibility facades",
+]
 
 [tool.ruff]
 target-version = "py312"
@@ -38,3 +41,12 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/frontend_project_analysis/core/__init__.py" = ["E501", "F401", "I001"]
+"src/frontend_project_analysis/infrastructure/__init__.py" = ["E501", "F401", "I001"]
+"src/frontend_project_analysis/models/__init__.py" = ["E501", "F401", "I001"]
+"src/frontend_project_analysis/schemas/__init__.py" = ["E501", "F401", "I001"]
+"src/frontend_project_analysis/workflow/io/__init__.py" = ["E501", "F401", "I001"]
+"src/frontend_project_analysis/workflow/state/checks.py" = ["F401"]
+"src/frontend_project_analysis/commands/review/__init__.py" = ["F401", "I001", "E402"]

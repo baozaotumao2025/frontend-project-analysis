@@ -6,8 +6,8 @@
 
 ## 入口路由
 
-- 如果任务是 Persona 定义、Story Map、页面映射、Feature 拆分、GWT 编写或 Feature Spec 生成，优先使用根目录的 [SKILL.md](/Users/cherubines/Documents/MaxCPA/SKILL.md:1)。
-- 对于这条工作流，把 [references/methodology.md](/Users/cherubines/Documents/MaxCPA/references/methodology.md:1) 视为方法论唯一依据。
+- 如果任务是 Persona 定义、Story Map、页面映射、Feature 拆分、GWT 编写或 Feature Spec 生成，优先使用根目录的 [SKILL.md](SKILL.md)。
+- 对于这条工作流，把 [references/methodology.md](references/methodology.md) 视为方法论唯一依据。
 - 轮次流程、模板和质量门放在根目录 skill 的 `references/` 中，不放在这个文件里。
 
 ## 持久规则

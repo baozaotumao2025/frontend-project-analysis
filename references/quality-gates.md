@@ -7,6 +7,7 @@
 - Do not pause with unresolved `FAIL`
 - Do not skip rounds without explicit user approval
 - Keep professional terms such as `Persona`, `Story Map`, `Feature Spec`, and `Happy Path` in English
+- Every round must consume only `approved` and fresh upstream revisions; if an upstream revision is `stale`, the gate fails and the round must not advance
 
 ## Round 1
 

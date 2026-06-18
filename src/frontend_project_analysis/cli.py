@@ -4,14 +4,16 @@ from __future__ import annotations
 
 import typer
 
-from .artifact_commands import register_artifact_commands
-from .config import get_paths, get_settings
-from .db_commands import register_db_commands
-from .export_commands import register_export_commands
-from .import_commands import register_import_commands
-from .logging_utils import configure_logging, get_logger
-from .project_commands import register_project_commands
-from .review_commands import register_review_commands
+from .commands import (
+    register_artifact_commands,
+    register_db_commands,
+    register_export_commands,
+    register_import_commands,
+    register_project_commands,
+    register_review_commands,
+)
+from .core.config import get_paths, get_settings
+from .infrastructure.logging_utils import configure_logging, get_logger
 
 app = typer.Typer(help="Frontend project analysis workflow infrastructure.")
 logger = get_logger(__name__)

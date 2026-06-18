@@ -2,7 +2,7 @@
 
 ## Goal
 
-This skill ships with a Python workflow backend so that relationship storage, review state, and project iteration can be managed consistently across projects.
+This skill ships with a Python workflow backend so that relationship storage and project iteration can be managed consistently across projects.
 
 ## Runtime
 
@@ -16,27 +16,18 @@ This skill ships with a Python workflow backend so that relationship storage, re
 
 The Python code follows a layered split:
 
-- `domain`: enums, review rubrics, and stable business rules
-- `schemas`: typed payloads for packets, provider responses, and audits
-- `repositories`: compatibility facade for persistence helpers
-- `repository_artifacts`: project, artifact, version, dependency, and graph checks
-- `repository_reviews`: review and provider-audit persistence
-- `workflow_state`: compatibility facade for workflow state helpers
-- `state_checks`: ready checks and structural review
-- `state_transitions`: transitions and dependent staleness propagation
-- `state_packets`: semantic packet building
-- `workflow_io`: compatibility facade for workflow IO helpers
-- `io_archive`: audit file archiving
-- `io_export`: manifests, relations, and JSON export helpers
-- `io_import`: Markdown and manifest import helpers
-- `storage` and `migrations`: SQLite engine/session helpers plus Alembic lifecycle
-- `llm`: provider routing facade
-- `llm_types`: shared response dataclass and schema constants
-- `llm_payloads`: request builders, call-id resolution, and mock provider behavior
-- `llm_transport`: HTTP transport, retry, backoff, and provider error mapping
-- `llm_validation`: provider payload parsing and response text extraction
-- `llm_common` and `llm_*`: compatibility facades and provider-specific entrypoints
-- `service`: compatibility facade for older imports
+- `core/`: enums, review rubrics, stable business rules, and runtime configuration
+- `infrastructure/`: logging, document parsing, SQLite session helpers, and Alembic lifecycle
+- `models/`: ORM definitions and compatibility exports
+- `schemas/`: workflow and provider payload models
+- `repositories/`: persistence helpers split into `projects`, `dependencies`, `versions`, and `reviews`
+- `workflow/`: state checks, transitions, semantic packet construction, and IO facade
+- `workflow/state/`: shared workflow state definitions, ready checks, gate checks, structural review, and transitions
+- `workflow/io/`: audit file archiving, JSON export, manifest export, relations export, Markdown import, and manifest import helpers
+- `llm/`: provider routing, request builders, validation, provider helpers, and shared response types
+- `llm/providers/`: provider-specific adapters
+- `llm/transport/`: HTTP transport, error mapping, and backoff helpers
+- `commands/`: CLI subcommand registration and command handlers, with `commands/artifact/`, `commands/review/`, `commands/db/`, `commands/export/`, and `commands/imports/` split by scenario; `commands/utils.py` keeps shared decorators
 - `cli`: thin command entrypoint that only wires subcommands together
 
 This keeps structural validation deterministic and keeps provider-specific code isolated from the workflow rules.
@@ -62,7 +53,7 @@ Each target project keeps its workflow state inside:
 
 - `state.db`: SQLite source of truth
 - `backups/`: timestamped database backups
-- `exports/`: JSON manifests and SQL dumps
+- `exports/`: JSON manifests and exported relation files
 - `logs/`: reserved for future automation logs
 
 ## Source Of Truth
@@ -85,26 +76,16 @@ Each target project keeps its workflow state inside:
 - `artifact_reviews`
 - `artifact_review_findings`
 - `artifact_transitions`
-- `provider_call_audits`
-- `provider_call_audits.events_json`
+- `provider_call_audits` with `events_json` storing the provider event timeline
 
-## Review Split
+## Review Integration
 
-### Structural review
+Structural review and semantic review are part of the runtime backend, but their lifecycle semantics are defined in [references/state-machine.md](state-machine.md) and their round-by-round contract is defined in [references/workflow.md](workflow.md).
 
-Structural review is code-driven and must be deterministic.
+Structural review is code-driven and deterministic.
 
-It checks:
-
-- artifact type, slug, round, and project alignment
-- source file existence
-- required frontmatter presence
-- dependency approval rules
-- dependency graph cycles
-
-### Semantic review
-
-Semantic review is LLM-assisted.
+Semantic review is host-first and optionally external-LLM-assisted.
+When `FPA_LLM_PROVIDER=host`, the CLI emits the review packet and lets the current Codex or Claude Code session make the semantic judgment instead of the repository code calling an external API.
 
 The backend prepares a structured review packet containing:
 
@@ -114,30 +95,22 @@ The backend prepares a structured review packet containing:
 - a rubric tailored to the artifact type
 
 The LLM should return structured JSON so the result can be recorded without weakening consistency controls.
-
-## Lifecycle
-
-Recommended artifact states:
-
-- `draft`
-- `structurally_valid`
-- `semantic_review`
-- `approved`
-- `rejected`
-- `stale`
-- `superseded`
-- `archived`
+In `host` mode, the structured packet is handed to the current host agent, which automatically produces the judgment, and the result is recorded with `review semantic-record`.
 
 ## Database Maintenance
 
 Supported workflows:
 
+- `uv run fpa project init --project ... --name ...`
 - `uv run fpa db init`
-- `uv run fpa db migrate`
-- `uv run fpa db check`
 - `uv run fpa db backup`
 - `uv run fpa db restore --from ...`
 - `uv run fpa db wipe --yes`
+
+Database migrations are applied automatically when the CLI opens a session or initializes the database.
+The migration layer resolves the repository root `alembic.ini`, points Alembic at `migrations/`,
+and prepends `src/` so `frontend_project_analysis` can be imported during migration runs.
+This is the same wiring `project init` relies on when bootstrapping a fresh target project.
 
 ## Import And Export
 
@@ -145,7 +118,6 @@ Supported workflows:
 - `uv run fpa import markdown-scan --project <key> --apply`
 - `uv run fpa export manifest --project <key>`
 - `uv run fpa export relations --project <key>`
-- `uv run fpa export sql`
 
 ## Skill Integration Rule
 
@@ -154,6 +126,7 @@ When the skill needs workflow state, it should call CLI commands instead of infe
 ## Environment Configuration
 
 Use `.env` for runtime configuration so the same skill can target different providers and project layouts without code edits.
+If no external model is configured, set `FPA_LLM_PROVIDER=host` and let the current Codex or Claude Code session make the semantic judgment from the emitted packet.
 
 Recommended keys:
 

@@ -13,6 +13,7 @@ Use this skill when the task is to analyze or decompose a frontend product into 
 - The user is starting a new project and wants a repeatable discovery workflow
 - The user wants to break a large frontend scope into vertical slices and acceptance artifacts
 - The expected output is Markdown or Gherkin documents
+- The user wants Codex or Claude Code to perform semantic review directly from a generated packet when no external LLM is configured
 
 Do not use this skill for component implementation, UI coding, or engineering execution unless the user explicitly pivots out of analysis.
 
@@ -24,10 +25,12 @@ Read these files before doing the workflow:
 2. `references/glossary.md`
 3. `references/structure.md`
 4. `references/infrastructure.md`
-5. `references/workflow.md`
-6. `references/quality-gates.md`
+5. `references/state-machine.md`
+6. `references/workflow.md`
+7. `references/quality-gates.md`
 
 Only read `references/templates.md` when you need to create or expand output files.
+If you need to check which document is authoritative for a topic, read `references/document-map.md`.
 
 ## Workflow Rules
 
@@ -35,9 +38,11 @@ Only read `references/templates.md` when you need to create or expand output fil
 - If the user already has approved outputs from earlier rounds, resume from the latest approved round
 - For each round, produce the artifact first, then a self-check against the matching quality gate, then pause
 - Use `uv run fpa ...` commands to read or mutate workflow state instead of inferring graph consistency from Markdown alone
+- If `FPA_LLM_PROVIDER=host`, do not call an external model from the skill; generate or inspect the packet and let the current Codex or Claude Code session make the semantic judgment
 - Prefer small focused files and progressive disclosure over large catch-all documents
 - Keep relationship-dense information in index or matrix files rather than inflating entity files
 - Keep terminology aligned with `references/glossary.md`
+- Keep artifact lifecycle semantics aligned with `references/state-machine.md`
 
 ## Output Conventions
 
