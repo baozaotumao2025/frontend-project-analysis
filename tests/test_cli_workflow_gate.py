@@ -383,6 +383,27 @@ def test_workflow_start_blocks_round_4_when_page_becomes_stale(tmp_path: Path) -
 
     with session_scope(paths) as session:
         project = get_project(session, "crm-web")
+        feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
+        approve_artifact(session, feature)
+        session.commit()
+
+    still_blocked_gate = invoke_with_root(
+        tmp_path,
+        [
+            "workflow",
+            "start",
+            "--project",
+            "crm-web",
+            "--round",
+            "4",
+        ],
+    )
+    assert still_blocked_gate.exit_code == 1, still_blocked_gate.output
+    assert "page:customer-profile" in still_blocked_gate.output
+    assert "stale" in still_blocked_gate.output.lower()
+
+    with session_scope(paths) as session:
+        project = get_project(session, "crm-web")
         page = get_artifact_by_ref(session, project, "page:customer-profile")
         approve_artifact(session, page)
         session.commit()
@@ -453,8 +474,28 @@ def test_workflow_start_blocks_round_5_when_feature_becomes_stale(tmp_path: Path
 
     with session_scope(paths) as session:
         project = get_project(session, "crm-web")
+        gwt = get_artifact_by_ref(session, project, "gwt:customer-assignment")
+        approve_artifact(session, gwt)
+        session.commit()
+
+    still_blocked_gate = invoke_with_root(
+        tmp_path,
+        [
+            "workflow",
+            "start",
+            "--project",
+            "crm-web",
+            "--round",
+            "5",
+        ],
+    )
+    assert still_blocked_gate.exit_code == 1, still_blocked_gate.output
+    assert "feature:customer-assignment" in still_blocked_gate.output
+    assert "stale" in still_blocked_gate.output.lower()
+
+    with session_scope(paths) as session:
+        project = get_project(session, "crm-web")
         page = get_artifact_by_ref(session, project, "page:customer-profile")
-        approve_artifact(session, page)
         feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
         approve_artifact(session, feature)
         session.commit()
