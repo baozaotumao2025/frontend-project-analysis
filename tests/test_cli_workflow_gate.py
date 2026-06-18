@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
@@ -18,6 +19,40 @@ from tests.cli_support import (
 from tests.workflow_support import approve_artifact
 
 pytestmark = pytest.mark.smoke
+
+
+@dataclass(frozen=True)
+class RecoveryMatrixCase:
+    round_number: int
+    stale_source_ref: str
+    blocked_ref: str
+    wrong_recovery_ref: str
+    correct_recovery_ref: str
+
+
+RECOVERY_MATRIX: tuple[RecoveryMatrixCase, ...] = (
+    RecoveryMatrixCase(
+        round_number=4,
+        stale_source_ref="page:customer-profile",
+        blocked_ref="page:customer-profile",
+        wrong_recovery_ref="feature:customer-assignment",
+        correct_recovery_ref="page:customer-profile",
+    ),
+    RecoveryMatrixCase(
+        round_number=5,
+        stale_source_ref="page:customer-profile",
+        blocked_ref="feature:customer-assignment",
+        wrong_recovery_ref="gwt:customer-assignment",
+        correct_recovery_ref="feature:customer-assignment",
+    ),
+    RecoveryMatrixCase(
+        round_number=6,
+        stale_source_ref="page:customer-profile",
+        blocked_ref="gwt:customer-assignment",
+        wrong_recovery_ref="feature_spec:customer-assignment",
+        correct_recovery_ref="gwt:customer-assignment",
+    ),
+)
 
 
 def _seed_full_chain(tmp_path: Path):
@@ -159,36 +194,30 @@ def _seed_full_chain(tmp_path: Path):
     return paths, files
 
 
-@pytest.mark.parametrize(
-    ("round_number", "expected_blocked_ref"),
-    [
-        (4, "page:customer-profile"),
-        (5, "feature:customer-assignment"),
-        (6, "gwt:customer-assignment"),
-    ],
-)
+@pytest.mark.parametrize("case", RECOVERY_MATRIX, ids=lambda case: f"round-{case.round_number}")
 def test_workflow_start_reports_the_correct_blocking_ref_for_stale_chain(
     tmp_path: Path,
-    round_number: int,
-    expected_blocked_ref: str,
+    case: RecoveryMatrixCase,
 ) -> None:
     paths, files = _seed_full_chain(tmp_path)
 
-    files["page"].write_text("Page v2", encoding="utf-8")
+    stale_source_type = case.stale_source_ref.split(":", 1)[0]
+    source_path = files[stale_source_type]
+    source_path.write_text(f"{source_path.stem} v2", encoding="utf-8")
     with session_scope(paths) as session:
         project = get_project(session, "crm-web")
-        page = upsert_artifact(
+        artifact = upsert_artifact(
             session=session,
             project=project,
             artifact_type=ArtifactType.PAGE,
             slug="customer-profile",
             title="Customer Profile",
-            source_path=str(files["page"].relative_to(tmp_path)),
+            source_path=str(source_path.relative_to(tmp_path)),
             status=ArtifactStatus.DRAFT,
             metadata={},
             created_by="test",
         )
-        assert page.status == ArtifactStatus.STALE
+        assert artifact.status == ArtifactStatus.STALE
         session.commit()
 
     blocked_gate = invoke_with_root(
@@ -199,31 +228,24 @@ def test_workflow_start_reports_the_correct_blocking_ref_for_stale_chain(
             "--project",
             "crm-web",
             "--round",
-            str(round_number),
+            str(case.round_number),
         ],
     )
     assert blocked_gate.exit_code == 1, blocked_gate.output
-    assert expected_blocked_ref in blocked_gate.output
+    assert case.blocked_ref in blocked_gate.output
     assert "stale" in blocked_gate.output.lower()
 
 
-@pytest.mark.parametrize(
-    ("round_number", "recovery_ref", "expected_blocked_ref"),
-    [
-        (4, "feature:customer-assignment", "page:customer-profile"),
-        (5, "gwt:customer-assignment", "feature:customer-assignment"),
-        (6, "feature_spec:customer-assignment", "gwt:customer-assignment"),
-    ],
-)
+@pytest.mark.parametrize("case", RECOVERY_MATRIX, ids=lambda case: f"round-{case.round_number}")
 def test_workflow_start_stays_blocked_when_only_a_lower_downstream_layer_is_revalidated(
     tmp_path: Path,
-    round_number: int,
-    recovery_ref: str,
-    expected_blocked_ref: str,
+    case: RecoveryMatrixCase,
 ) -> None:
     paths, files = _seed_full_chain(tmp_path)
 
-    files["page"].write_text("Page v2", encoding="utf-8")
+    stale_source_type = case.stale_source_ref.split(":", 1)[0]
+    source_path = files[stale_source_type]
+    source_path.write_text(f"{source_path.stem} v2", encoding="utf-8")
     with session_scope(paths) as session:
         project = get_project(session, "crm-web")
         page = upsert_artifact(
@@ -232,7 +254,7 @@ def test_workflow_start_stays_blocked_when_only_a_lower_downstream_layer_is_reva
             artifact_type=ArtifactType.PAGE,
             slug="customer-profile",
             title="Customer Profile",
-            source_path=str(files["page"].relative_to(tmp_path)),
+            source_path=str(source_path.relative_to(tmp_path)),
             status=ArtifactStatus.DRAFT,
             metadata={},
             created_by="test",
@@ -242,7 +264,7 @@ def test_workflow_start_stays_blocked_when_only_a_lower_downstream_layer_is_reva
 
     with session_scope(paths) as session:
         project = get_project(session, "crm-web")
-        recovery_artifact = get_artifact_by_ref(session, project, recovery_ref)
+        recovery_artifact = get_artifact_by_ref(session, project, case.wrong_recovery_ref)
         approve_artifact(session, recovery_artifact)
         session.commit()
 
@@ -254,12 +276,31 @@ def test_workflow_start_stays_blocked_when_only_a_lower_downstream_layer_is_reva
             "--project",
             "crm-web",
             "--round",
-            str(round_number),
+            str(case.round_number),
         ],
     )
     assert still_blocked_gate.exit_code == 1, still_blocked_gate.output
-    assert expected_blocked_ref in still_blocked_gate.output
+    assert case.blocked_ref in still_blocked_gate.output
     assert "stale" in still_blocked_gate.output.lower()
+
+    with session_scope(paths) as session:
+        project = get_project(session, "crm-web")
+        correct_recovery = get_artifact_by_ref(session, project, case.correct_recovery_ref)
+        approve_artifact(session, correct_recovery)
+        session.commit()
+
+    restored_gate = invoke_with_root(
+        tmp_path,
+        [
+            "workflow",
+            "start",
+            "--project",
+            "crm-web",
+            "--round",
+            str(case.round_number),
+        ],
+    )
+    assert restored_gate.exit_code == 0, restored_gate.output
 
 
 def test_workflow_gate_blocks_round_2_until_persona_is_approved(tmp_path: Path) -> None:
