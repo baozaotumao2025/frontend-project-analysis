@@ -97,3 +97,5 @@ When a new Persona revision is created after later rounds already exist:
 - downstream work may stay editable, but it cannot pass its next gate until the new upstream revision is re-approved
 
 The same rule applies to any earlier-round artifact that changes after later rounds have been approved.
+
+For operator-oriented examples and the round-by-round recovery lookup, see [`references/workflow.md`](/Users/cherubines/Documents/MaxCPA/references/workflow.md).

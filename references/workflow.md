@@ -15,6 +15,18 @@ This page defines the round-by-round contract for the analysis workflow.
 - Approved revisions MUST NOT be edited in place.
 - Downstream stale revisions MUST be revalidated before they can progress again.
 
+### Recovery Matrix
+
+Use this matrix as the operator-facing lookup when a later round reveals that an earlier round changed:
+
+| Round | Stale source | Wrong recovery layer | Correct recovery layer | Blocked ref |
+| --- | --- | --- | --- | --- |
+| 4 | `page:customer-profile` | `feature:customer-assignment` | `page:customer-profile` | `page:customer-profile` |
+| 5 | `page:customer-profile` | `gwt:customer-assignment` | `feature:customer-assignment` | `feature:customer-assignment` |
+| 6 | `page:customer-profile` | `feature_spec:customer-assignment` | `gwt:customer-assignment` | `gwt:customer-assignment` |
+
+The table mirrors the regression matrix in `tests/test_cli_workflow_gate.py`: a lower downstream layer may be revalidated, but the gate remains blocked until the exact round input has been re-approved.
+
 ## Round 1: Persona Definition
 
 - Input: project description
