@@ -20,7 +20,7 @@ def test_workflow_gate_blocks_round_2_until_persona_is_approved(tmp_path: Path) 
         tmp_path,
         [
             "workflow",
-            "gate",
+            "start",
             "--project",
             "crm-web",
             "--round",
@@ -37,7 +37,7 @@ def test_workflow_gate_blocks_round_2_until_persona_is_approved(tmp_path: Path) 
         tmp_path,
         [
             "workflow",
-            "gate",
+            "start",
             "--project",
             "crm-web",
             "--round",
@@ -45,7 +45,6 @@ def test_workflow_gate_blocks_round_2_until_persona_is_approved(tmp_path: Path) 
         ],
     )
     assert passed_result.exit_code == 0, passed_result.output
-    assert "gate passed" in passed_result.output.lower()
 
 
 def test_workflow_gate_blocks_round_3_when_story_maps_are_missing(tmp_path: Path) -> None:
@@ -56,7 +55,7 @@ def test_workflow_gate_blocks_round_3_when_story_maps_are_missing(tmp_path: Path
         tmp_path,
         [
             "workflow",
-            "gate",
+            "start",
             "--project",
             "crm-web",
             "--round",

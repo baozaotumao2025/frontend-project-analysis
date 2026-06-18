@@ -7,7 +7,7 @@ This page defines the round-by-round contract for the analysis workflow.
 - Each round MUST consume only approved and fresh upstream revisions.
 - If a required upstream revision is stale, the round MUST NOT advance.
 - A failed gate MUST NOT mutate the current revision state.
-- Before starting a downstream round, run `uv run fpa workflow gate --project <key> --round <n>` to hard-check that the upstream round revisions are approved and fresh.
+- Before starting a downstream round, run `uv run fpa workflow start --project <key> --round <n>`; this command hard-checks that the upstream round revisions are approved and fresh before the round can continue.
 
 ## Recovery Contract
 

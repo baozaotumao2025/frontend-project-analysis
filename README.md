@@ -261,7 +261,7 @@ uv run fpa db wipe --yes
 7. `review approve` 或 `review reject`
 8. `export manifest` 和 `export relations`
 
-如果你要开始下一轮，先跑对应的硬 gate，例如 `uv run fpa workflow gate --project crm-web --round 2`。
+如果你要开始下一轮，直接跑 `uv run fpa workflow start --project crm-web --round 2`，它会自动先验 gate。
 
 ## 4. 项目怎么维护
 

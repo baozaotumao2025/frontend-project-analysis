@@ -29,3 +29,23 @@ def workflow_gate(
                 f"Round {round_number} gate passed for project {project}: "
                 f"{result.checked_count} {result.input_type.value} revision(s) approved."
             )
+
+
+@workflow_app.command("start")
+@handle_service_error
+def workflow_start(
+    project: str = typer.Option(..., "--project"),
+    round_number: int = typer.Option(..., "--round"),
+) -> None:
+    with session_scope(get_paths()) as session:
+        project_row = get_project(session, project)
+        result = assert_round_gate(session, project_row, round_number)
+
+    if result.input_type is None:
+        typer.echo(f"Round {round_number} is ready to start for project {project}.")
+        return
+
+    typer.echo(
+        f"Round {round_number} is ready to start for project {project}: "
+        f"{result.checked_count} {result.input_type.value} revision(s) approved."
+    )
