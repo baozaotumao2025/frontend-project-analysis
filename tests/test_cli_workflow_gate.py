@@ -159,6 +159,54 @@ def _seed_full_chain(tmp_path: Path):
     return paths, files
 
 
+@pytest.mark.parametrize(
+    ("round_number", "expected_blocked_ref"),
+    [
+        (4, "page:customer-profile"),
+        (5, "feature:customer-assignment"),
+        (6, "gwt:customer-assignment"),
+    ],
+)
+def test_workflow_start_reports_the_correct_blocking_ref_for_stale_chain(
+    tmp_path: Path,
+    round_number: int,
+    expected_blocked_ref: str,
+) -> None:
+    paths, files = _seed_full_chain(tmp_path)
+
+    files["page"].write_text("Page v2", encoding="utf-8")
+    with session_scope(paths) as session:
+        project = get_project(session, "crm-web")
+        page = upsert_artifact(
+            session=session,
+            project=project,
+            artifact_type=ArtifactType.PAGE,
+            slug="customer-profile",
+            title="Customer Profile",
+            source_path=str(files["page"].relative_to(tmp_path)),
+            status=ArtifactStatus.DRAFT,
+            metadata={},
+            created_by="test",
+        )
+        assert page.status == ArtifactStatus.STALE
+        session.commit()
+
+    blocked_gate = invoke_with_root(
+        tmp_path,
+        [
+            "workflow",
+            "start",
+            "--project",
+            "crm-web",
+            "--round",
+            str(round_number),
+        ],
+    )
+    assert blocked_gate.exit_code == 1, blocked_gate.output
+    assert expected_blocked_ref in blocked_gate.output
+    assert "stale" in blocked_gate.output.lower()
+
+
 def test_workflow_gate_blocks_round_2_until_persona_is_approved(tmp_path: Path) -> None:
     bootstrap_project(tmp_path)
 
