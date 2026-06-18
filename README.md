@@ -262,6 +262,7 @@ uv run fpa db wipe --yes
 8. `export manifest` 和 `export relations`
 
 如果你要开始下一轮，直接跑 `uv run fpa workflow start --project crm-web --round 2`，它会自动先验 gate。
+如果你想看哪些命令会改状态、哪些只是只读，见 `references/state-entrypoints.md`。
 
 ## 4. 项目怎么维护
 

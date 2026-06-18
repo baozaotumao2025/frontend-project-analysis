@@ -33,6 +33,7 @@ This page explains the user-facing impact of the code-enforced state gates.
 - [`src/frontend_project_analysis/workflow/state/transitions.py`](/Users/cherubines/Documents/MaxCPA/src/frontend_project_analysis/workflow/state/transitions.py)
 - [`src/frontend_project_analysis/workflow/io/import_manifest.py`](/Users/cherubines/Documents/MaxCPA/src/frontend_project_analysis/workflow/io/import_manifest.py)
 - [`src/frontend_project_analysis/workflow/io/import_markdown.py`](/Users/cherubines/Documents/MaxCPA/src/frontend_project_analysis/workflow/io/import_markdown.py)
+- [`references/state-entrypoints.md`](/Users/cherubines/Documents/MaxCPA/references/state-entrypoints.md)
 - [`src/frontend_project_analysis/commands/artifact/add.py`](/Users/cherubines/Documents/MaxCPA/src/frontend_project_analysis/commands/artifact/add.py)
 - [`src/frontend_project_analysis/commands/artifact/link.py`](/Users/cherubines/Documents/MaxCPA/src/frontend_project_analysis/commands/artifact/link.py)
 

@@ -12,17 +12,18 @@ flowchart TB
     A --> E[references/state-machine.md]
     A --> F[references/quality-gates.md]
     A --> G[references/cli-contract.md]
-    A --> H[references/adr/index.md]
-    I[README.md] --> J[project overview]
-    I --> K[how to use]
-    I --> L[how to maintain]
-    B --> M[workflow semantics]
-    C --> M
-    D --> N[runtime model]
-    E --> O[artifact lifecycle]
-    P[src/frontend_project_analysis/] --> Q[Python implementation]
-    R[tests/] --> S[regression coverage]
-    T[scripts/] --> S
+    A --> H[references/state-entrypoints.md]
+    A --> I[references/adr/index.md]
+    J[README.md] --> K[project overview]
+    J --> L[how to use]
+    J --> M[how to maintain]
+    B --> N[workflow semantics]
+    C --> N
+    D --> O[runtime model]
+    E --> P[artifact lifecycle]
+    Q[src/frontend_project_analysis/] --> R[Python implementation]
+    S[tests/] --> T[regression coverage]
+    U[scripts/] --> T
 ```
 
 ## What Each Layer Means
@@ -40,6 +41,7 @@ flowchart TB
 - `references/infrastructure.md` defines runtime architecture and storage behavior
 - `references/state-machine.md` defines lifecycle semantics
 - `references/cli-contract.md` defines command behavior under the lifecycle gates
+- `references/state-entrypoints.md` defines which commands may write state and which are read-only
 - `references/quality-gates.md` defines validation criteria
 - `references/adr/index.md` defines the ADR index and points to architectural decision records and rationale
 - `references/glossary.md` defines terms and naming
@@ -69,5 +71,6 @@ If you are new to the repository, read in this order:
 4. `references/infrastructure.md`
 5. `references/state-machine.md`
 6. `references/cli-contract.md`
-7. `src/frontend_project_analysis/`
-8. `tests/`
+7. `references/state-entrypoints.md`
+8. `src/frontend_project_analysis/`
+9. `tests/`

@@ -12,6 +12,7 @@ This page explains which document is authoritative for which concern.
 | `references/infrastructure.md` | Reference | Runtime architecture and storage model | Canonical backend behavior |
 | `references/state-machine.md` | Reference | Artifact lifecycle semantics | Canonical status semantics |
 | `references/cli-contract.md` | Reference | CLI behavior under code-enforced gates | Canonical user-facing command contract |
+| `references/state-entrypoints.md` | Reference | Which commands can mutate workflow state | Canonical entrypoint map |
 | `references/adr/index.md` | ADR | Architectural decision records | Canonical design rationale |
 | `references/repo-layers.md` | Reference | Repository layout and reading order | Structural navigation guide |
 | `references/release-checklist.md` | Reference | Public release boundary and preflight checks | Release preparation guide |
