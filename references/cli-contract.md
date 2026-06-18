@@ -19,6 +19,7 @@ This page explains the user-facing impact of the code-enforced state gates.
 ## CLI Impact
 
 - `fpa artifact add` is now a draft-only registration command.
+- `fpa workflow gate` hard-checks that a downstream round can start only after the required upstream revisions are approved and fresh.
 - `fpa review structural` remains the first gate that can move a `draft` artifact forward.
 - `fpa review semantic-run`, `fpa review semantic-record`, `fpa review approve`, and `fpa review reject` remain the only supported lifecycle advancement commands.
 - `fpa artifact link` can invalidate approval lineage when it introduces a new hard dependency.

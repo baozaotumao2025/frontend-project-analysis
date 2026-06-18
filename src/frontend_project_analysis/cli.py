@@ -11,6 +11,7 @@ from .commands import (
     register_import_commands,
     register_project_commands,
     register_review_commands,
+    register_workflow_commands,
 )
 from .core.config import get_paths, get_settings
 from .infrastructure.logging_utils import configure_logging, get_logger
@@ -35,6 +36,7 @@ register_review_commands(app)
 register_export_commands(app)
 register_import_commands(app)
 register_db_commands(app)
+register_workflow_commands(app)
 
 
 if __name__ == "__main__":
