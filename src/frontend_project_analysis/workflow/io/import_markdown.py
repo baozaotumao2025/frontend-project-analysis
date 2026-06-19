@@ -15,6 +15,18 @@ from .document_indexes import refresh_document_indexes
 from .relations import render_relations_markdown
 
 
+def _ensure_gitignore_entry(root: Path, entry: str) -> None:
+    gitignore_path = root / ".gitignore"
+    if gitignore_path.exists():
+        existing_lines = gitignore_path.read_text(encoding="utf-8").splitlines()
+    else:
+        existing_lines = []
+    if any(line.strip() == entry for line in existing_lines):
+        return
+    existing_lines.append(entry)
+    gitignore_path.write_text("\n".join(existing_lines) + "\n", encoding="utf-8")
+
+
 def initialize_project(paths, project_key: str, project_name: str) -> dict[str, str]:
     ensure_state_dirs(paths)
     for relative in (
@@ -27,6 +39,7 @@ def initialize_project(paths, project_key: str, project_name: str) -> dict[str, 
         "specs/features",
     ):
         (paths.root / relative).mkdir(parents=True, exist_ok=True)
+    _ensure_gitignore_entry(paths.root, ".frontend-project-analysis/")
     refresh_document_indexes(paths.root)
     (paths.root / "docs" / "relations").mkdir(parents=True, exist_ok=True)
     for filename, title, headers in (

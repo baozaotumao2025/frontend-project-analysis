@@ -147,6 +147,9 @@ def test_import_markdown_content_change_resets_to_draft(tmp_path: Path) -> None:
         "## Story Steps Covered\n"
         "- Review customer details\n"
         "\n"
+        "## Page Responsibility\n"
+        "Shows the customer profile.\n"
+        "\n"
         "## Related Features\n"
         "- Customer Assignment\n",
         encoding="utf-8",
@@ -196,6 +199,9 @@ def test_import_markdown_content_change_resets_to_draft(tmp_path: Path) -> None:
         "\n"
         "## Story Steps Covered\n"
         "- Review customer details\n"
+        "\n"
+        "## Page Responsibility\n"
+        "Shows the customer profile.\n"
         "\n"
         "## Related Features\n"
         "- Customer Assignment\n",

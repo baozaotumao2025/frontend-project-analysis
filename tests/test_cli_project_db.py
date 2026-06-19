@@ -20,6 +20,8 @@ def test_project_init_artifact_and_dependency_flow(tmp_path: Path) -> None:
     assert (tmp_path / "docs" / "relations" / "persona-story-page-matrix.md").exists()
     assert (tmp_path / "docs" / "relations" / "feature-coverage-matrix.md").exists()
     assert (tmp_path / ".frontend-project-analysis" / "state.db").exists()
+    gitignore_text = (tmp_path / ".gitignore").read_text(encoding="utf-8")
+    assert ".frontend-project-analysis/" in gitignore_text
     assert "Registered persona:sales-rep" in invoke_with_root(
         tmp_path,
         [
@@ -35,6 +37,19 @@ def test_project_init_artifact_and_dependency_flow(tmp_path: Path) -> None:
             "Sales Rep",
         ],
     ).output
+
+
+def test_project_init_keeps_gitignore_entry_idempotent(tmp_path: Path) -> None:
+    bootstrap_project(tmp_path)
+
+    second_init = invoke_with_root(
+        tmp_path,
+        ["project", "init", "--project", "crm-web", "--name", "CRM Web"],
+    )
+    assert second_init.exit_code == 0, second_init.output
+
+    gitignore_lines = (tmp_path / ".gitignore").read_text(encoding="utf-8").splitlines()
+    assert gitignore_lines.count(".frontend-project-analysis/") == 1
 
 
 def test_artifact_add_no_longer_accepts_status_override(tmp_path: Path) -> None:

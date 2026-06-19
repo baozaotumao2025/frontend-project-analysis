@@ -16,7 +16,7 @@ These commands can create or mutate workflow state:
 | --- | --- | --- |
 | `fpa db init` | Initializes or migrates the workflow database | Safe to run on a fresh target root |
 | `fpa db wipe --yes` | Deletes the workflow database file | Destructive; use only when you intend to reset state |
-| `fpa project init` | Initializes the database and bootstraps the project scaffold | Requires `alembic.ini`, `migrations/`, and importable `src/` in the repo root |
+| `fpa project init` | Initializes the database and bootstraps the project scaffold | Requires `alembic.ini`, `migrations/`, and importable `src/` in the repo root; also ensures `.frontend-project-analysis/` is ignored by the target project's `.gitignore` |
 | `fpa artifact add` | Creates a new `draft` revision only | Pre-approved creation is rejected |
 | `fpa artifact link` | Writes dependency edges | May mark approved downstream revisions `stale` when a new hard dependency is introduced |
 | `fpa import manifest --apply` | Imports artifacts and dependencies as draft-state revisions | Inbound `status` values are ignored as lifecycle overrides |

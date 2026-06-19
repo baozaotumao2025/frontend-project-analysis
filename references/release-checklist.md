@@ -57,6 +57,7 @@ Before publishing, verify:
 2. `uv run ruff check src/frontend_project_analysis tests`
 3. `rg -n "/Users/cherubines/Documents/MaxCPA" README.md SKILL.md references frontend-decomposition-methodology.md AGENTS.md --glob '!references/release-checklist.md'` returns no matches
 4. `git status --short` shows no runtime data such as `.frontend-project-analysis/`
+   - The target project `.gitignore` includes `.frontend-project-analysis/`
 5. `README.md`, `SKILL.md`, and `references/document-map.md` agree on document authority and reading order
 
 ## Release Notes

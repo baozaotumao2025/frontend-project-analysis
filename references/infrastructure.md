@@ -57,6 +57,7 @@ Each target project keeps its workflow state inside:
 - `exports/`: JSON manifests and exported relation files
 - `logs/`: reserved for future automation logs
 - `audits/`: provider request/response archives and event timelines
+- `project init` ensures this directory is listed in the calling project's `.gitignore`
 
 ## Source Of Truth
 

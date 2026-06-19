@@ -75,6 +75,8 @@ uv run fpa review structural --project crm-web --artifact persona:sales-rep
   audits/
 ```
 
+`uv run fpa project init ...` 会自动把 `.frontend-project-analysis/` 写入调用项目的 `.gitignore`，这个目录只保存本地运行态数据库和审计数据，避免中间产物进入版本控制。
+
 ### 项目初始化会创建的内容
 
 执行 `uv run fpa project init ...` 后，会创建这些文档目录：
