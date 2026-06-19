@@ -37,6 +37,7 @@ class FindingPayload(BaseModel):
     severity: str
     code: str
     message: str
+    evidence: list[str] = Field(default_factory=list)
     details: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -45,6 +46,7 @@ class SemanticReviewPayload(BaseModel):
     summary: str
     reviewer_ref: str = "llm"
     model: str | None = None
+    counterexamples: list[str] = Field(default_factory=list)
     findings: list[FindingPayload] = Field(default_factory=list)
 
 

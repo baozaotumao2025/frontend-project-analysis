@@ -58,6 +58,7 @@ J --> M[how to maintain]
 - `references/structure.md` defines output layout, naming rules, and file responsibilities
 - `references/cli-contract.md` defines command behavior under the lifecycle gates
 - `references/state-entrypoints.md` defines which commands may write state and which are read-only
+- `references/command-layer.md` defines which command layer is canonical for skill, script, and make usage
 - `references/quality-gates.md` defines validation criteria
 - `references/adr/index.md` defines the ADR index and points to architectural decision records and rationale
 - `references/document-map.md` defines which document is authoritative for each concern
@@ -93,5 +94,6 @@ If you are new to the repository, read in this order:
 11. `references/quality-gates.md`
 12. `references/cli-contract.md`
 13. `references/state-entrypoints.md`
-14. `src/frontend_project_analysis/`
-15. `tests/`
+14. `references/command-layer.md`
+15. `src/frontend_project_analysis/`
+16. `tests/`

@@ -27,6 +27,7 @@
 - `Shared Component`
 - `revision`
 - `fresh`
+- `fresh-session`
 - `stale`
 - `superseded`
 - `archived`
@@ -45,6 +46,7 @@
 - Write `Shared Component` as the primary term
 - Write `revision` for a versioned artifact instance
 - Write `fresh` for an approved revision that is not invalidated by upstream change
+- Write `fresh-session` for a reviewer context that must not reuse the drafting conversation
 - Write `stale` for a revision that must be revalidated because upstream changed
 - Write `superseded` for a revision replaced by a newer approved revision
 - Write `archived` for a retained revision that is no longer part of active workflow
@@ -55,6 +57,7 @@
 
 - Write `project brief` for the user-owned input that describes the product, users, scenarios, and constraints before `init`
 - Write `brief interview` for the bounded Q&A flow that helps a user collect or refine a `project brief`
+- Write `brief assistant` for the LLM-assisted helper that suggests follow-up questions and synthesizes a project brief
 - Write `transcript` for the saved question-and-answer record produced by `brief interview`
 - Write `preflight helper` for commands that prepare input without mutating workflow state
 
@@ -68,3 +71,8 @@
 - Write `observability` for logs, metrics, traces, and signals used to understand behavior in production
 - Write `release` for rollout, rollout guardrails, rollback, and deployment readiness concerns
 - Write `compliance` for privacy, legal, regulatory, or policy constraints
+
+## Workflow Modes
+
+- Write `Formal mode` for the entry path that consumes only `approved` and `fresh` upstream revisions and produces canonical workflow artifacts
+- Write `Explore mode` for the entry path that may read draft or unapproved upstream material for local analysis, without advancing canonical lifecycle state

@@ -2,7 +2,7 @@
 
 This page defines the analysis workflow round contract.
 
-For a fresh target repository, prepare a user-owned brief first, then run `uv run fpa init --project <key> --name <name> --brief-file <path>` or `uv run fpa init --project <key> --name <name> --brief <text>`. If the brief is not ready yet, use `uv run fpa brief interview --output <path>` to collect one in a bounded Q&A flow, optionally add `--transcript <path>` to keep the conversation log, and then feed that brief into `init`. After that, use the round gates and artifact commands below to move through the workflow.
+For a fresh target repository, prepare a user-owned brief first, then run `uv run fpa init --project <key> --name <name> --brief-file <path>` or `uv run fpa init --project <key> --name <name> --brief <text>`. If the brief is not ready yet, use `uv run fpa brief interview --output <path>` to collect one in a bounded Q&A flow, optionally add `--transcript <path>` to keep the conversation log, and then feed that brief into `init`. If you want LLM-assisted follow-up and synthesis, use `uv run fpa brief assistant --output <path>` instead. After that, use the round gates and artifact commands below to move through the workflow.
 
 ## Gate Contract
 
@@ -10,6 +10,13 @@ For a fresh target repository, prepare a user-owned brief first, then run `uv ru
 - If a required upstream revision is stale, the round MUST NOT advance.
 - A failed gate MUST NOT mutate the current revision state.
 - Before starting a downstream round, run `uv run fpa workflow start --project <key> --round <n>`; this command hard-checks that the upstream round revisions are approved and fresh before the round can continue.
+
+## Explore Contract
+
+- `Explore mode` is a non-canonical analysis path for discovery and iterative refinement.
+- It may read draft or otherwise unapproved upstream material so users can inspect later-round structure while still revising earlier-round intent.
+- `Explore mode` must not advance canonical lifecycle state or overwrite approved history.
+- Use `uv run fpa workflow explore start --project <key> --round <n>` when you want the discoverable exploratory entrypoint.
 
 ## Recovery Contract
 
@@ -28,6 +35,7 @@ Use this matrix as the operator-facing lookup when a later round reveals that an
 | 6 | `page:customer-profile` | `feature_spec:customer-assignment` | `gwt:customer-assignment` | `gwt:customer-assignment` |
 
 The table mirrors the regression matrix in `tests/test_cli_workflow_gate.py`: a lower downstream layer may be revalidated, but the gate remains blocked until the exact round input has been revalidated and approved.
+The same repository keeps `Explore mode` separate from this canonical path so exploratory analysis can continue without claiming approval.
 
 ## Round 1: Persona Definition
 
@@ -37,7 +45,7 @@ The table mirrors the regression matrix in `tests/test_cli_workflow_gate.py`: a 
 - Before approval, register or import the resulting artifacts into the SQLite workflow state
 - Round 1 starts from `analysis/brief.md` and no upstream artifact gate applies
 - A Persona revision MUST reach `approved` before Round 2 can consume it
-- If the repository has no brief yet, collect one first with `uv run fpa brief interview --output <path>` and save the result into `analysis/brief.md` before generating Round 1 artifacts
+- If the repository has no brief yet, collect one first with `uv run fpa brief interview --output <path>` or `uv run fpa brief assistant --output <path>` and save the result into `analysis/brief.md` before generating Round 1 artifacts
 
 Persona split rules:
 
@@ -52,7 +60,7 @@ Persona split rules:
 - Format: `Activity -> Step -> Story`
 - Do not mention pages or Features
 - Semantic review should judge business coherence; structural review still runs via CLI
-- If no external LLM is configured, use `FPA_LLM_PROVIDER=host` and let the current Codex or Claude Code session automatically judge the semantic packet
+- If no external LLM is configured, use `FPA_LLM_PROVIDER=host` and let a fresh Codex or Claude Code reviewer context judge the frozen semantic packet; when Codex can spawn a sub-agent, that is the required execution path
 - Round 2 MUST consume only `approved` Persona revisions that are not `stale`
 - If a Persona revision changes later, any Story Map revision that depends on it becomes stale and MUST be revalidated and approved before it can feed Round 3
 

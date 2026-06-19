@@ -359,6 +359,61 @@ def test_workflow_gate_blocks_round_2_until_persona_is_approved(tmp_path: Path) 
     assert passed_result.exit_code == 0, passed_result.output
 
 
+def test_workflow_start_allows_explore_mode_with_draft_persona(tmp_path: Path) -> None:
+    bootstrap_project(tmp_path)
+
+    blocked_result = invoke_with_root(
+        tmp_path,
+        [
+            "workflow",
+            "start",
+            "--project",
+            "crm-web",
+            "--round",
+            "2",
+        ],
+    )
+    assert blocked_result.exit_code == 1, blocked_result.output
+    assert "persona:sales-rep" in blocked_result.output
+    assert "draft" in blocked_result.output
+
+    explore_result = invoke_with_root(
+        tmp_path,
+        [
+            "workflow",
+            "start",
+            "--project",
+            "crm-web",
+            "--round",
+            "2",
+            "--mode",
+            "explore",
+        ],
+    )
+    assert explore_result.exit_code == 0, explore_result.output
+    assert "explore" in explore_result.output.lower()
+    assert "unapproved" in explore_result.output.lower()
+
+
+def test_workflow_explore_subcommand_allows_draft_persona(tmp_path: Path) -> None:
+    bootstrap_project(tmp_path)
+
+    explore_result = invoke_with_root(
+        tmp_path,
+        [
+            "workflow",
+            "explore",
+            "start",
+            "--project",
+            "crm-web",
+            "--round",
+            "2",
+        ],
+    )
+    assert explore_result.exit_code == 0, explore_result.output
+    assert "ready to explore" in explore_result.output.lower()
+
+
 def test_workflow_gate_blocks_round_3_when_story_maps_are_missing(tmp_path: Path) -> None:
     bootstrap_project(tmp_path)
     prepare_feature_for_semantic_review(tmp_path)

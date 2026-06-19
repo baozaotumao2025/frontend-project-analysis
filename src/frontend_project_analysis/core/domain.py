@@ -51,6 +51,11 @@ class ReviewerKind(StrEnum):
     HUMAN = "human"
 
 
+class WorkflowMode(StrEnum):
+    FORMAL = "formal"
+    EXPLORE = "explore"
+
+
 ROUND_BY_TYPE: dict[ArtifactType, int] = {
     ArtifactType.PERSONA: 1,
     ArtifactType.STORY_MAP: 2,

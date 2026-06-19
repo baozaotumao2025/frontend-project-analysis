@@ -15,6 +15,7 @@
 
 - 默认产出是文档，不是实现代码。
 - 关系密集型内容优先放在索引文件或矩阵文件中，不要塞满实体文件。
+- 不要把 `analysis/` 和 `.frontend-project-analysis/state.db` 说成并列的双重事实来源；`analysis/` 是文档投影和编辑表面，`state.db` 才是生命周期与关系的权威状态源。
 - 优先保持小文件和渐进式披露；Markdown 文件在可行情况下尽量控制在 200 行以内。
 - 保持这个文件简短；可复用的多步工作流放到根目录 skill 及其 `references/` 中。
 - 专业术语如 `Persona`、`Story Map`、`Feature`、`Feature Spec`、`Happy Path`、`Edge Case`、`Permission Case`、`Error Case` 保持英文，不翻译为中文。

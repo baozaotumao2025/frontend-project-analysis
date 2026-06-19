@@ -46,7 +46,20 @@ def write_review_payload(root: Path, filename: str = "review-passed.json") -> Pa
                 "summary": "Semantic review passed for end-to-end validation.",
                 "reviewer_ref": "e2e-test",
                 "model": "e2e-mock",
-                "findings": [],
+                "counterexamples": [
+                    "A passing review still needs a concrete alternative failure case."
+                ],
+                "findings": [
+                    {
+                        "severity": "INFO",
+                        "code": "e2e_evidence",
+                        "message": (
+                            "The packet contains enough supporting evidence for the test flow."
+                        ),
+                        "evidence": ["end-to-end validation packet"],
+                        "details": {},
+                    }
+                ],
             },
             indent=2,
         ),

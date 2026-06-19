@@ -14,6 +14,7 @@ from ...core.domain import (
     semantic_review_to_artifact_status,
 )
 from ...infrastructure.storage import session_scope
+from ...llm.validation import enforce_semantic_review_guard
 from ...repositories.dependencies import get_artifact_by_ref
 from ...repositories.projects import get_project
 from ...repositories.reviews import record_review
@@ -31,6 +32,7 @@ def review_semantic_record(
     input_path: Path = typer.Option(..., "--input"),
 ) -> None:
     payload = SemanticReviewPayload.model_validate_json(input_path.read_text(encoding="utf-8"))
+    payload = enforce_semantic_review_guard(payload)
     with session_scope(get_paths()) as session:
         project_row = get_project(session, project)
         artifact_row = get_artifact_by_ref(session, project_row, artifact)
@@ -50,12 +52,17 @@ def review_semantic_record(
             reviewer_kind=ReviewerKind.LLM,
             summary=payload.summary,
             reviewer_ref=payload.reviewer_ref,
-            payload={"model": payload.model},
+            payload={
+                "decision": payload.decision.value,
+                "model": payload.model,
+                "counterexamples": payload.counterexamples,
+            },
             findings=[
                 {
                     "severity": finding.severity,
                     "code": finding.code,
                     "message": finding.message,
+                    "evidence": finding.evidence,
                     "details": finding.details,
                 }
                 for finding in payload.findings

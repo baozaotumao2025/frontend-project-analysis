@@ -74,6 +74,21 @@ def test_e2e_init_and_round_recovery(tmp_path: Path) -> None:
     )
     assert scan_result.exit_code == 0, scan_result.output
 
+    explore_start = run_fpa(
+        root,
+        [
+            "workflow",
+            "explore",
+            "start",
+            "--project",
+            PROJECT_KEY,
+            "--round",
+            "2",
+        ],
+    )
+    assert explore_start.exit_code == 0, explore_start.output
+    assert "ready to explore" in explore_start.output.lower()
+
     run_review_cycle(root, "persona:sales-rep", review_payload)
     assert_round_gate(root, 2, should_pass=True)
 

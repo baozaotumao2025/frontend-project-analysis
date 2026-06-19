@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..core.domain import ROUND_BY_TYPE, ArtifactStatus, ArtifactType
+from ..core.domain import ROUND_BY_TYPE, ArtifactStatus, ArtifactType, WorkflowMode
 from ..models import Artifact, Project
 from .state.definitions import WorkflowStateError
 
@@ -20,6 +20,7 @@ ROUND_INPUT_TYPE: dict[int, ArtifactType] = {
 class RoundGateResult:
     round_number: int
     project_key: str
+    mode: WorkflowMode
     input_type: ArtifactType | None
     checked_count: int
     blocked_refs: tuple[str, ...]
@@ -28,6 +29,8 @@ class RoundGateResult:
     def passed(self) -> bool:
         if self.input_type is None:
             return True
+        if self.mode == WorkflowMode.EXPLORE:
+            return self.checked_count > 0
         return self.checked_count > 0 and not self.blocked_refs
 
 
@@ -44,12 +47,18 @@ def get_round_input_type(round_number: int) -> ArtifactType | None:
         raise WorkflowStateError(f"Unsupported round '{round_number}'. Expected 1-6.") from exc
 
 
-def evaluate_round_gate(session: Session, project: Project, round_number: int) -> RoundGateResult:
+def evaluate_round_gate(
+    session: Session,
+    project: Project,
+    round_number: int,
+    mode: WorkflowMode = WorkflowMode.FORMAL,
+) -> RoundGateResult:
     input_type = get_round_input_type(round_number)
     if input_type is None:
         return RoundGateResult(
             round_number=round_number,
             project_key=project.key,
+            mode=mode,
             input_type=None,
             checked_count=0,
             blocked_refs=(),
@@ -73,14 +82,20 @@ def evaluate_round_gate(session: Session, project: Project, round_number: int) -
     return RoundGateResult(
         round_number=round_number,
         project_key=project.key,
+        mode=mode,
         input_type=input_type,
         checked_count=len(artifacts),
         blocked_refs=blocked_refs,
     )
 
 
-def assert_round_gate(session: Session, project: Project, round_number: int) -> RoundGateResult:
-    result = evaluate_round_gate(session, project, round_number)
+def assert_round_gate(
+    session: Session,
+    project: Project,
+    round_number: int,
+    mode: WorkflowMode = WorkflowMode.FORMAL,
+) -> RoundGateResult:
+    result = evaluate_round_gate(session, project, round_number, mode=mode)
     if result.passed:
         return result
 

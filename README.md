@@ -2,7 +2,7 @@
 
 `frontend-project-analysis` 是一个以文档为先的前端项目分析 skill，同时内置一套可复用的 Python 工作流基础设施。这个 skill 安装在 Codex 环境中运行，不要求目标项目复制一整套工具脚手架。它把前端项目拆解成 `Persona`、`Story Map`、`Page`、`Feature`、`GWT` 和 `Feature Spec` 等结构化产物，并用 SQLite 记录依赖、审核、版本和审计信息。
 
-当前发布版本为 `1.2.1`。
+当前发布版本为 `1.3.0`。
 
 ## 快速开始
 
@@ -27,7 +27,7 @@ uv run fpa review structural --project crm-web --artifact persona:sales-rep
    - 直接告诉 Codex 要做哪一轮分析、输入是什么、输出要落到哪些文件
    - Codex 会结合 `SKILL.md`、`references/methodology.md` 和本仓库文档自动推进流程
    - 你也可以用多轮对话逐步补充项目背景，等信息足够完整后再执行 `uv run fpa init ...`
-   - 如果你不知道怎么写 brief，可以先运行 `uv run fpa brief interview --output ./project-brief.md`，由 skill 先问 3 个核心问题，再根据权限、约束和集成信号做少量追问帮你收敛信息
+   - 如果你不知道怎么写 brief，可以先运行 `uv run fpa brief interview --output ./project-brief.md`；如果你想让 LLM 帮你补问和收尾，可以用 `uv run fpa brief assistant --output ./project-brief.md`，由 skill 先问 3 个核心问题，再根据权限、约束、集成信号和 AI 建议做追问帮你收敛信息
 
 一个可以直接用的自然语言请求是：
 
@@ -132,6 +132,7 @@ CLI 层面的用户影响和命令约束见 [references/cli-contract.md](referen
 - `review semantic-packet`：生成语义审查 packet
 - `review semantic-run`：在 `host` 或外部 LLM 模式下执行语义审查
 - `review semantic-record`：把语义审查结果写回数据库
+- `review resubmit`：重提审手工修改后的 Markdown，自动重跑结构审查并继续语义审查或导出 host packet
 - `review approve`：人工最终批准
 - `review reject`：人工拒绝
 
@@ -140,7 +141,9 @@ CLI 层面的用户影响和命令约束见 [references/cli-contract.md](referen
 - `export manifest`：导出完整 JSON manifest
 - `export relations`：导出关系矩阵 Markdown
 - `import manifest`：从 JSON manifest 预览或写回数据库
-- `import markdown-scan`：扫描 Markdown frontmatter 并同步到数据库
+- `import markdown-scan`：扫描 Markdown frontmatter 和文件身份变更，并把结果回写到数据库
+
+`analysis/` 里的 Markdown 是人类可读、可编辑的投影层，不是和 SQLite 并列的第二套权威状态源。你直接改了 Markdown 之后，仍然需要运行对应的 import 命令把变更收敛进数据库；在那之前，数据库仍然视为权威，衍生索引和矩阵也可能暂时过期。
 
 ### Database Maintenance
 
@@ -160,7 +163,7 @@ CLI 层面的用户影响和命令约束见 [references/cli-contract.md](referen
 - `gemini`
 - `mock`
 
-`host` 模式不由本仓库代码去调用外部大模型，而是把语义审查 packet 交给当前的 Codex 或 Claude Code 宿主自动完成判断；这适合 skill 发布时没有外部 API key 的场景。
+`host` 模式不由本仓库代码去调用外部大模型，而是把语义审查 packet 交给一个新的 Codex 或 Claude Code 审查上下文来判断；在支持 sub-agent 的 Codex 环境里，必须用 `fork_context: false` 起一个 fresh reviewer sub-agent，只读 packet，不继承生成文档时的上下文。
 `FPA_SEMANTIC_REVIEW_AUTO_APPROVE=true` 时，语义审查 `passed` 会直接进入 `approved`；否则会停在 `semantic_review`，等待人工 `review approve`。
 
 ## 3. 项目怎么使用
@@ -206,6 +209,7 @@ uv run fpa init --project crm-web --name "CRM Web" --brief-file ./project-brief.
 
 ```bash
 uv run fpa brief interview --output ./project-brief.md
+uv run fpa brief assistant --output ./project-brief.md
 ```
 
 这个流程会先问 3 个核心问题，然后在预算允许时继续收集 `discovery`、`risk`、`accessibility`、`observability`、`release` 这些横切信号，再汇总成一版可直接喂给 `init` 的 brief。
@@ -236,11 +240,13 @@ uv run fpa review structural --project crm-web
 uv run fpa review semantic-packet --project crm-web --artifact feature:customer-assignment --output /tmp/feature-review.json
 uv run fpa review semantic-run --project crm-web --artifact feature:customer-assignment
 uv run fpa review semantic-record --project crm-web --artifact feature:customer-assignment --input /tmp/review-result.json
+uv run fpa review resubmit --project crm-web --artifact feature:customer-assignment
 uv run fpa review approve --project crm-web --artifact feature:customer-assignment
 uv run fpa review reject --project crm-web --artifact feature:customer-assignment
 ```
 
-`host` 模式下，`semantic-run` 不会调用外部模型，而是直接把 packet 交给当前 Codex 或 Claude Code 会话做判断，再用 `semantic-record` 记录结果。
+`host` 模式下，`semantic-run` 不会调用外部模型，而是直接把 packet 交给新的 Codex 或 Claude Code 审查上下文做判断，再用 `semantic-record` 记录结果。审查输出要先找 counterexamples，并且每条 finding 都要带 evidence，否则会被降级成 `needs_revision`。
+如果用户手改了 `analysis/` 里的 Markdown，或者某个 revision 变成了 `stale`，优先用 `review resubmit` 把重导入、结构重审和语义重审串起来。
 `review approve` 只接受已经进入 `semantic_review` 的 revision；如果 revision 变成 `stale`，需要先重新做 `review structural` 再继续后续审查。
 
 ### 3.7 命令与 gate 影响
@@ -327,6 +333,7 @@ make all
 9. `export manifest` 和 `export relations`
 
 如果你要开始下一轮，直接跑 `uv run fpa workflow start --project crm-web --round 2`，它会自动先验 gate。
+如果你还在边探索边修正，可以改用 `uv run fpa workflow explore start --project crm-web --round 2`，它会允许你先看后续轮次的草稿联动，再回头补前面的输入。
 如果你想看哪些命令会改状态、哪些只是只读，见 `references/state-entrypoints.md`。
 
 ## 4. 项目怎么维护
@@ -341,11 +348,38 @@ make all
 
 ### Make 入口
 
-- `make smoke`
-- `make check`
-- `make full`
-- `make lint`
-- `make all`
+优先把 `make test`、`make quality` 和 `make release` 当作组入口，再按需下钻到细分 target。
+命令层级约定见 [references/command-layer.md](references/command-layer.md)。
+主目标使用 dotted 命名，如 `make test.smoke`、`make quality.lint` 和 `make release.card`；
+hyphenated 名称只保留作兼容别名。
+
+快速选择：
+
+| 场景 | 推荐入口 |
+| --- | --- |
+| 日常维护和检查 | `make test` 或 `make quality` |
+| 发布前检查 | `make release` |
+| 只拿审查卡片 | `make release.card` |
+| 自动化或 skill 调用 | `scripts/*.sh` |
+
+Primary targets:
+
+- `make help`
+- `make test`
+- `make quality`
+- `make release`
+- `make release.preflight`
+- `make release.packet`
+- `make release.card`
+- `make test.smoke`
+- `make test.full`
+- `make test.check`
+- `make quality.compile`
+- `make quality.lint`
+
+Compatibility aliases:
+
+- `make release-card`
 
 ### 发布边界
 
@@ -362,6 +396,10 @@ make all
 
 `uv run fpa init ...` 会自动初始化数据库和 analysis 工作区，不需要你手动先建库，也不会复制额外的工具脚手架文件。skill 的实现、迁移和命令入口保留在 Codex 环境中的 skill 仓库本体，目标项目只保留输出和状态目录。
 更直观的对照表见 [references/release-checklist.md](references/release-checklist.md)。
+如果你准备发版，优先跑 `make release` 或 `./scripts/release.sh`。
+如果你只想拿给 reviewer 的最小卡片，跑 `make release.card` 或 `./scripts/release-card.sh`。
+它不会自动跑完整 preflight，适合在你已经完成前置检查后快速生成卡片。
+如果你想分步执行，也可以先跑 `./scripts/release-preflight.sh` / `make release-preflight`，再跑 `./scripts/release-llm-review.sh` / `make release-llm-review`。
 
 ### 维护原则
 
@@ -397,7 +435,7 @@ make all
 
 - 文档优先，不直接产出实现代码
 - 渐进式披露，优先小文件
-- 代码负责事实，Markdown 负责阅读
+- 代码负责生命周期与关系事实，Markdown 负责阅读和编辑入口
 - SQLite 是结构事实源
 - CLI 是工作流操作入口
 

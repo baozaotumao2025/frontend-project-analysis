@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from .brief import run_brief_assistant
 from .payloads import (
     build_anthropic_request,
     build_gemini_request,
@@ -17,5 +18,6 @@ __all__ = [
     "build_gemini_request",
     "build_openai_request",
     "resolve_call_ids",
+    "run_brief_assistant",
     "run_mock_review",
 ]

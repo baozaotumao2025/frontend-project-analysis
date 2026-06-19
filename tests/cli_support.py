@@ -146,7 +146,20 @@ def prepare_feature_for_semantic_review(tmp_path: Path) -> None:
                 "summary": "Persona semantic review passed.",
                 "reviewer_ref": "fake-llm",
                 "model": "fake-model",
-                "findings": [],
+                "counterexamples": [
+                    "A persona could be too generic if its goal matches every role."
+                ],
+                "findings": [
+                    {
+                        "severity": "INFO",
+                        "code": "persona_boundary",
+                        "message": (
+                            "The role boundary is specific enough to distinguish the persona."
+                        ),
+                        "evidence": ["Project brief identifies sales reps and operations leads."],
+                        "details": {},
+                    }
+                ],
             },
             indent=2,
         ),
@@ -204,7 +217,18 @@ def approve_feature(tmp_path: Path) -> None:
                 "summary": "Feature semantic review passed.",
                 "reviewer_ref": "fake-llm",
                 "model": "fake-model",
-                "findings": [],
+                "counterexamples": [
+                    "A feature can become too coupled if it spans unrelated responsibilities."
+                ],
+                "findings": [
+                    {
+                        "severity": "INFO",
+                        "code": "feature_boundary",
+                        "message": "The slice has a testable business boundary.",
+                        "evidence": ["Customer assignment is modeled as a discrete capability."],
+                        "details": {},
+                    }
+                ],
             },
             indent=2,
         ),
@@ -251,7 +275,18 @@ def fake_semantic_review_response(
         summary=summary,
         reviewer_ref="fake-llm",
         model="fake-model",
-        findings=[],
+        counterexamples=[
+            "The artifact might hide a coupling or boundary issue unless evidence says otherwise."
+        ],
+        findings=[
+            {
+                "severity": "INFO",
+                "code": "mock_evidence",
+                "message": "Mock review records a supporting observation.",
+                "evidence": ["artifact_ref", packet["artifact"]["ref"]],
+                "details": {},
+            }
+        ],
     )
     audit = ProviderAuditPayload(
         trace_id=packet["trace_id"],

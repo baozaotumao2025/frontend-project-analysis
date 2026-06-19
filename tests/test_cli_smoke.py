@@ -29,6 +29,14 @@ def test_cli_subcommand_groups_render_help() -> None:
         ["project", "--help"],
         ["artifact", "--help"],
         ["review", "--help"],
+        ["workflow", "--help"],
     ):
         result = runner.invoke(app, args)
         assert result.exit_code == 0
+
+
+def test_workflow_help_shows_explore_entrypoint() -> None:
+    result = runner.invoke(app, ["workflow", "--help"])
+
+    assert result.exit_code == 0
+    assert "explore" in result.stdout

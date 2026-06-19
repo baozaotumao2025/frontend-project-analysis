@@ -74,10 +74,12 @@ title: Customer Assignment
 ```
 
 The CLI validates these fields during structural review for Persona, Story Map, Page, and Feature artifacts.
+The file body remains the human-edited artifact content, while the database owns lifecycle and dependency state. Hand edits to the file still need import reconciliation before downstream workflow can trust them.
 
 ## Design Rules
 
 - One Markdown file should describe either one entity or one relationship view
 - Relationship-dense information belongs in index or matrix files
 - Prefer progressive disclosure: index first, entity files second, acceptance and spec detail last
+- Do not hand-edit matrix files as if they were primary records; regenerate them from the database
 - Keep core professional terms in English

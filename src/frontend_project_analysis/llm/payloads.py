@@ -5,7 +5,10 @@ from __future__ import annotations
 from uuid import uuid4
 
 from ..core.config import Settings
-from ..core.prompts import SEMANTIC_REVIEW_SYSTEM_PROMPT, build_semantic_review_user_prompt
+from ..core.prompts import (
+    build_semantic_review_system_prompt,
+    build_semantic_review_user_prompt,
+)
 from ..schemas import (
     AnthropicReviewRequest,
     GeminiReviewRequest,
@@ -26,10 +29,14 @@ def resolve_call_ids(packet: dict) -> tuple[str, str]:
 
 
 def build_openai_request(settings: Settings, packet: dict) -> dict:
+    artifact_type = packet.get("artifact", {}).get("type")
     return OpenAIReviewRequest(
         model=settings.llm_model or "",
         input=[
-            {"role": "developer", "content": SEMANTIC_REVIEW_SYSTEM_PROMPT},
+            {
+                "role": "developer",
+                "content": build_semantic_review_system_prompt(artifact_type),
+            },
             {"role": "user", "content": build_semantic_review_user_prompt(packet)},
         ],
         text={
@@ -45,10 +52,11 @@ def build_openai_request(settings: Settings, packet: dict) -> dict:
 
 
 def build_anthropic_request(settings: Settings, packet: dict) -> dict:
+    artifact_type = packet.get("artifact", {}).get("type")
     return AnthropicReviewRequest(
         model=settings.llm_model or "",
         max_tokens=settings.llm_max_output_tokens,
-        system=SEMANTIC_REVIEW_SYSTEM_PROMPT,
+        system=build_semantic_review_system_prompt(artifact_type),
         messages=[
             {
                 "role": "user",
@@ -59,9 +67,10 @@ def build_anthropic_request(settings: Settings, packet: dict) -> dict:
 
 
 def build_gemini_request(settings: Settings, packet: dict) -> dict:
+    artifact_type = packet.get("artifact", {}).get("type")
     return GeminiReviewRequest(
         system_instruction={
-            "parts": [{"text": SEMANTIC_REVIEW_SYSTEM_PROMPT}],
+            "parts": [{"text": build_semantic_review_system_prompt(artifact_type)}],
         },
         contents=[
             {
@@ -85,11 +94,15 @@ def run_mock_review(packet: dict, settings: Settings) -> ProviderResponse:
         summary=f"Mock semantic review for {artifact}.",
         reviewer_ref=f"{settings.llm_provider}:mock",
         model=settings.llm_model or "mock-model",
+        counterexamples=[
+            "Mock provider does not assess the packet semantics.",
+        ],
         findings=[
             {
                 "severity": "WARN",
                 "code": "mock_review",
                 "message": "Mock provider does not assess business quality.",
+                "evidence": ["artifact_ref"],
                 "details": {"artifact_ref": artifact},
             }
         ],

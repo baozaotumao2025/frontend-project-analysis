@@ -21,11 +21,13 @@ from .workflow import (
     ReviewRecord,
     SemanticReviewPayload,
 )
+from .brief import BriefAssistantPayload
 
 __all__ = [
     "AnthropicReviewRequest",
     "AnthropicReviewResponse",
     "ArtifactInput",
+    "BriefAssistantPayload",
     "DependencyInput",
     "FindingPayload",
     "GeminiReviewRequest",

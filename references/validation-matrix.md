@@ -16,7 +16,7 @@ The rule is simple: do not let the LLM decide whether a required field exists, w
 | --- | --- | --- | --- |
 | Structural integrity | code | malformed file, missing section, missing reference, wrong frontmatter | workflow state + Markdown body |
 | Lifecycle gate | code | upstream not approved, artifact stale, illegal transition | SQLite state + dependency graph |
-| Semantic quality | LLM / host reviewer | weak reasoning, bad slicing, poor boundary, unclear wording | packet built from current revision |
+| Semantic quality | LLM / host reviewer | weak reasoning, bad slicing, poor boundary, unclear wording, missing counterexamples or evidence | packet built from current revision |
 | Derived projection | code | index or matrix drift | SQLite state + artifact bodies |
 
 ## Artifact Matrix
@@ -26,9 +26,17 @@ The rule is simple: do not let the LLM decide whether a required field exists, w
 | `Persona` | frontmatter completeness; `artifact_type / slug / round / project` match DB; source exists; round gate freshness | role boundaries; core goal realism; permission boundary quality; invisible capability coverage | `analysis/personas/index.md` is a projection, not source of truth |
 | `Story Map` | frontmatter completeness; `Start / End`; source exists; round gate freshness | activity validity; step ordering; no UI leakage; business coherence | `Activity -> Step -> Story` is a content contract, not a graph node contract |
 | `Page` | frontmatter completeness; route / persona / responsibility / related feature references; source exists; round gate freshness | page boundary quality; surface coverage; shared-surface correctness | Matrices can report the lineage, but the page file owns the page scope |
-| `Feature` | frontmatter completeness; page / persona / responsibility / state type / reuse / source story; source exists; round gate freshness | independence; coupling quality; slice clarity; delivery boundary honesty | Feature is the main vertical-slice unit in the current workflow |
+| `Feature` | frontmatter completeness; page / persona / responsibility / state type / reuse / source story; source exists; round gate freshness | independence; coupling quality; slice clarity; delivery boundary honesty; evidence-backed findings and counterexamples | Feature is the main vertical-slice unit in the current workflow |
 | `GWT` | scenario presence; complete `Given / When / Then`; required scenario names; source exists; round gate freshness | scenario intent; business-facing wording; behavioral coverage quality | The current code enforces scenario shape, not only syntax |
 | `Feature Spec` | fixed section coverage; `server state` and `client state` both explicit; source exists; round gate freshness | boundary clarity; dependency honesty; cross-cutting completeness when relevant | This is where delivery-facing detail should become explicit |
+| `brief assistant` | transcript capture; brief output file; optional AI follow-up and summary sections | follow-up question quality; synthesis quality; missing-gap detection | This is the LLM-assisted entry path for creating or refining a `project brief` |
+
+## Host Review Guard
+
+- `host` mode should be treated as a fresh review context, not a continuation of the drafting context.
+- If Codex can spawn a sub-agent, that fresh context MUST be created with `fork_context: false`.
+- Review prompts should force counterexamples first and require evidence-backed findings.
+- If a semantic review output lacks counterexamples or concrete evidence, code should downgrade it to `needs_revision`.
 
 ## Structural Check Matrix
 

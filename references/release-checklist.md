@@ -51,12 +51,50 @@ The published Python package includes only:
 
 Before publishing, verify:
 
-1. `uv run pytest`
-2. `uv run ruff check src/frontend_project_analysis tests`
-3. `rg -n "/Users/cherubines/Documents/MaxCPA" README.md SKILL.md references frontend-decomposition-methodology.md AGENTS.md --glob '!references/release-checklist.md'` returns no matches
-4. `git status --short` shows no runtime data such as `.frontend-project-analysis/`
+1. `./scripts/release-preflight.sh`
+2. `./scripts/release-llm-review.sh` and a fresh reviewer session complete the semantic review
+3. `git status --short` shows no runtime data such as `.frontend-project-analysis/`
    - The target project `.gitignore` includes `.frontend-project-analysis/`
-5. `README.md`, `SKILL.md`, and `references/document-map.md` agree on document authority and reading order
+4. `README.md`, `SKILL.md`, and `references/document-map.md` agree on document authority and reading order
+5. Run the docs/code/terminology audit in [`runbooks/release-doc-audit.md`](../runbooks/release-doc-audit.md)
+   - Confirm every public behavior changed in code has a matching description update
+   - Confirm every public claim changed in a description file has a matching code path, test, or workflow rule
+   - Confirm `references/glossary.md` still owns the vocabulary used by the release
+
+## Capability Readiness Criteria
+
+Use these checks to decide whether the `Formal mode` / `Explore mode` capability is ready to ship:
+
+- `workflow start` still hard-blocks when the formal upstream round is not `approved` and fresh
+- `workflow explore start` succeeds for the same draft or unapproved upstream inputs without mutating canonical lifecycle state
+- `workflow --help` and `workflow explore --help` expose the discoverable entrypoints
+- The focused regression set passes:
+  - `tests/test_cli_workflow_gate.py`
+  - `tests/test_cli_smoke.py`
+  - `tests/test_cli_e2e.py`
+- The documentation set is aligned:
+  - `README.md`
+  - `references/workflow.md`
+  - `references/cli-contract.md`
+  - `references/state-entrypoints.md`
+  - `runbooks/test-matrix.md`
+  - `references/adr/0006-formal-and-explore-workflow-modes.md`
+- The release audit reports no untracked mismatch for the new commands or terminology
+- The formal round gate behavior and stale propagation behavior remain unchanged for canonical delivery
+
+## Docs And Terminology Audit
+
+This audit is the fixed release gate for code/document parity.
+
+- If a changed code file affects a public command, workflow rule, or exported artifact, update the matching description file before release.
+- If a changed description file states a behavior that code does not implement, either update the code or mark the description as intentional future work.
+- If a new domain term appears, add it to `references/glossary.md` before reusing it elsewhere.
+- If a term in `references/glossary.md` is English-only, keep that spelling unchanged in all release-facing files.
+
+## Preferred Launcher
+
+- Use `./scripts/release.sh` or `make release` for the combined preflight plus packet-generation path.
+- Use `./scripts/release-preflight.sh` and `./scripts/release-llm-review.sh` separately only when you need to pause between phases.
 
 ## Release Notes
 

@@ -16,16 +16,24 @@ SEMANTIC_REVIEW_SCHEMA = {
             "summary": {"type": "string"},
             "reviewer_ref": {"type": "string"},
             "model": {"type": ["string", "null"]},
+            "counterexamples": {
+                "type": "array",
+                "items": {"type": "string"},
+            },
             "findings": {
                 "type": "array",
                 "items": {
                     "type": "object",
                     "additionalProperties": False,
-                    "required": ["severity", "code", "message", "details"],
+                    "required": ["severity", "code", "message", "evidence", "details"],
                     "properties": {
                         "severity": {"type": "string"},
                         "code": {"type": "string"},
                         "message": {"type": "string"},
+                        "evidence": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                        },
                         "details": {
                             "type": "object",
                             "additionalProperties": True,

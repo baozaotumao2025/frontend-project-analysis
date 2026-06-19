@@ -28,6 +28,7 @@ Read these files before doing the workflow:
 5. `references/state-machine.md`
 6. `references/workflow.md`
 7. `references/quality-gates.md`
+8. `references/command-layer.md`
 
 Only read `references/templates.md` when you need to create or expand output files.
 If you need to check which document is authoritative for a topic, read `references/document-map.md`.
@@ -40,6 +41,7 @@ If you need to check which document is authoritative for a topic, read `referenc
 - If the user already has approved outputs from earlier rounds, resume from the latest approved round
 - For each round, produce the artifact first, then a self-check against the matching quality gate, then pause
 - Use `uv run fpa ...` commands to read or mutate workflow state instead of inferring graph consistency from Markdown alone
+- For repository maintenance and release actions, prefer the explicit `scripts/*.sh` entrypoints as the canonical implementation layer; use `make` as a grouped convenience wrapper for humans and automation that wants stable target names
 - If `FPA_LLM_PROVIDER=host`, do not call an external model from the skill; generate or inspect the packet and let the current Codex or Claude Code session make the semantic judgment
 - Prefer small focused files and progressive disclosure over large catch-all documents
 - Keep relationship-dense information in index or matrix files rather than inflating entity files

@@ -33,6 +33,7 @@ workflow contract expects.
 | Capability | Must prove | Recommended evidence |
 | --- | --- | --- |
 | `brief interview` | Collects a user-owned brief and can write transcript output | interactive CLI test plus output file assertion |
+| `brief assistant` | Uses the LLM-assisted brief path to add guided follow-ups and synthesis | CLI test with mocked LLM response and AI section assertions |
 | `init` / `project init` | Creates local state, analysis workspace, and `.gitignore` entry | filesystem assertions and idempotency check |
 | `artifact add` | Creates `draft` only | state assertion after add |
 | `artifact link` | Writes dependency edges and can stale approved downstream work | dependency graph assertion plus stale propagation assertion |
@@ -44,6 +45,8 @@ workflow contract expects.
 | `review reject` | Can reject draft, structurally_valid, semantic_review, approved, and stale revisions | state assertions plus gate failure assertion |
 | `workflow start` | Hard-blocks when upstream rounds are not approved and fresh | blocked round scenarios and exact blocking ref |
 | `workflow gate` | Mirrors the diagnostic state of the round gate | pass/fail parity with `workflow start` |
+| `workflow explore start` | Allows draft or unapproved upstream material in exploratory analysis | discoverable explore path and no canonical-state mutation |
+| `workflow explore gate` | Mirrors the exploratory gate state | pass/fail parity with `workflow explore start` |
 | `import manifest` | Ignores inbound status as a lifecycle override | apply and preview checks |
 | `import markdown-scan` | Ignores frontmatter status override and refreshes projections | body scan, index refresh, matrix refresh |
 | `export manifest` / `export relations` | Produces consistent projections from current state | exported files plus graph consistency |
@@ -58,6 +61,7 @@ Before any public release, run at least:
 2. `uv run ruff check src/frontend_project_analysis tests`
 3. A focused E2E pass for the release-relevant paths:
    - `brief interview`
+   - `brief assistant`
    - `init`
    - `review structural`
    - `review semantic-run`
@@ -66,6 +70,7 @@ Before any public release, run at least:
    - `review reject`
    - `artifact link`
    - `workflow start`
+   - `workflow explore start`
    - `db backup`
    - `db restore`
 4. A docs-contract pass:

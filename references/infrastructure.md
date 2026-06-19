@@ -82,8 +82,10 @@ analysis/
   - dependency graph
   - review records
   - transition history
-- Markdown files remain the human-readable projection layer
+- Markdown files remain the human-readable projection layer and editing surface
+- Markdown does not become lifecycle authority just because it was edited by hand
 - Matrix files should be exported from the database instead of edited by hand
+- If a Markdown artifact changes, treat it as pending input until `import markdown-scan` rehydrates the database and refreshes projections
 
 ## Core Tables
 
@@ -103,7 +105,9 @@ Structural review and semantic review are part of the runtime backend, but their
 Structural review is code-driven and deterministic.
 
 Semantic review is host-first and optionally external-LLM-assisted.
-When `FPA_LLM_PROVIDER=host`, the CLI emits the review packet and lets the current Codex or Claude Code session make the semantic judgment instead of the repository code calling an external API.
+When `FPA_LLM_PROVIDER=host`, the CLI emits a frozen review packet and expects a fresh Codex or Claude Code reviewer context to judge it instead of the repository code calling an external API.
+If the current Codex environment can spawn a sub-agent, that sub-agent MUST be used with `fork_context: false` to create the fresh reviewer context.
+Same-session review is not acceptable when a fresh sub-agent is available.
 
 The backend prepares a structured review packet containing:
 
@@ -111,9 +115,10 @@ The backend prepares a structured review packet containing:
 - upstream and downstream references
 - current metadata and body snapshot
 - a rubric tailored to the artifact type
+- counterexample-first review guidance and evidence requirements
 
 The LLM should return structured JSON so the result can be recorded without weakening consistency controls.
-In `host` mode, the structured packet is handed to the current host agent, which automatically produces the judgment, and the result is recorded with `review semantic-record`.
+In `host` mode, the packet is meant to be reviewed in a fresh context that does not reuse the drafting conversation; the result is recorded with `review semantic-record`.
 
 ## Database Maintenance
 
@@ -139,6 +144,7 @@ This is the same wiring `init` relies on when bootstrapping a fresh target proje
 - `uv run fpa export relations --project <key>`
 
 When `markdown-scan --apply` runs, the importer refreshes the document indexes and relation matrices from the current SQLite state.
+It is a reconciliation step, not a claim that Markdown and SQLite are peer sources of truth.
 
 ## Skill Integration Rule
 

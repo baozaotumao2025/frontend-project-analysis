@@ -6,10 +6,50 @@ import pytest
 from typer.testing import CliRunner
 
 from frontend_project_analysis.cli import app
+from frontend_project_analysis.llm.types import ProviderResponse
+from frontend_project_analysis.schemas import BriefAssistantPayload, ProviderAuditPayload
 
 pytestmark = pytest.mark.smoke
 
 runner = CliRunner()
+
+
+def _fake_brief_assistant(packet: dict, settings=None, stage: str = "followup") -> ProviderResponse:
+    if stage == "followup":
+        payload = BriefAssistantPayload(
+            stage="followup",
+            summary="Follow-up suggestions prepared.",
+            reviewer_ref="fake-brief-assistant",
+            model="fake-model",
+            can_finalize=False,
+            confidence="high",
+            gaps=["Integration scope is still unclear."],
+            recommended_questions=["Which integrations matter most?"],
+            draft_brief=None,
+        )
+    else:
+        payload = BriefAssistantPayload(
+            stage="summary",
+            summary="The brief is coherent enough to draft.",
+            reviewer_ref="fake-brief-assistant",
+            model="fake-model",
+            can_finalize=True,
+            confidence="high",
+            gaps=["None"],
+            recommended_questions=[],
+            draft_brief="Draft summary from the AI assistant.",
+        )
+    audit = ProviderAuditPayload(
+        trace_id="trace",
+        request_id="request",
+        provider_name="mock",
+        endpoint="mock://brief",
+        call_status="mocked",
+        attempt_count=1,
+        duration_ms=0,
+        request_json={"stage": stage},
+    )
+    return ProviderResponse(payload=payload, raw_response={"provider": "mock"}, audit=audit)
 
 
 def test_brief_interview_collects_and_writes_brief(tmp_path: Path) -> None:
@@ -233,3 +273,73 @@ def test_brief_interview_collects_cross_cutting_sections(tmp_path: Path) -> None
     assert "## What release or compliance constraints matter?" in text
     assert "# Brief Interview Transcript" in transcript.read_text(encoding="utf-8")
     assert transcript.read_text(encoding="utf-8").count("## ") == 8
+
+
+def test_brief_assistant_mode_adds_ai_sections(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(
+        "frontend_project_analysis.commands.brief.run_brief_assistant",
+        _fake_brief_assistant,
+    )
+    output = tmp_path / "project-brief.md"
+    transcript = tmp_path / "brief-transcript.md"
+    result = runner.invoke(
+        app,
+        [
+            "brief",
+            "assistant",
+            "--output",
+            str(output),
+            "--transcript",
+            str(transcript),
+            "--max-questions",
+            "4",
+        ],
+        input=(
+            "Manage customer assignments.\n"
+            "Sales reps and operations leads.\n"
+            "Reassign customers and review ownership boundaries.\n"
+            "Which integrations matter most?\n"
+        ),
+    )
+
+    assert result.exit_code == 0, result.output
+    text = output.read_text(encoding="utf-8")
+    assert "## AI Assistant Follow-Ups" in text
+    assert "Which integrations matter most?" in text
+    assert "## AI Assistant Summary" in text
+    assert "The brief is coherent enough to draft." in text
+    assert "## AI Assistant Draft Brief" in text
+    assert "Draft summary from the AI assistant." in text
+    transcript_text = transcript.read_text(encoding="utf-8")
+    assert "Which integrations matter most?" in transcript_text
+
+
+def test_brief_interview_llm_assist_option(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(
+        "frontend_project_analysis.commands.brief.run_brief_assistant",
+        _fake_brief_assistant,
+    )
+    output = tmp_path / "project-brief.md"
+    result = runner.invoke(
+        app,
+        [
+            "brief",
+            "interview",
+            "--llm-assist",
+            "--output",
+            str(output),
+            "--max-questions",
+            "4",
+        ],
+        input=(
+            "Manage customer assignments.\n"
+            "Sales reps and operations leads.\n"
+            "Reassign customers and review ownership boundaries.\n"
+            "Which integrations matter most?\n"
+        ),
+    )
+
+    assert result.exit_code == 0, result.output
+    text = output.read_text(encoding="utf-8")
+    assert "## AI Assistant Summary" in text
+    assert "Which integrations matter most?" in text

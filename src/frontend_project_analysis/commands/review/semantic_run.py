@@ -19,6 +19,7 @@ from ...core.errors import ProviderError
 from ...infrastructure.logging_utils import call_context
 from ...infrastructure.storage import session_scope
 from ...llm import run_semantic_review
+from ...llm.validation import enforce_semantic_review_guard
 from ...repositories.dependencies import get_artifact_by_ref
 from ...repositories.projects import get_project
 from ...repositories.reviews import record_provider_call_audit, record_review
@@ -115,18 +116,21 @@ def review_semantic_run(
                     session.commit()
                 raise
 
+            payload = enforce_semantic_review_guard(provider_response.payload)
             if not dry_run:
                 record_review(
                     session=session,
                     artifact=artifact_row,
                     review_kind=ReviewKind.SEMANTIC,
-                    review_status=provider_response.payload.decision,
+                    review_status=payload.decision,
                     reviewer_kind=ReviewerKind.LLM,
-                    summary=provider_response.payload.summary,
-                    reviewer_ref=provider_response.payload.reviewer_ref,
+                    summary=payload.summary,
+                    reviewer_ref=payload.reviewer_ref,
                     payload={
-                        "model": provider_response.payload.model,
+                        "decision": payload.decision.value,
+                        "model": payload.model,
                         "provider": settings.llm_provider,
+                        "counterexamples": payload.counterexamples,
                         "raw_response": provider_response.raw_response,
                     },
                     findings=[
@@ -134,20 +138,21 @@ def review_semantic_run(
                             "severity": finding.severity,
                             "code": finding.code,
                             "message": finding.message,
+                            "evidence": finding.evidence,
                             "details": finding.details,
                         }
-                        for finding in provider_response.payload.findings
+                        for finding in payload.findings
                     ],
                 )
                 next_status = semantic_review_to_artifact_status(
-                    provider_response.payload.decision,
+                    payload.decision,
                     auto_approve=settings.semantic_review_auto_approve,
                 )
                 transition_artifact(
                     session=session,
                     artifact=artifact_row,
                     to_status=next_status,
-                    actor=provider_response.payload.reviewer_ref,
+                    actor=payload.reviewer_ref,
                     reason="Semantic review completed.",
                 )
                 session.commit()

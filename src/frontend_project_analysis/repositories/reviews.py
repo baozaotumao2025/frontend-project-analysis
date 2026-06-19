@@ -35,12 +35,15 @@ def record_review(
     session.add(review)
     session.flush()
     for finding in findings:
+        details = dict(finding.get("details", {}))
+        if finding.get("evidence"):
+            details["evidence"] = finding["evidence"]
         review.findings.append(
             ArtifactReviewFinding(
                 severity=finding["severity"],
                 code=finding["code"],
                 message=finding["message"],
-                details_json=finding.get("details", {}),
+                details_json=details,
             )
         )
     logger.info(

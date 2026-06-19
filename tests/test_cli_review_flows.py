@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
 from sqlalchemy import select
 
-from frontend_project_analysis.core.domain import ArtifactStatus, ReviewStatus
+from frontend_project_analysis.core.domain import ArtifactStatus, ReviewKind, ReviewStatus
 from frontend_project_analysis.infrastructure.storage import session_scope
 from frontend_project_analysis.llm.types import ProviderResponse
 from frontend_project_analysis.models import ArtifactReview
@@ -18,6 +19,16 @@ from tests.cli_support import (
     invoke_with_root,
     prepare_feature_for_semantic_review,
     project_paths,
+)
+from tests.e2e_support import (
+    PROJECT_KEY,
+    PROJECT_NAME,
+    create_existing_project_root,
+    prepare_brief_source,
+    run_fpa,
+    run_review_cycle,
+    write_review_payload,
+    write_round_artifacts,
 )
 
 pytestmark = pytest.mark.smoke
@@ -121,7 +132,10 @@ def test_review_semantic_run_updates_state(tmp_path: Path, monkeypatch: pytest.M
         project_row = get_project(session, "crm-web")
         artifact_row = get_artifact_by_ref(session, project_row, "feature:customer-assignment")
         review = session.scalar(
-            select(ArtifactReview).where(ArtifactReview.artifact_id == artifact_row.id)
+            select(ArtifactReview).where(
+                ArtifactReview.artifact_id == artifact_row.id,
+                ArtifactReview.review_kind == ReviewKind.SEMANTIC,
+            )
         )
         assert artifact_row.status == ArtifactStatus.REJECTED
         assert review is not None
@@ -207,7 +221,12 @@ def test_review_semantic_run_passed_waits_for_human_approval_by_default(
         project_row = get_project(session, "crm-web")
         artifact_row = get_artifact_by_ref(session, project_row, "feature:customer-assignment")
         review = session.scalar(
-            select(ArtifactReview).where(ArtifactReview.artifact_id == artifact_row.id)
+            select(ArtifactReview)
+            .where(
+                ArtifactReview.artifact_id == artifact_row.id,
+                ArtifactReview.review_kind == ReviewKind.SEMANTIC,
+            )
+            .order_by(ArtifactReview.id.desc())
         )
         assert artifact_row.status == ArtifactStatus.SEMANTIC_REVIEW
         assert review is not None
@@ -249,10 +268,224 @@ def test_review_semantic_run_passed_can_auto_approve(
         project_row = get_project(session, "crm-web")
         artifact_row = get_artifact_by_ref(session, project_row, "feature:customer-assignment")
         review = session.scalar(
-            select(ArtifactReview).where(ArtifactReview.artifact_id == artifact_row.id)
+            select(ArtifactReview)
+            .where(
+                ArtifactReview.artifact_id == artifact_row.id,
+                ArtifactReview.review_kind == ReviewKind.SEMANTIC,
+            )
+            .order_by(ArtifactReview.id.desc())
         )
         assert artifact_row.status == ArtifactStatus.APPROVED
         assert review is not None
+
+
+def test_review_semantic_record_missing_evidence_is_downgraded(
+    tmp_path: Path,
+) -> None:
+    bootstrap_project(tmp_path)
+    prepare_feature_for_semantic_review(tmp_path)
+
+    feature_review_path = tmp_path / "feature-semantic-review-missing-evidence.json"
+    feature_review_path.write_text(
+        json.dumps(
+            {
+                "decision": "passed",
+                "summary": "Feature semantic review passed.",
+                "reviewer_ref": "fresh-llm",
+                "model": "fake-model",
+                "counterexamples": [],
+                "findings": [
+                    {
+                        "severity": "INFO",
+                        "code": "feature_boundary",
+                        "message": "The feature slice has a concrete boundary.",
+                        "evidence": [],
+                        "details": {},
+                    }
+                ],
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    record_result = invoke_with_root(
+        tmp_path,
+        [
+            "review",
+            "semantic-record",
+            "--project",
+            "crm-web",
+            "--artifact",
+            "feature:customer-assignment",
+            "--input",
+            str(feature_review_path),
+        ],
+    )
+    assert record_result.exit_code == 0, record_result.output
+
+    with session_scope(project_paths(tmp_path)) as session:
+        project_row = get_project(session, "crm-web")
+        artifact_row = get_artifact_by_ref(session, project_row, "feature:customer-assignment")
+        review = session.scalar(
+            select(ArtifactReview)
+            .where(
+                ArtifactReview.artifact_id == artifact_row.id,
+                ArtifactReview.review_kind == ReviewKind.SEMANTIC,
+            )
+            .order_by(ArtifactReview.id.desc())
+        )
+        assert artifact_row.status == ArtifactStatus.SEMANTIC_REVIEW
+        assert review is not None
+        assert review.review_status == ReviewStatus.NEEDS_REVISION
+
+
+def test_review_resubmit_reconciles_stale_markdown_and_records_semantic_review(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = create_existing_project_root(tmp_path, name="fpa-resubmit-project")
+    brief_source = prepare_brief_source(root)
+
+    init_result = run_fpa(
+        root,
+        [
+            "init",
+            "--project",
+            PROJECT_KEY,
+            "--name",
+            PROJECT_NAME,
+            "--brief-file",
+            str(brief_source),
+        ],
+    )
+    assert init_result.exit_code == 0, init_result.output
+
+    write_round_artifacts(root)
+
+    import_result = run_fpa(
+        root,
+        [
+            "import",
+            "markdown-scan",
+            "--project",
+            PROJECT_KEY,
+            "--apply",
+        ],
+    )
+    assert import_result.exit_code == 0, import_result.output
+
+    review_payload = write_review_payload(root, filename="resubmit-review.json")
+    run_review_cycle(root, "persona:sales-rep", review_payload)
+    run_review_cycle(root, "story_map:sales-rep", review_payload)
+    run_review_cycle(root, "page:customer-profile", review_payload)
+    run_review_cycle(root, "feature:customer-assignment", review_payload)
+
+    feature_path = root / "analysis" / "features" / "customer-assignment.md"
+    feature_text = feature_path.read_text(encoding="utf-8")
+    feature_path.write_text(
+        feature_text.replace(
+            "Assign customers to the right owner.",
+            "Assign customers to the right owner and keep the handoff visible.",
+        ),
+        encoding="utf-8",
+    )
+
+    from frontend_project_analysis.commands.review import resubmit as resubmit_module
+
+    def fake_run_semantic_review(packet: dict, settings=None) -> ProviderResponse:
+        return fake_semantic_review_response(
+            packet,
+            decision=ReviewStatus.PASSED,
+            summary="Semantic review passed after resubmit.",
+        )
+
+    monkeypatch.setattr(resubmit_module, "run_semantic_review", fake_run_semantic_review)
+    monkeypatch.setenv("FPA_LLM_PROVIDER", "mock")
+
+    resubmit_result = run_fpa(
+        root,
+        [
+            "review",
+            "resubmit",
+            "--project",
+            PROJECT_KEY,
+            "--artifact",
+            "feature:customer-assignment",
+        ],
+    )
+    assert resubmit_result.exit_code == 0, resubmit_result.output
+
+    with session_scope(project_paths(root)) as session:
+        project_row = get_project(session, PROJECT_KEY)
+        artifact_row = get_artifact_by_ref(session, project_row, "feature:customer-assignment")
+        review = session.scalar(
+            select(ArtifactReview)
+            .where(
+                ArtifactReview.artifact_id == artifact_row.id,
+                ArtifactReview.review_kind == ReviewKind.SEMANTIC,
+            )
+            .order_by(ArtifactReview.id.desc())
+        )
+        assert artifact_row.status == ArtifactStatus.SEMANTIC_REVIEW
+        assert review is not None
+        assert review.review_status == ReviewStatus.PASSED
+
+
+def test_review_resubmit_host_mode_writes_packet_without_recording_semantic_review(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    bootstrap_project(tmp_path)
+    prepare_feature_for_semantic_review(tmp_path)
+    monkeypatch.setenv("FPA_LLM_PROVIDER", "host")
+
+    with session_scope(project_paths(tmp_path)) as session:
+        project_row = get_project(session, "crm-web")
+        artifact_row = get_artifact_by_ref(session, project_row, "feature:customer-assignment")
+        semantic_before = len(
+            session.scalars(
+                select(ArtifactReview).where(
+                    ArtifactReview.artifact_id == artifact_row.id,
+                    ArtifactReview.review_kind == ReviewKind.SEMANTIC,
+                )
+            ).all()
+        )
+
+    resubmit_result = invoke_with_root(
+        tmp_path,
+        [
+            "review",
+            "resubmit",
+            "--project",
+            "crm-web",
+            "--artifact",
+            "feature:customer-assignment",
+        ],
+    )
+    assert resubmit_result.exit_code == 0, resubmit_result.output
+
+    packet_path = (
+        tmp_path
+        / ".frontend-project-analysis"
+        / "exports"
+        / "feature-customer-assignment-resubmit-semantic-packet.json"
+    )
+    assert packet_path.exists()
+
+    with session_scope(project_paths(tmp_path)) as session:
+        project_row = get_project(session, "crm-web")
+        artifact_row = get_artifact_by_ref(session, project_row, "feature:customer-assignment")
+        semantic_after = len(
+            session.scalars(
+                select(ArtifactReview).where(
+                    ArtifactReview.artifact_id == artifact_row.id,
+                    ArtifactReview.review_kind == ReviewKind.SEMANTIC,
+                )
+            ).all()
+        )
+        assert artifact_row.status == ArtifactStatus.STRUCTURALLY_VALID
+        assert semantic_after == semantic_before
 
 
 def test_review_approve_rejects_stale_hard_dependencies(
@@ -269,7 +502,18 @@ def test_review_approve_rejects_stale_hard_dependencies(
                 "summary": "Feature semantic review passed.",
                 "reviewer_ref": "fake-llm",
                 "model": "fake-model",
-                "findings": [],
+                "counterexamples": [
+                    "A feature review should still identify a plausible coupling risk."
+                ],
+                "findings": [
+                    {
+                        "severity": "INFO",
+                        "code": "feature_boundary",
+                        "message": "The feature slice has a concrete boundary.",
+                        "evidence": ["customer-assignment"],
+                        "details": {},
+                    }
+                ],
             },
             indent=2,
         ),
@@ -338,3 +582,50 @@ def test_review_approve_rejects_stale_hard_dependencies(
     assert "hard dependencies are not approved" in approve_result.output.lower()
     assert "persona:sales-rep" in approve_result.output
     assert "stale" in approve_result.output.lower()
+
+
+def test_release_llm_review_packet_includes_prompt_contract(tmp_path: Path) -> None:
+    packet_path = tmp_path / "release-review.md"
+    result = subprocess.run(
+        [
+            "./scripts/release-llm-review.sh",
+            "--skip-preflight",
+            "--output",
+            str(packet_path),
+        ],
+        cwd=Path(__file__).resolve().parents[1],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    text = packet_path.read_text(encoding="utf-8")
+    assert "## Packet Manifest" in text
+    assert "## Reviewer Card" in text
+    assert "## System Prompt" in text
+    assert "## User Prompt" in text
+    assert '"fresh_session_required": true' in text
+
+
+def test_release_card_outputs_only_reviewer_card(tmp_path: Path) -> None:
+    card_path = tmp_path / "release-card.md"
+    result = subprocess.run(
+        [
+            "./scripts/release-card.sh",
+            "--output",
+            str(card_path),
+        ],
+        cwd=Path(__file__).resolve().parents[1],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    text = card_path.read_text(encoding="utf-8")
+    assert text.startswith("# Release Reviewer Card")
+    assert "## Packet Manifest" not in text
+    assert "## System Prompt" not in text
+    assert "## User Prompt" not in text
+    assert "fresh reviewer session" in text
