@@ -59,6 +59,21 @@ Each target project keeps its workflow state inside:
 - `audits/`: provider request/response archives and event timelines
 - `init` ensures this directory is listed in the calling project's `.gitignore`
 
+Workflow-managed analysis output belongs under `analysis/`:
+
+```text
+analysis/
+  index.md
+  brief.md
+  personas/
+  story-maps/
+  pages/
+  features/
+  relations/
+  gwt/
+  specs/features/
+```
+
 ## Source Of Truth
 
 - SQLite stores authoritative structure:
@@ -104,17 +119,17 @@ In `host` mode, the structured packet is handed to the current host agent, which
 
 Supported workflows:
 
-- `uv run fpa install`
-- `uv run fpa init --project ... --name ...`
+- `uv run fpa init --project ... --name ... --brief-file ...`
+- `uv run fpa init --project ... --name ... --brief ...`
 - `uv run fpa db init`
 - `uv run fpa db backup`
 - `uv run fpa db restore --from ...`
 - `uv run fpa db wipe --yes`
 
 Database migrations are applied automatically when the CLI opens a session or initializes the database.
-The migration layer resolves the repository root `alembic.ini`, points Alembic at `migrations/`,
-and prepends `src/` so `frontend_project_analysis` can be imported during migration runs.
-This is the same wiring `install` and `init` rely on when bootstrapping a fresh target project.
+The migration layer resolves the skill repository root `alembic.ini`, points Alembic at `migrations/`,
+and prepends `src/` from the skill repository so `frontend_project_analysis` can be imported during migration runs.
+This is the same wiring `init` relies on when bootstrapping a fresh target project.
 
 ## Import And Export
 

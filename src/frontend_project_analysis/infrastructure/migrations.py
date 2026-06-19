@@ -19,6 +19,8 @@ from sqlalchemy import create_engine, inspect
 
 from ..core.config import AppPaths
 
+_REPO_ROOT = Path(__file__).resolve().parents[3]
+
 
 @dataclass(frozen=True)
 class MigrationState:
@@ -36,10 +38,10 @@ class MigrationState:
 
 
 def make_alembic_config(paths: AppPaths) -> Config:
-    config = Config(str(paths.root / "alembic.ini"))
-    config.set_main_option("script_location", str(paths.root / "migrations"))
+    config = Config(str(_REPO_ROOT / "alembic.ini"))
+    config.set_main_option("script_location", str(_REPO_ROOT / "migrations"))
     config.set_main_option("sqlalchemy.url", f"sqlite+pysqlite:///{paths.db_path}")
-    config.set_main_option("prepend_sys_path", str(paths.root / "src"))
+    config.set_main_option("prepend_sys_path", str(_REPO_ROOT / "src"))
     config.set_main_option("path_separator", "os")
     return config
 
@@ -91,4 +93,4 @@ def stamp_database(paths: AppPaths, revision: str = "head") -> None:
 
 
 def revision_directory(paths: AppPaths) -> Path:
-    return paths.root / "migrations" / "versions"
+    return _REPO_ROOT / "migrations" / "versions"

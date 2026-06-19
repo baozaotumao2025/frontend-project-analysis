@@ -8,6 +8,7 @@ This directory records durable architectural and workflow decisions.
 | --- | --- | --- | --- |
 | `0001-revision-aware-state-gates.md` | Revision-Aware State Gates And Recovery | Accepted | Defines the revision-aware gate model and rollback semantics |
 | `0002-document-layering-and-rule-placement.md` | Document Layering And Rule Placement | Accepted | Defines where summaries, rules, and rationale belong |
+| `0003-cross-cutting-analysis-and-brief-convergence.md` | Cross-Cutting Analysis And Brief Convergence | Accepted | Defines how the brief interview and cross-cutting concerns flow through the workflow |
 
 ## Reading Guide
 

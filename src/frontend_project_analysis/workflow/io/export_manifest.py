@@ -82,4 +82,3 @@ def export_manifest(session: Session, project: Project) -> dict:
             for item in artifacts
         ],
     }
-

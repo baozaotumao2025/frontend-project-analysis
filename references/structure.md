@@ -3,7 +3,7 @@
 ## Recommended Output Layout
 
 ```text
-docs/
+analysis/
   index.md
   personas/
     index.md
@@ -22,10 +22,13 @@ docs/
     feature-coverage-matrix.md
   gwt/
     [feature-name].feature
-specs/
-  features/
-    [feature-name]-spec.md
+  brief.md
+  specs/
+    features/
+      [feature-name]-spec.md
 ```
+
+`analysis/brief.md` is copied from the user-provided project brief and is not auto-generated from a placeholder.
 
 ## Naming Rules
 
@@ -38,14 +41,14 @@ specs/
 
 ## Responsibility Boundaries
 
-- `docs/personas/[persona-name].md`: Persona definition only
-- `docs/story-maps/[persona-name].md`: `Activity -> Step -> Story` only
-- `docs/pages/[page-slug].md`: page scope, accessible Persona, Story Steps, page responsibility, related Features
-- `docs/features/[feature-name].md`: Feature summary with page, Persona, responsibility, state type, reuse, and source story
-- `docs/relations/persona-story-page-matrix.md`: Persona to Story to Page to Feature mapping
-- `docs/relations/feature-coverage-matrix.md`: Feature to Persona, Page, and Story mapping
-- `docs/gwt/[feature-name].feature`: acceptance behavior
-- `specs/features/[feature-name]-spec.md`: implementation boundary and detail
+- `analysis/personas/[persona-name].md`: Persona definition only
+- `analysis/story-maps/[persona-name].md`: `Activity -> Step -> Story` only
+- `analysis/pages/[page-slug].md`: page scope, accessible Persona, Story Steps, page responsibility, related Features
+- `analysis/features/[feature-name].md`: Feature summary with page, Persona, responsibility, state type, reuse, and source story
+- `analysis/relations/persona-story-page-matrix.md`: Persona to Story to Page to Feature mapping
+- `analysis/relations/feature-coverage-matrix.md`: Feature to Persona, Page, and Story mapping
+- `analysis/gwt/[feature-name].feature`: acceptance behavior
+- `analysis/specs/features/[feature-name]-spec.md`: implementation boundary, discovery evidence, risk, accessibility, observability, release/compliance, and delivery detail
 
 ## Managed Frontmatter
 

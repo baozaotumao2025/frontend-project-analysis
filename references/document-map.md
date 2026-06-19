@@ -11,6 +11,8 @@ This page maps each concern to its canonical document.
 | `references/quality-gates.md` | Reference | Per-round quality gates | Canonical review checklist |
 | `references/infrastructure.md` | Reference | Runtime architecture and storage model | Canonical backend behavior |
 | `references/state-machine.md` | Reference | Artifact lifecycle semantics | Canonical status semantics |
+| `references/schema-sketch.md` | Reference | Node, edge, and matrix placement for the workflow schema | Canonical schema sketch |
+| `references/validation-matrix.md` | Reference | Code, LLM, and projection validation responsibilities | Canonical validation matrix |
 | `references/cli-contract.md` | Reference | CLI behavior under code-enforced gates | Canonical user-facing command contract |
 | `references/state-entrypoints.md` | Reference | Which commands can mutate workflow state | Canonical entrypoint map |
 | `references/structure.md` | Reference | Output layout, naming rules, and responsibility boundaries | Canonical file layout guide |
@@ -26,3 +28,5 @@ This page maps each concern to its canonical document.
 - If `README.md` and a `references/*` file disagree, prefer the `references/*` file.
 - If `SKILL.md` and `references/methodology.md` disagree, prefer `references/methodology.md`.
 - If `frontend-decomposition-methodology.md` disagrees with anything else, treat it as stale until updated.
+- If you are checking vocabulary for `project brief`, `brief interview`, `transcript`, or `preflight helper`, prefer `references/glossary.md`
+- If you are checking which commands prepare input without mutating workflow state, prefer `references/state-entrypoints.md` and `references/workflow.md`

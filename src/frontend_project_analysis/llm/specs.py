@@ -37,4 +37,3 @@ SEMANTIC_REVIEW_SCHEMA = {
     },
     "strict": True,
 }
-

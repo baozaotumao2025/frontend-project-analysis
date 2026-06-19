@@ -1,18 +1,28 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
 
+from frontend_project_analysis.core.domain import ArtifactStatus, ReviewStatus
 from frontend_project_analysis.infrastructure.storage import session_scope
+from frontend_project_analysis.llm.types import ProviderResponse
 from frontend_project_analysis.repositories.artifacts import list_artifacts
+from frontend_project_analysis.repositories.dependencies import get_artifact_by_ref
 from frontend_project_analysis.repositories.projects import get_project
-from tests.cli_support import project_paths
+from tests.cli_support import (
+    bootstrap_project,
+    fake_semantic_review_response,
+    prepare_feature_for_semantic_review,
+    project_paths,
+)
 from tests.e2e_support import (
     PROJECT_KEY,
     PROJECT_NAME,
     assert_round_gate,
     create_existing_project_root,
+    prepare_brief_source,
     run_fpa,
     run_review_cycle,
     write_review_payload,
@@ -21,26 +31,28 @@ from tests.e2e_support import (
 
 
 @pytest.mark.e2e
-@pytest.mark.e2e_install
-def test_e2e_install_init_and_round_recovery(tmp_path: Path) -> None:
+def test_e2e_init_and_round_recovery(tmp_path: Path) -> None:
     root = create_existing_project_root(tmp_path)
+    brief_source = prepare_brief_source(root)
     review_payload = write_review_payload(root)
 
-    dry_run = run_fpa(root, ["install", "--dry-run"])
-    assert dry_run.exit_code == 0, dry_run.output
-    assert not (root / "alembic.ini").exists()
-
-    install_result = run_fpa(root, ["install"])
-    assert install_result.exit_code == 0, install_result.output
-    assert "README.md" in install_result.output
-    assert "skipped_existing" in install_result.output
-    assert (root / "alembic.ini").exists()
-    assert (root / "migrations" / "env.py").exists()
-    assert (root / "src" / "frontend_project_analysis" / "cli.py").exists()
-
-    init_result = run_fpa(root, ["init", "--project", PROJECT_KEY, "--name", PROJECT_NAME])
+    init_result = run_fpa(
+        root,
+        [
+            "init",
+            "--project",
+            PROJECT_KEY,
+            "--name",
+            PROJECT_NAME,
+            "--brief-file",
+            str(brief_source),
+        ],
+    )
     assert init_result.exit_code == 0, init_result.output
     assert (root / ".frontend-project-analysis" / "state.db").exists()
+    assert not (root / "alembic.ini").exists()
+    assert not (root / "migrations").exists()
+    assert not (root / "src").exists()
     gitignore = (root / ".gitignore").read_text(encoding="utf-8")
     assert gitignore.count(".frontend-project-analysis/") == 1
 
@@ -186,15 +198,259 @@ def test_e2e_install_init_and_round_recovery(tmp_path: Path) -> None:
 
 
 @pytest.mark.e2e
+def test_e2e_review_reject_and_restore_recovery(tmp_path: Path) -> None:
+    root = create_existing_project_root(tmp_path, name="fpa-e2e-reject-restore")
+    review_payload = write_review_payload(root, filename="reject-review.json")
+
+    bootstrap_project(root)
+    prepare_feature_for_semantic_review(root)
+
+    ready_result = run_fpa(
+        root,
+        [
+            "artifact",
+            "ready",
+            "--project",
+            PROJECT_KEY,
+        ],
+    )
+    assert ready_result.exit_code == 0, ready_result.output
+    assert "feature:customer-assignment" in ready_result.output
+
+    semantic_record = run_fpa(
+        root,
+        [
+            "review",
+            "semantic-record",
+            "--project",
+            PROJECT_KEY,
+            "--artifact",
+            "feature:customer-assignment",
+            "--input",
+            str(review_payload),
+        ],
+    )
+    assert semantic_record.exit_code == 0, semantic_record.output
+
+    reject_result = run_fpa(
+        root,
+        [
+            "review",
+            "reject",
+            "--project",
+            PROJECT_KEY,
+            "--artifact",
+            "feature:customer-assignment",
+        ],
+    )
+    assert reject_result.exit_code == 0, reject_result.output
+    assert "Rejected feature:customer-assignment" in reject_result.output
+
+    with session_scope(project_paths(root)) as session:
+        project = get_project(session, PROJECT_KEY)
+        feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
+        assert feature.status == ArtifactStatus.REJECTED
+
+    blocked_round_5 = run_fpa(
+        root,
+        [
+            "workflow",
+            "start",
+            "--project",
+            PROJECT_KEY,
+            "--round",
+            "5",
+        ],
+    )
+    assert blocked_round_5.exit_code != 0, blocked_round_5.output
+    assert "feature:customer-assignment" in blocked_round_5.output
+    assert "rejected" in blocked_round_5.output.lower()
+
+    backup_result = run_fpa(root, ["db", "backup"])
+    assert backup_result.exit_code == 0, backup_result.output
+    backup_path = Path(backup_result.output.strip())
+    assert backup_path.exists()
+
+    add_page = run_fpa(
+        root,
+        [
+            "artifact",
+            "add",
+            "--project",
+            PROJECT_KEY,
+            "--type",
+            "page",
+            "--slug",
+            "ops-overview",
+            "--title",
+            "Ops Overview",
+        ],
+    )
+    assert add_page.exit_code == 0, add_page.output
+
+    wipe_result = run_fpa(root, ["db", "wipe", "--yes"])
+    assert wipe_result.exit_code == 0, wipe_result.output
+
+    restore_result = run_fpa(
+        root,
+        [
+            "db",
+            "restore",
+            "--from",
+            str(backup_path.relative_to(root)),
+        ],
+    )
+    assert restore_result.exit_code == 0, restore_result.output
+    restore_payload = json.loads(restore_result.output)
+    assert Path(restore_payload["current"]).exists()
+
+    with session_scope(project_paths(root)) as session:
+        project = get_project(session, PROJECT_KEY)
+        artifacts = list_artifacts(session, project)
+        assert any(artifact.artifact_type.value == "persona" for artifact in artifacts)
+        assert all(
+            not (artifact.artifact_type.value == "page" and artifact.slug == "ops-overview")
+            for artifact in artifacts
+        )
+
+
+@pytest.mark.e2e
+def test_e2e_artifact_link_stales_approved_dependents(tmp_path: Path) -> None:
+    root = create_existing_project_root(tmp_path, name="fpa-e2e-link-stale")
+    bootstrap_project(root)
+    prepare_feature_for_semantic_review(root)
+
+    link_ready = run_fpa(
+        root,
+        [
+            "artifact",
+            "ready",
+            "--project",
+            PROJECT_KEY,
+        ],
+    )
+    assert link_ready.exit_code == 0, link_ready.output
+    assert "feature:customer-assignment" in link_ready.output
+
+    from tests.cli_support import approve_feature
+
+    approve_feature(root)
+
+    add_page = run_fpa(
+        root,
+        [
+            "artifact",
+            "add",
+            "--project",
+            PROJECT_KEY,
+            "--type",
+            "page",
+            "--slug",
+            "ops-overview",
+            "--title",
+            "Ops Overview",
+        ],
+    )
+    assert add_page.exit_code == 0, add_page.output
+
+    link_result = run_fpa(
+        root,
+        [
+            "artifact",
+            "link",
+            "--project",
+            PROJECT_KEY,
+            "--from",
+            "persona:sales-rep",
+            "--to",
+            "page:ops-overview",
+        ],
+    )
+    assert link_result.exit_code == 0, link_result.output
+    assert "Linked persona:sales-rep -> page:ops-overview" in link_result.output
+
+    with session_scope(project_paths(root)) as session:
+        project = get_project(session, PROJECT_KEY)
+        feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
+        persona = get_artifact_by_ref(session, project, "persona:sales-rep")
+        assert persona.status == ArtifactStatus.STALE
+        assert feature.status == ArtifactStatus.STALE
+
+    blocked_round_5 = run_fpa(
+        root,
+        [
+            "workflow",
+            "start",
+            "--project",
+            PROJECT_KEY,
+            "--round",
+            "5",
+        ],
+    )
+    assert blocked_round_5.exit_code != 0, blocked_round_5.output
+    assert "feature:customer-assignment" in blocked_round_5.output
+    assert "stale" in blocked_round_5.output.lower()
+
+
+@pytest.mark.e2e
+def test_e2e_semantic_run_auto_approves_when_enabled(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = create_existing_project_root(tmp_path, name="fpa-e2e-semantic-auto")
+    bootstrap_project(root)
+    prepare_feature_for_semantic_review(root)
+
+    from frontend_project_analysis.commands.review import semantic_run as semantic_run_module
+
+    def fake_run_semantic_review(packet: dict, settings=None) -> ProviderResponse:
+        return fake_semantic_review_response(
+            packet,
+            decision=ReviewStatus.PASSED,
+            summary="Semantic review passed.",
+        )
+
+    monkeypatch.setattr(semantic_run_module, "run_semantic_review", fake_run_semantic_review)
+    monkeypatch.setenv("FPA_SEMANTIC_REVIEW_AUTO_APPROVE", "true")
+
+    run_result = run_fpa(
+        root,
+        [
+            "review",
+            "semantic-run",
+            "--project",
+            PROJECT_KEY,
+            "--artifact",
+            "feature:customer-assignment",
+        ],
+    )
+    assert run_result.exit_code == 0, run_result.output
+
+    with session_scope(project_paths(root)) as session:
+        project = get_project(session, PROJECT_KEY)
+        feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
+        assert feature.status == ArtifactStatus.APPROVED
+
+
+@pytest.mark.e2e
 @pytest.mark.e2e_flow
 def test_e2e_full_flow_multiple_failure_recovery(tmp_path: Path) -> None:
     root = create_existing_project_root(tmp_path, name="fpa-e2e-full-flow")
+    brief_source = prepare_brief_source(root)
     review_payload = write_review_payload(root, filename="full-flow-review.json")
 
-    install_result = run_fpa(root, ["install"])
-    assert install_result.exit_code == 0, install_result.output
-
-    init_result = run_fpa(root, ["init", "--project", PROJECT_KEY, "--name", PROJECT_NAME])
+    init_result = run_fpa(
+        root,
+        [
+            "init",
+            "--project",
+            PROJECT_KEY,
+            "--name",
+            PROJECT_NAME,
+            "--brief-file",
+            str(brief_source),
+        ],
+    )
     assert init_result.exit_code == 0, init_result.output
 
     write_round_artifacts(
@@ -483,12 +739,21 @@ def test_e2e_full_flow_multiple_failure_recovery(tmp_path: Path) -> None:
 @pytest.mark.e2e_reset
 def test_e2e_force_init_resets_project_state(tmp_path: Path) -> None:
     root = create_existing_project_root(tmp_path, name="fpa-e2e-reset")
+    brief_source = prepare_brief_source(root)
     review_payload = write_review_payload(root, filename="force-review.json")
 
-    install_result = run_fpa(root, ["install"])
-    assert install_result.exit_code == 0, install_result.output
-
-    init_result = run_fpa(root, ["init", "--project", PROJECT_KEY, "--name", PROJECT_NAME])
+    init_result = run_fpa(
+        root,
+        [
+            "init",
+            "--project",
+            PROJECT_KEY,
+            "--name",
+            PROJECT_NAME,
+            "--brief-file",
+            str(brief_source),
+        ],
+    )
     assert init_result.exit_code == 0, init_result.output
 
     write_round_artifacts(
@@ -526,6 +791,8 @@ def test_e2e_force_init_resets_project_state(tmp_path: Path) -> None:
             PROJECT_KEY,
             "--name",
             PROJECT_NAME,
+            "--brief-file",
+            str(brief_source),
             "--force",
         ],
     )

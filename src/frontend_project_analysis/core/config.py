@@ -9,6 +9,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 STATE_DIR_NAME = ".frontend-project-analysis"
+ANALYSIS_DIR_NAME = "analysis"
 
 
 class Settings(BaseSettings):
@@ -115,9 +116,7 @@ def get_paths(root: Path | None = None) -> AppPaths:
         else state_dir / "exports"
     )
     log_dir = (
-        Path(settings.log_dir).expanduser().resolve()
-        if settings.log_dir
-        else state_dir / "logs"
+        Path(settings.log_dir).expanduser().resolve() if settings.log_dir else state_dir / "logs"
     )
     audit_dir = (
         Path(settings.audit_dir).expanduser().resolve()

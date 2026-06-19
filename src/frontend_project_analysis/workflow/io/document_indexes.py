@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from ...core.config import ANALYSIS_DIR_NAME
 from ...infrastructure.documents import read_document
 
 _HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$", re.MULTILINE)
@@ -63,7 +64,9 @@ def _story_map_boundaries(body: str) -> tuple[str, str]:
     end = _section_value(body, "End")
     if start or end:
         return start, end
-    stories = [match.group(1).strip() for match in _STORY_LINE_RE.finditer(body) if match.group(1).strip()]
+    stories = [
+        match.group(1).strip() for match in _STORY_LINE_RE.finditer(body) if match.group(1).strip()
+    ]
     if not stories:
         return "", ""
     return stories[0], stories[-1]
@@ -78,7 +81,7 @@ def _first_nonempty_frontmatter_value(metadata: dict, *keys: str) -> str:
 
 
 def _collect_files(root: Path, relative_dir: str, suffix: str) -> list[Path]:
-    base = root / relative_dir
+    base = root / ANALYSIS_DIR_NAME / relative_dir
     if not base.exists():
         return []
     return [
@@ -101,7 +104,9 @@ def _link(label: str, target: str) -> str:
 
 def _render_root_index() -> str:
     return (
-        "# Documentation Index\n\n"
+        "# Analysis Index\n\n"
+        "## Brief\n\n"
+        "- [Project Brief](./brief.md)\n\n"
         "## Personas\n\n"
         "- [Persona Index](./personas/index.md)\n\n"
         "## Story Maps\n\n"
@@ -118,7 +123,7 @@ def _render_root_index() -> str:
 
 def _render_persona_index(root: Path) -> str:
     rows: list[list[str]] = []
-    for path in _collect_files(root, "docs/personas", ".md"):
+    for path in _collect_files(root, "personas", ".md"):
         metadata, body = read_document(path)
         slug = str(metadata.get("slug") or path.stem)
         title = str(metadata.get("title") or slug.replace("-", " ").title())
@@ -126,10 +131,12 @@ def _render_persona_index(root: Path) -> str:
         story_map_link = _link(slug, f"../story-maps/{slug}.md")
         core_goal = _section_summary(body, "Core Goal")
         notes = " / ".join(
-            item for item in (
+            item
+            for item in (
                 _section_summary(body, "Permission Boundary"),
                 _section_summary(body, "Invisible Pages Or Capabilities"),
-            ) if item
+            )
+            if item
         )
         rows.append([persona_link, core_goal, story_map_link, notes])
     return _render_table(
@@ -141,7 +148,7 @@ def _render_persona_index(root: Path) -> str:
 
 def _render_story_map_index(root: Path) -> str:
     rows: list[list[str]] = []
-    for path in _collect_files(root, "docs/story-maps", ".md"):
+    for path in _collect_files(root, "story-maps", ".md"):
         metadata, body = read_document(path)
         slug = str(metadata.get("slug") or path.stem)
         title = str(metadata.get("title") or slug.replace("-", " ").title())
@@ -157,7 +164,7 @@ def _render_story_map_index(root: Path) -> str:
 
 def _render_page_index(root: Path) -> str:
     rows: list[list[str]] = []
-    for path in _collect_files(root, "docs/pages", ".md"):
+    for path in _collect_files(root, "pages", ".md"):
         metadata, body = read_document(path)
         slug = str(metadata.get("slug") or path.stem)
         title = str(metadata.get("title") or slug.replace("-", " ").title())
@@ -181,13 +188,15 @@ def _render_page_index(root: Path) -> str:
 
 def _render_feature_index(root: Path) -> str:
     rows: list[list[str]] = []
-    for path in _collect_files(root, "docs/features", ".md"):
+    for path in _collect_files(root, "features", ".md"):
         metadata, body = read_document(path)
         slug = str(metadata.get("slug") or path.stem)
         title = str(metadata.get("title") or slug.replace("-", " ").title())
         feature_link = _link(title, f"./{slug}.md")
         page = _section_summary(body, "Page")
-        persona = _section_summary(body, "Persona Served") or _section_summary(body, "Service Persona")
+        persona = _section_summary(body, "Persona Served") or _section_summary(
+            body, "Service Persona"
+        )
         responsibility = _section_summary(body, "Business Responsibility") or _section_summary(
             body, "Responsibility"
         )
@@ -202,7 +211,7 @@ def _render_feature_index(root: Path) -> str:
 
 
 def refresh_document_indexes(root: Path) -> list[Path]:
-    docs_root = root / "docs"
+    docs_root = root / ANALYSIS_DIR_NAME
     personas = docs_root / "personas" / "index.md"
     story_maps = docs_root / "story-maps" / "index.md"
     pages = docs_root / "pages" / "index.md"

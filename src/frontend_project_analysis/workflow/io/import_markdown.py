@@ -6,7 +6,7 @@ from pathlib import Path
 
 from sqlalchemy.orm import Session
 
-from ...core.config import ensure_state_dirs
+from ...core.config import ANALYSIS_DIR_NAME, ensure_state_dirs
 from ...core.domain import ArtifactStatus
 from ...infrastructure.documents import infer_artifact_type, read_document
 from ...models import Project
@@ -27,29 +27,36 @@ def _ensure_gitignore_entry(root: Path, entry: str) -> None:
     gitignore_path.write_text("\n".join(existing_lines) + "\n", encoding="utf-8")
 
 
-def initialize_project(paths, project_key: str, project_name: str) -> dict[str, str]:
+def initialize_project(
+    paths,
+    project_key: str,
+    project_name: str,
+    brief_text: str | None = None,
+) -> dict[str, str]:
     ensure_state_dirs(paths)
+    analysis_root = paths.root / ANALYSIS_DIR_NAME
     for relative in (
-        "docs/personas",
-        "docs/story-maps",
-        "docs/pages",
-        "docs/features",
-        "docs/relations",
-        "docs/gwt",
+        "personas",
+        "story-maps",
+        "pages",
+        "features",
+        "relations",
+        "gwt",
         "specs/features",
     ):
-        (paths.root / relative).mkdir(parents=True, exist_ok=True)
+        (analysis_root / relative).mkdir(parents=True, exist_ok=True)
+    analysis_root.mkdir(parents=True, exist_ok=True)
+    if brief_text is not None:
+        brief_path = analysis_root / "brief.md"
+        brief_path.write_text(brief_text.rstrip() + "\n", encoding="utf-8")
     _ensure_gitignore_entry(paths.root, ".frontend-project-analysis/")
     refresh_document_indexes(paths.root)
-    (paths.root / "docs" / "relations").mkdir(parents=True, exist_ok=True)
+    (analysis_root / "relations").mkdir(parents=True, exist_ok=True)
     for filename, title, headers in (
         (
             "persona-story-page-matrix.md",
             "# Persona Story Page Matrix",
-            (
-                "| Persona | Story Map | Page | Feature |\n"
-                "| --- | --- | --- | --- |"
-            ),
+            ("| Persona | Story Map | Page | Feature |\n| --- | --- | --- | --- |"),
         ),
         (
             "feature-coverage-matrix.md",
@@ -60,12 +67,13 @@ def initialize_project(paths, project_key: str, project_name: str) -> dict[str, 
             ),
         ),
     ):
-        path = paths.root / "docs" / "relations" / filename
+        path = analysis_root / "relations" / filename
         path.write_text(f"{title}\n\n{headers}\n", encoding="utf-8")
     return {
         "project_key": project_key,
         "project_name": project_name,
         "state_dir": str(paths.state_dir),
+        "analysis_dir": str(analysis_root),
     }
 
 
@@ -76,9 +84,8 @@ def import_markdown_files(
     apply_changes: bool,
 ) -> list[dict]:
     candidates = [
-        *sorted((root / "docs").rglob("*.md")),
-        *sorted((root / "specs").rglob("*.md")),
-        *sorted((root / "docs" / "gwt").rglob("*.feature")),
+        *sorted((root / ANALYSIS_DIR_NAME).rglob("*.md")),
+        *sorted((root / ANALYSIS_DIR_NAME / "gwt").rglob("*.feature")),
     ]
     previews: list[dict] = []
     for path in candidates:

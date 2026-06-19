@@ -87,6 +87,10 @@ SEMANTIC_REVIEW_RUBRICS: dict[ArtifactType, list[str]] = {
     ],
     ArtifactType.GWT: [
         "Scenarios cover Happy Path, Permission Case, Error Case, and Edge Case.",
+        (
+            "Accessibility Case is present and describes keyboard or "
+            "assistive-technology behavior clearly."
+        ),
         "Given/When/Then remain declarative and business-facing.",
         "Scenarios align with the approved Feature boundary.",
     ],
@@ -94,6 +98,10 @@ SEMANTIC_REVIEW_RUBRICS: dict[ArtifactType, list[str]] = {
         "The spec keeps implementation boundaries explicit and stable.",
         "Dependencies are correctly called out and do not hide coupling.",
         "State responsibilities are separated clearly enough for delivery.",
+        (
+            "Discovery evidence, risks, assumptions, accessibility, "
+            "observability, and release constraints are visible when relevant."
+        ),
     ],
 }
 

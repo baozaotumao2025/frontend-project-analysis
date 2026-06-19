@@ -32,16 +32,16 @@ def infer_artifact_type(path: Path) -> ArtifactType | None:
     normalized = path.as_posix()
     if path.name == "index.md":
         return None
-    if "/docs/personas/" in normalized:
+    if "/analysis/personas/" in normalized or "/docs/personas/" in normalized:
         return ArtifactType.PERSONA
-    if "/docs/story-maps/" in normalized:
+    if "/analysis/story-maps/" in normalized or "/docs/story-maps/" in normalized:
         return ArtifactType.STORY_MAP
-    if "/docs/pages/" in normalized:
+    if "/analysis/pages/" in normalized or "/docs/pages/" in normalized:
         return ArtifactType.PAGE
-    if "/docs/features/" in normalized:
+    if "/analysis/features/" in normalized or "/docs/features/" in normalized:
         return ArtifactType.FEATURE
-    if "/docs/gwt/" in normalized:
+    if "/analysis/gwt/" in normalized or "/docs/gwt/" in normalized:
         return ArtifactType.GWT
-    if "/specs/features/" in normalized:
+    if "/analysis/specs/features/" in normalized or "/specs/features/" in normalized:
         return ArtifactType.FEATURE_SPEC
     return None

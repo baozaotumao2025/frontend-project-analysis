@@ -11,8 +11,8 @@ from sqlalchemy.orm import Session, selectinload
 from ..core.domain import ArtifactStatus, ArtifactType, DependencyType
 from ..infrastructure.logging_utils import get_logger
 from ..models import Artifact, ArtifactDependency, ArtifactTransition, Project
-from .errors import RepositoryError
 from ..workflow.state import assert_transition_allowed, mark_dependents_stale
+from .errors import RepositoryError
 
 logger = get_logger(__name__)
 

@@ -13,8 +13,10 @@ Focus on semantic quality, not syntax:
 - Story Map: business-valid sequence, goal orientation, no UI leakage
 - Page: surface boundaries, path coverage, shared-surface correctness
 - Feature: business independence, delivery boundary clarity, coupling quality
-- GWT: scenario completeness and business-facing wording
-- Feature Spec: implementation boundary clarity and dependency honesty
+- GWT: scenario completeness, Accessibility Case coverage, and business-facing wording
+- Feature Spec: implementation boundary clarity, dependency honesty, and
+  explicit cross-cutting concerns such as discovery, risk, accessibility,
+  observability, release, and compliance when relevant
 
 Use `passed` only when the artifact is semantically strong enough to move forward.
 Use `needs_revision` when the artifact is promising but needs edits.

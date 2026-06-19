@@ -26,6 +26,4 @@ def import_markdown_scan(
         preview = import_markdown_files(session, project_row, paths.root, apply_changes)
         if apply_changes:
             session.commit()
-    typer.echo(
-        json.dumps({"apply": apply_changes, "files": preview}, indent=2, ensure_ascii=True)
-    )
+    typer.echo(json.dumps({"apply": apply_changes, "files": preview}, indent=2, ensure_ascii=True))

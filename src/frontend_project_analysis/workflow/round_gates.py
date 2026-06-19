@@ -7,10 +7,9 @@ from dataclasses import dataclass
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..core.domain import ArtifactStatus, ArtifactType, ROUND_BY_TYPE
+from ..core.domain import ROUND_BY_TYPE, ArtifactStatus, ArtifactType
 from ..models import Artifact, Project
 from .state.definitions import WorkflowStateError
-
 
 ROUND_INPUT_TYPE: dict[int, ArtifactType] = {
     round_number + 1: artifact_type for artifact_type, round_number in ROUND_BY_TYPE.items()

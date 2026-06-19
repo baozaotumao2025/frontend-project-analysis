@@ -34,7 +34,8 @@ If you need to check which document is authoritative for a topic, read `referenc
 
 ## Workflow Rules
 
-- When bootstrapping a target project, run `uv run fpa install` first, then `uv run fpa init`
+- When bootstrapping a target project, prepare a user-owned brief first, then run `uv run fpa init --project <key> --name <name> --brief-file <path>`, or provide the brief inline with `--brief <text>`
+- If the user does not yet have a brief, use `uv run fpa brief interview --output <path>` to collect one in a bounded Socratic flow; add `--transcript <path>` when you want to keep the full Q&A record
 - Follow the workflow round by round; do not skip rounds unless the user explicitly asks to do so
 - If the user already has approved outputs from earlier rounds, resume from the latest approved round
 - For each round, produce the artifact first, then a self-check against the matching quality gate, then pause
@@ -47,7 +48,7 @@ If you need to check which document is authoritative for a topic, read `referenc
 
 ## Output Conventions
 
-- Default output roots are `docs/` and `specs/features/`
+- Default output root is `analysis/`
 - Default document layout and file naming follow `references/structure.md`
 - Use the templates in `references/templates.md` only as a starting point; adapt them to the project context
 - Add structured frontmatter to workflow-managed Markdown artifact files so the CLI can validate type, round, status, and project alignment

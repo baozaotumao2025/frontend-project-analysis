@@ -1,0 +1,235 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
+from typer.testing import CliRunner
+
+from frontend_project_analysis.cli import app
+
+pytestmark = pytest.mark.smoke
+
+runner = CliRunner()
+
+
+def test_brief_interview_collects_and_writes_brief(tmp_path: Path) -> None:
+    output = tmp_path / "project-brief.md"
+    result = runner.invoke(
+        app,
+        ["brief", "interview", "--output", str(output), "--max-questions", "3"],
+        input=(
+            "Manage customer assignments.\n"
+            "Sales reps and operations leads.\n"
+            "Reassign customers and review ownership boundaries.\n"
+        ),
+    )
+
+    assert result.exit_code == 0, result.output
+    assert output.exists()
+    text = output.read_text(encoding="utf-8")
+    assert "# Project Brief" in text
+    assert "Manage customer assignments." in text
+    assert "Sales reps and operations leads." in text
+    assert "Reassign customers and review ownership boundaries." in text
+    assert "unknown" in text
+
+
+def test_brief_interview_supports_dry_run(tmp_path: Path) -> None:
+    output = tmp_path / "project-brief.md"
+    result = runner.invoke(
+        app,
+        ["brief", "interview", "--output", str(output), "--dry-run", "--max-questions", "3"],
+        input=(
+            "Manage customer assignments.\n"
+            "Sales reps and operations leads.\n"
+            "Reassign customers and review ownership boundaries.\n"
+        ),
+    )
+
+    assert result.exit_code == 0, result.output
+    assert not output.exists()
+    assert "Dry run: brief was not written to disk." in result.output
+    assert "# Project Brief" in result.output
+
+
+def test_brief_interview_follows_up_on_vague_answers(tmp_path: Path) -> None:
+    output = tmp_path / "project-brief.md"
+    result = runner.invoke(
+        app,
+        ["brief", "interview", "--output", str(output), "--max-questions", "5"],
+        input=(
+            "Customer management.\n"
+            "Users.\n"
+            "Workflows.\n"
+            "The product helps users manage customer data.\n"
+            "Sales and operations need it.\n"
+            "Users need to complete the customer handoff workflow.\n"
+        ),
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "A few details are still unclear" in result.output
+    text = output.read_text(encoding="utf-8")
+    assert "The product helps users manage customer data." in text
+    assert "Sales and operations need it." in text
+    assert "Users need to complete the customer handoff workflow." not in text
+    assert "unknown" in text
+
+
+def test_brief_interview_respects_max_questions(tmp_path: Path) -> None:
+    output = tmp_path / "project-brief.md"
+    result = runner.invoke(
+        app,
+        ["brief", "interview", "--output", str(output), "--max-questions", "3"],
+        input=(
+            "Manage customer assignments.\n"
+            "Sales reps and operations leads.\n"
+            "Reassign customers and review ownership boundaries.\n"
+        ),
+    )
+
+    assert result.exit_code == 0, result.output
+    assert output.exists()
+    text = output.read_text(encoding="utf-8")
+    assert "Manage customer assignments." in text
+    assert "Sales reps and operations leads." in text
+    assert "Reassign customers and review ownership boundaries." in text
+
+
+def test_brief_interview_writes_transcript(tmp_path: Path) -> None:
+    output = tmp_path / "project-brief.md"
+    transcript = tmp_path / "brief-transcript.md"
+    result = runner.invoke(
+        app,
+        [
+            "brief",
+            "interview",
+            "--output",
+            str(output),
+            "--max-questions",
+            "3",
+            "--transcript",
+            str(transcript),
+        ],
+        input=(
+            "Manage customer assignments.\n"
+            "Sales reps and operations leads.\n"
+            "Reassign customers and review ownership boundaries.\n"
+        ),
+    )
+
+    assert result.exit_code == 0, result.output
+    assert output.exists()
+    assert transcript.exists()
+    transcript_text = transcript.read_text(encoding="utf-8")
+    assert "# Brief Interview Transcript" in transcript_text
+    assert "1/3 What does the product do?" in transcript_text
+    assert "2/3 Who are the main users?" in transcript_text
+    assert "3/3 What are the core usage scenarios?" in transcript_text
+    assert "Manage customer assignments." in transcript_text
+    assert "Sales reps and operations leads." in transcript_text
+    assert "Reassign customers and review ownership boundaries." in transcript_text
+
+
+def test_brief_interview_dry_run_prints_transcript(tmp_path: Path) -> None:
+    output = tmp_path / "project-brief.md"
+    transcript = tmp_path / "brief-transcript.md"
+    result = runner.invoke(
+        app,
+        [
+            "brief",
+            "interview",
+            "--output",
+            str(output),
+            "--dry-run",
+            "--max-questions",
+            "3",
+            "--transcript",
+            str(transcript),
+        ],
+        input=(
+            "Manage customer assignments.\n"
+            "Sales reps and operations leads.\n"
+            "Reassign customers and review ownership boundaries.\n"
+        ),
+    )
+
+    assert result.exit_code == 0, result.output
+    assert not output.exists()
+    assert not transcript.exists()
+    assert "# Project Brief" in result.output
+    assert "# Brief Interview Transcript" in result.output
+    assert "Dry run: brief was not written to disk." in result.output
+
+
+def test_brief_interview_respects_total_question_budget(tmp_path: Path) -> None:
+    output = tmp_path / "project-brief.md"
+    transcript = tmp_path / "brief-transcript.md"
+    result = runner.invoke(
+        app,
+        [
+            "brief",
+            "interview",
+            "--output",
+            str(output),
+            "--max-questions",
+            "5",
+            "--transcript",
+            str(transcript),
+        ],
+        input=(
+            "Customer management.\n"
+            "Users.\n"
+            "Integrations.\n"
+            "The product helps users manage customer data.\n"
+            "Sales and operations teams.\n"
+        ),
+    )
+
+    assert result.exit_code == 0, result.output
+    transcript_text = transcript.read_text(encoding="utf-8")
+    assert transcript_text.count("## ") == 5
+    assert "What constraints or dependencies matter most?" not in transcript_text
+
+
+def test_brief_interview_collects_cross_cutting_sections(tmp_path: Path) -> None:
+    output = tmp_path / "project-brief.md"
+    transcript = tmp_path / "brief-transcript.md"
+    result = runner.invoke(
+        app,
+        [
+            "brief",
+            "interview",
+            "--output",
+            str(output),
+            "--transcript",
+            str(transcript),
+            "--max-questions",
+            "8",
+        ],
+        input=(
+            "Manage customer assignments.\n"
+            "Sales reps and operations leads.\n"
+            "Reassign customers and review ownership boundaries.\n"
+            "Customer support notes and onboarding docs.\n"
+            "A rollout mismatch could block customer handoffs.\n"
+            "Keyboard-only usage must work.\n"
+            "Success and failure counts should be measurable.\n"
+            "Ship behind a feature flag and support rollback.\n"
+        ),
+    )
+
+    assert result.exit_code == 0, result.output
+    text = output.read_text(encoding="utf-8")
+    assert "Customer support notes and onboarding docs." in text
+    assert "A rollout mismatch could block customer handoffs." in text
+    assert "Keyboard-only usage must work." in text
+    assert "Success and failure counts should be measurable." in text
+    assert "Ship behind a feature flag and support rollback." in text
+    assert "## What evidence supports this brief?" in text
+    assert "## What are the biggest risks or assumptions?" in text
+    assert "## What accessibility expectations matter?" in text
+    assert "## What should we observe after release?" in text
+    assert "## What release or compliance constraints matter?" in text
+    assert "# Brief Interview Transcript" in transcript.read_text(encoding="utf-8")
+    assert transcript.read_text(encoding="utf-8").count("## ") == 8

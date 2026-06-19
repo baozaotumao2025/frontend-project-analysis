@@ -7,9 +7,7 @@ from frontend_project_analysis.llm.payloads import resolve_call_ids
 
 
 def test_resolve_call_ids_prefers_packet_values() -> None:
-    trace_id, request_id = resolve_call_ids(
-        {"trace_id": "trace-123", "request_id": "request-456"}
-    )
+    trace_id, request_id = resolve_call_ids({"trace_id": "trace-123", "request_id": "request-456"})
 
     assert trace_id == "trace-123"
     assert request_id == "request-456"

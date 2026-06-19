@@ -2,23 +2,30 @@
 
 ## Contents
 
-- `docs/index.md`
-- `docs/personas/index.md`
-- `docs/personas/[persona-name].md`
-- `docs/story-maps/[persona-name].md`
-- `docs/pages/index.md`
-- `docs/pages/[page-slug].md`
-- `docs/features/[feature-name].md`
-- `docs/gwt/[feature-name].feature`
-- `specs/features/[feature-name]-spec.md`
+- `analysis/index.md`
+- `analysis/brief.md` (copied from user-provided brief input)
+- `analysis/personas/index.md`
+- `analysis/personas/[persona-name].md`
+- `analysis/story-maps/[persona-name].md`
+- `analysis/pages/index.md`
+- `analysis/pages/[page-slug].md`
+- `analysis/features/[feature-name].md`
+- `analysis/gwt/[feature-name].feature`
+- `analysis/specs/features/[feature-name]-spec.md`
 
-`docs/index.md`
+`analysis/index.md`
 
 ```md
-# Documentation Index
+# Analysis Index
 ```
 
-`docs/personas/index.md`
+`analysis/brief.md` is not a synthetic template; it is the copied project brief supplied by the user.
+
+```md
+# Project Brief
+```
+
+`analysis/personas/index.md`
 
 ```md
 # Persona Index
@@ -27,7 +34,7 @@
 | --- | --- | --- | --- |
 ```
 
-`docs/personas/[persona-name].md`
+`analysis/personas/[persona-name].md`
 
 ```md
 # [Persona Name]
@@ -44,7 +51,7 @@
 - Story Map: `../story-maps/[persona-name].md`
 ```
 
-`docs/story-maps/[persona-name].md`
+`analysis/story-maps/[persona-name].md`
 
 ```md
 # [Persona Name] Story Map
@@ -60,7 +67,7 @@
 - []
 ```
 
-`docs/pages/index.md`
+`analysis/pages/index.md`
 
 ```md
 # Page Index
@@ -69,7 +76,7 @@
 | --- | --- | --- | --- |
 ```
 
-`docs/pages/[page-slug].md`
+`analysis/pages/[page-slug].md`
 
 ```md
 # [Page Name]
@@ -89,7 +96,7 @@
 - []
 ```
 
-`docs/features/[feature-name].md`
+`analysis/features/[feature-name].md`
 
 ```md
 # [Feature Name]
@@ -108,7 +115,7 @@
 - []
 ```
 
-`docs/gwt/[feature-name].feature`
+`analysis/gwt/[feature-name].feature`
 
 ```gherkin
 Feature: [feature-name]
@@ -132,19 +139,29 @@ Feature: [feature-name]
     Given []
     When []
     Then []
+
+  Scenario: Accessibility Case
+    Given []
+    When []
+    Then []
 ```
 
-`specs/features/[feature-name]-spec.md`
+`analysis/specs/features/[feature-name]-spec.md`
 
 ```md
 # [Feature Name] - Feature Spec
 
 ## Basic Information
+## Discovery And Evidence
+## Risks And Assumptions
 ## Roles And Permissions
 ## Component Breakdown
 ## State Boundary
 ### server state
 ### client state
+## Accessibility
+## Observability
+## Release And Compliance
 ## Cross-Feature Dependencies
 ## Given-When-Then Acceptance Spec
 ```

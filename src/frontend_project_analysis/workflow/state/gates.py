@@ -8,7 +8,6 @@ from ...core.domain import ArtifactStatus
 from ...models import Artifact
 from .definitions import WorkflowStateError
 
-
 ALLOWED_TRANSITIONS: dict[ArtifactStatus, set[ArtifactStatus]] = {
     ArtifactStatus.DRAFT: {
         ArtifactStatus.STRUCTURALLY_VALID,

@@ -13,7 +13,7 @@ def test_cli_exposes_expected_top_level_commands() -> None:
     result = runner.invoke(app, ["--help"])
 
     assert result.exit_code == 0
-    assert "install" in result.stdout
+    assert "brief" in result.stdout
     assert "init" in result.stdout
     assert "project" in result.stdout
     assert "artifact" in result.stdout
@@ -24,6 +24,11 @@ def test_cli_exposes_expected_top_level_commands() -> None:
 
 
 def test_cli_subcommand_groups_render_help() -> None:
-    for args in (["project", "--help"], ["artifact", "--help"], ["review", "--help"]):
+    for args in (
+        ["brief", "--help"],
+        ["project", "--help"],
+        ["artifact", "--help"],
+        ["review", "--help"],
+    ):
         result = runner.invoke(app, args)
         assert result.exit_code == 0

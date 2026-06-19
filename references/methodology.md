@@ -12,11 +12,13 @@
 
 ## 6-Round Conversation Workflow
 
+The workflow is intentionally layered. The first pass captures a user-owned `project brief`, and the later rounds progressively refine business intent into page, feature, acceptance, and delivery boundaries. Cross-cutting concerns such as `discovery`, `risk`, `accessibility`, `observability`, `release`, and `compliance` should be carried forward whenever they are relevant to the product context.
+
 ## Round 1: Define Persona
 
 Input: project description
 
-Target artifact: a Persona card table with role, core goal, permission boundary, and invisible pages
+Target artifact: a Persona card table with role, core goal, permission boundary, invisible pages, and the most relevant constraints captured in the brief
 
 ```text
 You are a senior frontend product architect.
@@ -145,6 +147,7 @@ Write a Given-When-Then acceptance spec in Gherkin format.
 - Edge Case
 - Permission Case
 - Error Case
+- Accessibility Case
 
 ## Writing Principles
 - Be declarative and describe business intent
@@ -158,7 +161,7 @@ Output only the standard Gherkin .feature content.
 
 Input: approved artifacts from earlier rounds
 
-Target artifact: Feature Spec set and implementation order recommendation
+Target artifact: Feature Spec set and implementation order recommendation, including delivery constraints and cross-cutting quality guards
 
 ```text
 Based on the completed analysis below:
@@ -201,3 +204,15 @@ Plan the frontend implementation order using vertical-slice delivery.
 | Round 6 | Feature Spec And Delivery Planning | All approved artifacts | Specs and delivery order | Whole project |
 
 The original methodology had 7 steps. `Component` and `State Boundary` are merged into Round 4 because they depend on Feature definitions and do not need a separate round.
+
+## Cross-Cutting Coverage
+
+Every round should preserve the same set of business and quality signals when the project context calls for them:
+
+- `discovery` and `evidence` explain where the brief came from and what is still uncertain
+- `risk` and `assumption` keep planning honest when the input is incomplete
+- `accessibility` ensures keyboard, semantic, and assistive-technology behavior is not deferred until implementation
+- `observability` keeps metrics and runtime signal needs visible before delivery
+- `release` and `compliance` keep rollout, rollback, privacy, and policy constraints explicit
+
+These signals do not replace the six rounds. They travel through the same workflow and should be reflected in the relevant artifact whenever they materially affect the product or delivery plan.

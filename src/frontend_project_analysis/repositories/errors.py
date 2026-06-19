@@ -7,4 +7,3 @@ from ..core.errors import AppError
 
 class RepositoryError(AppError):
     """Raised when repository-level workflow operations fail."""
-

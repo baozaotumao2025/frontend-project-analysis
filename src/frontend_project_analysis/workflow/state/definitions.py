@@ -17,4 +17,3 @@ class CheckFinding:
     code: str
     message: str
     artifact_ref: str | None = None
-

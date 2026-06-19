@@ -4,8 +4,8 @@ from pathlib import Path
 
 from frontend_project_analysis.core.domain import ArtifactStatus, ArtifactType
 from frontend_project_analysis.models import Artifact
-from frontend_project_analysis.workflow import transition_artifact
 from frontend_project_analysis.repositories.versions import upsert_artifact
+from frontend_project_analysis.workflow import transition_artifact
 
 
 def approve_artifact(session, artifact: Artifact) -> None:

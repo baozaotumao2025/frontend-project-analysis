@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import shutil
 from pathlib import Path
 
 from typer.testing import CliRunner
@@ -14,13 +13,25 @@ from frontend_project_analysis.llm.types import ProviderResponse
 from frontend_project_analysis.schemas import ProviderAuditPayload, SemanticReviewPayload
 
 runner = CliRunner()
-repo_root = Path(__file__).resolve().parents[1]
 
 
 def prepare_project_root(tmp_path: Path) -> None:
-    shutil.copy2(repo_root / "alembic.ini", tmp_path / "alembic.ini")
-    shutil.copytree(repo_root / "migrations", tmp_path / "migrations")
-    (tmp_path / "src").symlink_to(repo_root / "src", target_is_directory=True)
+    tmp_path.mkdir(parents=True, exist_ok=True)
+
+
+def prepare_brief_source(tmp_path: Path) -> Path:
+    brief_path = tmp_path.parent / f"{tmp_path.name}-project-brief.md"
+    brief_path.write_text(
+        "# Project Brief\n\n"
+        "## What does the product do?\n"
+        "- Manage customer assignments.\n\n"
+        "## Who are the main users?\n"
+        "- Sales reps and operations leads.\n\n"
+        "## What are the core usage scenarios?\n"
+        "- Reassign customers and review ownership boundaries.\n",
+        encoding="utf-8",
+    )
+    return brief_path
 
 
 def project_paths(tmp_path: Path) -> AppPaths:
@@ -50,9 +61,19 @@ def invoke_with_root(tmp_path: Path, args: list[str]):
 
 def bootstrap_project(tmp_path: Path) -> None:
     prepare_project_root(tmp_path)
+    brief_source = prepare_brief_source(tmp_path)
     init_result = invoke_with_root(
         tmp_path,
-        ["project", "init", "--project", "crm-web", "--name", "CRM Web"],
+        [
+            "project",
+            "init",
+            "--project",
+            "crm-web",
+            "--name",
+            "CRM Web",
+            "--brief-file",
+            str(brief_source),
+        ],
     )
     assert init_result.exit_code == 0, init_result.output
     add_persona = invoke_with_root(

@@ -4,62 +4,60 @@ from pathlib import Path
 
 import pytest
 
-from tests.cli_support import bootstrap_project, invoke_with_root
+from tests.cli_support import bootstrap_project, invoke_with_root, prepare_brief_source
 
 pytestmark = pytest.mark.smoke
 
 
-def test_top_level_install_and_init_bootstrap(tmp_path: Path) -> None:
-    dry_run = invoke_with_root(tmp_path, ["install", "--dry-run"])
-    assert dry_run.exit_code == 0, dry_run.output
-    assert not (tmp_path / "pyproject.toml").exists()
-    assert not (tmp_path / "Makefile").exists()
-
-    install_result = invoke_with_root(tmp_path, ["install"])
-    assert install_result.exit_code == 0, install_result.output
-    assert (tmp_path / "pyproject.toml").exists()
-    assert (tmp_path / "Makefile").exists()
-    assert (tmp_path / "alembic.ini").exists()
-    assert (tmp_path / "migrations" / "env.py").exists()
-    assert (tmp_path / "src" / "frontend_project_analysis" / "cli.py").exists()
+def test_top_level_init_bootstrap(tmp_path: Path) -> None:
+    brief_source = prepare_brief_source(tmp_path)
 
     init_result = invoke_with_root(
         tmp_path,
-        ["init", "--project", "crm-web", "--name", "CRM Web"],
+        ["init", "--project", "crm-web", "--name", "CRM Web", "--brief-file", str(brief_source)],
     )
     assert init_result.exit_code == 0, init_result.output
     assert (tmp_path / ".frontend-project-analysis" / "state.db").exists()
-    assert (tmp_path / "docs" / "personas" / "index.md").exists()
+    assert (tmp_path / "analysis" / "brief.md").exists()
+    assert (tmp_path / "analysis" / "personas" / "index.md").exists()
+    assert not (tmp_path / "pyproject.toml").exists()
+    assert not (tmp_path / "Makefile").exists()
+    assert not (tmp_path / "alembic.ini").exists()
+    assert not (tmp_path / "migrations").exists()
+    assert not (tmp_path / "src").exists()
 
 
 def test_project_init_artifact_and_dependency_flow(tmp_path: Path) -> None:
     bootstrap_project(tmp_path)
-    assert (tmp_path / "docs" / "personas").is_dir()
-    assert (tmp_path / "docs" / "index.md").exists()
-    assert (tmp_path / "docs" / "personas" / "index.md").exists()
-    assert (tmp_path / "docs" / "story-maps" / "index.md").exists()
-    assert (tmp_path / "docs" / "pages" / "index.md").exists()
-    assert (tmp_path / "docs" / "features" / "index.md").exists()
-    assert (tmp_path / "docs" / "relations" / "persona-story-page-matrix.md").exists()
-    assert (tmp_path / "docs" / "relations" / "feature-coverage-matrix.md").exists()
+    assert (tmp_path / "analysis" / "personas").is_dir()
+    assert (tmp_path / "analysis" / "index.md").exists()
+    assert (tmp_path / "analysis" / "personas" / "index.md").exists()
+    assert (tmp_path / "analysis" / "story-maps" / "index.md").exists()
+    assert (tmp_path / "analysis" / "pages" / "index.md").exists()
+    assert (tmp_path / "analysis" / "features" / "index.md").exists()
+    assert (tmp_path / "analysis" / "relations" / "persona-story-page-matrix.md").exists()
+    assert (tmp_path / "analysis" / "relations" / "feature-coverage-matrix.md").exists()
     assert (tmp_path / ".frontend-project-analysis" / "state.db").exists()
     gitignore_text = (tmp_path / ".gitignore").read_text(encoding="utf-8")
     assert ".frontend-project-analysis/" in gitignore_text
-    assert "Registered persona:sales-rep" in invoke_with_root(
-        tmp_path,
-        [
-            "artifact",
-            "add",
-            "--project",
-            "crm-web",
-            "--type",
-            "persona",
-            "--slug",
-            "sales-rep",
-            "--title",
-            "Sales Rep",
-        ],
-    ).output
+    assert (
+        "Registered persona:sales-rep"
+        in invoke_with_root(
+            tmp_path,
+            [
+                "artifact",
+                "add",
+                "--project",
+                "crm-web",
+                "--type",
+                "persona",
+                "--slug",
+                "sales-rep",
+                "--title",
+                "Sales Rep",
+            ],
+        ).output
+    )
 
 
 def test_project_init_keeps_gitignore_entry_idempotent(tmp_path: Path) -> None:
@@ -67,7 +65,16 @@ def test_project_init_keeps_gitignore_entry_idempotent(tmp_path: Path) -> None:
 
     second_init = invoke_with_root(
         tmp_path,
-        ["project", "init", "--project", "crm-web", "--name", "CRM Web"],
+        [
+            "project",
+            "init",
+            "--project",
+            "crm-web",
+            "--name",
+            "CRM Web",
+            "--brief-file",
+            str(prepare_brief_source(tmp_path)),
+        ],
     )
     assert second_init.exit_code == 0, second_init.output
 
@@ -103,6 +110,8 @@ def test_project_init_force_reinitializes_database(tmp_path: Path) -> None:
             "crm-web",
             "--name",
             "CRM Web",
+            "--brief-file",
+            str(prepare_brief_source(tmp_path)),
             "--force",
         ],
     )
@@ -175,7 +184,16 @@ def test_database_wipe_then_reinitialize_supports_bootstrap_and_gate(tmp_path: P
 
     project_init_result = invoke_with_root(
         tmp_path,
-        ["project", "init", "--project", "crm-web", "--name", "CRM Web"],
+        [
+            "project",
+            "init",
+            "--project",
+            "crm-web",
+            "--name",
+            "CRM Web",
+            "--brief-file",
+            str(prepare_brief_source(tmp_path)),
+        ],
     )
     assert project_init_result.exit_code == 0, project_init_result.output
 
@@ -214,7 +232,7 @@ def test_database_wipe_then_reinitialize_supports_bootstrap_and_gate(tmp_path: P
 
 def test_markdown_scan_refreshes_document_indexes(tmp_path: Path) -> None:
     bootstrap_project(tmp_path)
-    markdown_path = tmp_path / "docs" / "pages" / "customer-profile.md"
+    markdown_path = tmp_path / "analysis" / "pages" / "customer-profile.md"
     markdown_path.write_text(
         "---\n"
         "artifact_type: page\n"
@@ -246,7 +264,7 @@ def test_markdown_scan_refreshes_document_indexes(tmp_path: Path) -> None:
     )
     assert scan_result.exit_code == 0, scan_result.output
 
-    page_index = (tmp_path / "docs" / "pages" / "index.md").read_text(encoding="utf-8")
+    page_index = (tmp_path / "analysis" / "pages" / "index.md").read_text(encoding="utf-8")
     assert "Customer Profile" in page_index
     assert "/customer-profile" in page_index
     assert "[Customer Profile](./customer-profile.md)" in page_index
@@ -255,7 +273,7 @@ def test_markdown_scan_refreshes_document_indexes(tmp_path: Path) -> None:
 def test_markdown_scan_populates_feature_and_story_map_indexes(tmp_path: Path) -> None:
     bootstrap_project(tmp_path)
 
-    story_map_path = tmp_path / "docs" / "story-maps" / "sales-rep.md"
+    story_map_path = tmp_path / "analysis" / "story-maps" / "sales-rep.md"
     story_map_path.write_text(
         "## Start\n"
         "- Enter the customer workspace.\n"
@@ -272,7 +290,7 @@ def test_markdown_scan_populates_feature_and_story_map_indexes(tmp_path: Path) -
         encoding="utf-8",
     )
 
-    feature_path = tmp_path / "docs" / "features" / "customer-assignment.md"
+    feature_path = tmp_path / "analysis" / "features" / "customer-assignment.md"
     feature_path.write_text(
         "---\n"
         "artifact_type: feature\n"
@@ -313,8 +331,10 @@ def test_markdown_scan_populates_feature_and_story_map_indexes(tmp_path: Path) -
     )
     assert scan_result.exit_code == 0, scan_result.output
 
-    story_map_index = (tmp_path / "docs" / "story-maps" / "index.md").read_text(encoding="utf-8")
-    feature_index = (tmp_path / "docs" / "features" / "index.md").read_text(encoding="utf-8")
+    story_map_index = (tmp_path / "analysis" / "story-maps" / "index.md").read_text(
+        encoding="utf-8"
+    )
+    feature_index = (tmp_path / "analysis" / "features" / "index.md").read_text(encoding="utf-8")
 
     assert "Enter the customer workspace." in story_map_index
     assert "Leave the customer workspace." in story_map_index
@@ -418,8 +438,8 @@ def test_markdown_scan_apply_refreshes_relation_matrices(tmp_path: Path) -> None
     )
     assert scan_result.exit_code == 0, scan_result.output
 
-    psp_path = tmp_path / "docs" / "relations" / "persona-story-page-matrix.md"
-    feature_path = tmp_path / "docs" / "relations" / "feature-coverage-matrix.md"
+    psp_path = tmp_path / "analysis" / "relations" / "persona-story-page-matrix.md"
+    feature_path = tmp_path / "analysis" / "relations" / "feature-coverage-matrix.md"
     assert "story_map:sales-rep" in psp_path.read_text(encoding="utf-8")
     assert "page:customer-profile" in psp_path.read_text(encoding="utf-8")
     assert "feature:customer-assignment" in feature_path.read_text(encoding="utf-8")
@@ -428,7 +448,7 @@ def test_markdown_scan_apply_refreshes_relation_matrices(tmp_path: Path) -> None
 
 def test_markdown_scan_reads_page_route_information_from_body(tmp_path: Path) -> None:
     bootstrap_project(tmp_path)
-    markdown_path = tmp_path / "docs" / "pages" / "customer-profile.md"
+    markdown_path = tmp_path / "analysis" / "pages" / "customer-profile.md"
     markdown_path.write_text(
         "---\n"
         "artifact_type: page\n"
@@ -463,5 +483,5 @@ def test_markdown_scan_reads_page_route_information_from_body(tmp_path: Path) ->
     )
     assert scan_result.exit_code == 0, scan_result.output
 
-    page_index = (tmp_path / "docs" / "pages" / "index.md").read_text(encoding="utf-8")
+    page_index = (tmp_path / "analysis" / "pages" / "index.md").read_text(encoding="utf-8")
     assert "/crm/customer-profile" in page_index

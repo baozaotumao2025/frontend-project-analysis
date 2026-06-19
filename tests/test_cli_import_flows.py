@@ -31,7 +31,7 @@ def test_import_manifest_apply_updates_state(tmp_path: Path) -> None:
                         "ref": "page:customer-profile",
                         "title": "Customer Profile",
                         "status": "draft",
-                        "source_path": "docs/pages/customer-profile.md",
+                        "source_path": "analysis/pages/customer-profile.md",
                         "metadata": {"slug": "customer-profile"},
                         "dependencies": [
                             {
@@ -94,7 +94,7 @@ def test_import_manifest_ignores_inbound_status_override(tmp_path: Path) -> None
                         "ref": "page:customer-profile",
                         "title": "Customer Profile",
                         "status": "approved",
-                        "source_path": "docs/pages/customer-profile.md",
+                        "source_path": "analysis/pages/customer-profile.md",
                         "metadata": {"slug": "customer-profile"},
                     }
                 ]
@@ -126,7 +126,7 @@ def test_import_manifest_ignores_inbound_status_override(tmp_path: Path) -> None
 
 def test_import_markdown_content_change_resets_to_draft(tmp_path: Path) -> None:
     bootstrap_project(tmp_path)
-    markdown_path = tmp_path / "docs" / "pages" / "customer-profile.md"
+    markdown_path = tmp_path / "analysis" / "pages" / "customer-profile.md"
     markdown_path.write_text(
         "---\n"
         "artifact_type: page\n"
@@ -228,7 +228,7 @@ def test_import_markdown_content_change_resets_to_draft(tmp_path: Path) -> None:
 
 def test_import_markdown_scan_ignores_frontmatter_status_override(tmp_path: Path) -> None:
     bootstrap_project(tmp_path)
-    markdown_path = tmp_path / "docs" / "pages" / "customer-profile.md"
+    markdown_path = tmp_path / "analysis" / "pages" / "customer-profile.md"
     markdown_path.write_text(
         "---\n"
         "artifact_type: page\n"
@@ -319,7 +319,7 @@ def test_hard_dependency_on_approved_artifact_stales_dependents(tmp_path: Path) 
 
 def test_import_markdown_scan_apply_updates_state(tmp_path: Path) -> None:
     bootstrap_project(tmp_path)
-    markdown_path = tmp_path / "docs" / "pages" / "customer-profile.md"
+    markdown_path = tmp_path / "analysis" / "pages" / "customer-profile.md"
     markdown_path.write_text(
         "---\n"
         "artifact_type: page\n"
@@ -373,5 +373,5 @@ def test_import_markdown_scan_apply_updates_state(tmp_path: Path) -> None:
     with session_scope(project_paths(tmp_path)) as session:
         project_row = get_project(session, "crm-web")
         page = get_artifact_by_ref(session, project_row, "page:customer-profile")
-        assert page.source_path == "docs/pages/customer-profile.md"
+        assert page.source_path == "analysis/pages/customer-profile.md"
         assert page.title == "Customer Profile"

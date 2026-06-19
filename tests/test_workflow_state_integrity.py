@@ -106,7 +106,10 @@ def test_run_structural_checks_reports_missing_source(tmp_path: Path) -> None:
     source_path = tmp_path / "docs" / "personas" / "sales-rep.md"
     source_path.parent.mkdir(parents=True, exist_ok=True)
     source_path.write_text(
-        "---\nartifact_type: persona\nslug: sales-rep\nround: 1\nstatus: draft\nproject: crm-web\n---\n# Sales Rep\n",
+        (
+            "---\nartifact_type: persona\nslug: sales-rep\nround: 1\nstatus: draft\n"
+            "project: crm-web\n---\n# Sales Rep\n"
+        ),
         encoding="utf-8",
     )
     source_path.unlink()
@@ -335,7 +338,9 @@ def test_run_structural_checks_reports_unknown_cross_references(tmp_path: Path) 
         )
 
         page_findings = run_structural_checks(session, project, target_ref="page:customer-profile")
-        feature_findings = run_structural_checks(session, project, target_ref="feature:customer-assignment")
+        feature_findings = run_structural_checks(
+            session, project, target_ref="feature:customer-assignment"
+        )
         assert "unknown_feature_reference" in {finding.code for finding in page_findings}
         assert "unknown_page_reference" in {finding.code for finding in feature_findings}
         assert "unknown_persona_reference" in {finding.code for finding in feature_findings}
@@ -373,6 +378,49 @@ def test_run_structural_checks_reports_missing_gwt_scenarios(tmp_path: Path) -> 
         assert "missing_frontmatter_fields" not in {finding.code for finding in findings}
 
 
+def test_run_structural_checks_reports_missing_accessibility_gwt_scenario(tmp_path: Path) -> None:
+    paths = prepare_database(tmp_path)
+    gwt_path = tmp_path / "docs" / "gwt" / "customer-assignment.feature"
+    gwt_path.parent.mkdir(parents=True, exist_ok=True)
+    gwt_path.write_text(
+        "Feature: customer-assignment\n\n"
+        "  Scenario: Happy Path\n"
+        "    Given Sales Rep is signed in\n"
+        "    When they reassign a customer\n"
+        "    Then the customer is assigned\n\n"
+        "  Scenario: Permission Case\n"
+        "    Given Sales Rep lacks permission\n"
+        "    When they try to reassign a customer\n"
+        "    Then the action is blocked\n\n"
+        "  Scenario: Error Case\n"
+        "    Given the service is unavailable\n"
+        "    When the Sales Rep reassigns the customer\n"
+        "    Then an error is shown\n\n"
+        "  Scenario: Edge Case\n"
+        "    Given the customer is already assigned\n"
+        "    When the Sales Rep reassigns the customer\n"
+        "    Then the assignment remains consistent\n",
+        encoding="utf-8",
+    )
+
+    with session_scope(paths) as session:
+        project = ensure_project(session, "crm-web", "CRM Web", tmp_path)
+        upsert_artifact(
+            session=session,
+            project=project,
+            artifact_type=ArtifactType.GWT,
+            slug="customer-assignment",
+            title="Customer Assignment",
+            source_path=str(gwt_path.relative_to(tmp_path)),
+            status=ArtifactStatus.DRAFT,
+            metadata={},
+            created_by="test",
+        )
+
+        findings = run_structural_checks(session, project, target_ref="gwt:customer-assignment")
+        assert "missing_gwt_scenarios" in {finding.code for finding in findings}
+
+
 def test_run_structural_checks_reports_incomplete_gwt_scenarios(tmp_path: Path) -> None:
     paths = prepare_database(tmp_path)
     gwt_path = tmp_path / "docs" / "gwt" / "customer-assignment.feature"
@@ -393,7 +441,11 @@ def test_run_structural_checks_reports_incomplete_gwt_scenarios(tmp_path: Path) 
         "  Scenario: Edge Case\n"
         "    Given the customer is already assigned\n"
         "    When they reassign the customer\n"
-        "    Then the assignment is updated\n",
+        "    Then the assignment is updated\n\n"
+        "  Scenario: Accessibility Case\n"
+        "    Given the customer assignment drawer is open\n"
+        "    When the Sales Rep navigates with a keyboard\n"
+        "    Then the reassignment remains usable\n",
         encoding="utf-8",
     )
 
@@ -424,6 +476,10 @@ def test_run_structural_checks_reports_missing_feature_spec_sections(tmp_path: P
         "\n"
         "## Basic Information\n"
         "\n"
+        "## Discovery And Evidence\n"
+        "\n"
+        "## Risks And Assumptions\n"
+        "\n"
         "## Roles And Permissions\n"
         "\n"
         "## Component Breakdown\n"
@@ -445,7 +501,9 @@ def test_run_structural_checks_reports_missing_feature_spec_sections(tmp_path: P
             created_by="test",
         )
 
-        findings = run_structural_checks(session, project, target_ref="feature_spec:customer-assignment")
+        findings = run_structural_checks(
+            session, project, target_ref="feature_spec:customer-assignment"
+        )
         assert "missing_feature_spec_sections" in {finding.code for finding in findings}
         assert "missing_frontmatter_fields" not in {finding.code for finding in findings}
 
@@ -459,12 +517,22 @@ def test_run_structural_checks_reports_missing_state_boundary_terms(tmp_path: Pa
         "\n"
         "## Basic Information\n"
         "\n"
+        "## Discovery And Evidence\n"
+        "\n"
+        "## Risks And Assumptions\n"
+        "\n"
         "## Roles And Permissions\n"
         "\n"
         "## Component Breakdown\n"
         "\n"
         "## State Boundary\n"
         "- Shared cache\n"
+        "\n"
+        "## Accessibility\n"
+        "\n"
+        "## Observability\n"
+        "\n"
+        "## Release And Compliance\n"
         "\n"
         "## Cross-Feature Dependencies\n"
         "\n"
@@ -486,7 +554,9 @@ def test_run_structural_checks_reports_missing_state_boundary_terms(tmp_path: Pa
             created_by="test",
         )
 
-        findings = run_structural_checks(session, project, target_ref="feature_spec:customer-assignment")
+        findings = run_structural_checks(
+            session, project, target_ref="feature_spec:customer-assignment"
+        )
         assert "missing_state_boundary_terms" in {finding.code for finding in findings}
 
 
@@ -571,16 +641,14 @@ def test_get_ready_artifacts_is_read_only_and_filters_by_approved_dependencies(
         approve_artifact(session, approved_persona)
 
         before_statuses = {
-            artifact.id: artifact.status
-            for artifact in (approved_persona, ready_feature)
+            artifact.id: artifact.status for artifact in (approved_persona, ready_feature)
         }
         before_transitions = list(session.scalars(select(ArtifactTransition)).all())
 
         ready = get_ready_artifacts(session, project)
 
         after_statuses = {
-            artifact.id: artifact.status
-            for artifact in (approved_persona, ready_feature)
+            artifact.id: artifact.status for artifact in (approved_persona, ready_feature)
         }
         after_transitions = list(session.scalars(select(ArtifactTransition)).all())
 

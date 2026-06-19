@@ -22,7 +22,9 @@ def _collect_lineage_rows(artifact) -> list[tuple[str, str, str]]:
         elif current.artifact_type == ArtifactType.PAGE:
             page = current_ref
 
-        hard_dependencies = [dep.to_artifact for dep in current.outgoing_dependencies if dep.is_hard]
+        hard_dependencies = [
+            dep.to_artifact for dep in current.outgoing_dependencies if dep.is_hard
+        ]
         if not hard_dependencies:
             rows.append((persona, story_map, page))
             return
@@ -61,14 +63,18 @@ def render_relations_markdown(session: Session, project, root: Path) -> list[Pat
     ]
     for artifact in artifacts:
         lineage_rows = _collect_lineage_rows(artifact)
-        feature_ref = artifact_ref(artifact) if artifact.artifact_type == ArtifactType.FEATURE else ""
+        feature_ref = (
+            artifact_ref(artifact) if artifact.artifact_type == ArtifactType.FEATURE else ""
+        )
         for persona, story_map, page in lineage_rows:
-            persona_story_page_lines.append(_render_relation_row(persona, story_map, page, feature_ref))
+            persona_story_page_lines.append(
+                _render_relation_row(persona, story_map, page, feature_ref)
+            )
             if artifact.artifact_type == ArtifactType.FEATURE:
                 feature_coverage_lines.append(
                     _render_relation_row(feature_ref, persona, page, story_map)
                 )
-    relations_dir = root / "docs" / "relations"
+    relations_dir = root / "analysis" / "relations"
     relations_dir.mkdir(parents=True, exist_ok=True)
     psp_path = relations_dir / "persona-story-page-matrix.md"
     feature_path = relations_dir / "feature-coverage-matrix.md"

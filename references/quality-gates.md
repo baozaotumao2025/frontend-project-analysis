@@ -8,21 +8,23 @@
 - Do not skip rounds without explicit user approval
 - Keep professional terms such as `Persona`, `Story Map`, `Feature Spec`, and `Happy Path` in English
 - Every round must consume only `approved` and fresh upstream revisions; if an upstream revision is `stale`, the gate fails and the round must not advance
+- If the project context introduces `discovery`, `risk`, `accessibility`, `observability`, `release`, or `compliance` concerns, those concerns must appear in the relevant artifact rather than being left implicit
 
 ## Round 1
 
 - [ ] Every recognizable user type has a Persona entry
 - [ ] Every Persona file includes all required fields
 - [ ] Permission boundaries are concrete
-- [ ] `docs/personas/index.md` links all Persona files
+- [ ] `analysis/personas/index.md` links all Persona files
 - [ ] Separated Persona differ in real goals or paths
+- [ ] Important constraints and assumptions from the brief are not lost during Persona definition
 
 ## Round 2
 
 - [ ] Every Persona has its own Story Map
 - [ ] Every Story Map has a clear start and end
 - [ ] No page names or Feature names appear
-- [ ] `docs/story-maps/index.md` links all Story Map files
+- [ ] `analysis/story-maps/index.md` links all Story Map files
 - [ ] Activities describe real user goals rather than click sequences
 
 ## Round 3
@@ -54,6 +56,7 @@ The independence signals are:
 ## Round 5
 
 - [ ] Includes `Happy Path`, `Permission Case`, `Error Case`, and `Edge Case`
+- [ ] Includes `Accessibility Case`
 - [ ] Every Scenario has complete `Given / When / Then`
 - [ ] `Given` states the Persona clearly
 - [ ] `When` remains declarative
@@ -61,7 +64,9 @@ The independence signals are:
 
 ## Round 6
 
-- [ ] Every Feature in `docs/features/` has a matching spec file
+- [ ] Every Feature in `analysis/features/` has a matching spec file
 - [ ] Every spec includes the required fixed sections
 - [ ] GWT content matches the approved `.feature` file
 - [ ] `server state` and `client state` are clearly separated
+- [ ] Discovery sources, open assumptions, and key risks are visible where they affect the plan
+- [ ] Accessibility, observability, release, and compliance constraints are explicit when relevant

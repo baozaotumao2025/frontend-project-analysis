@@ -14,15 +14,15 @@ This checklist defines what should be included in a public skill release and wha
 - `scripts/`
 - `tests/`
 
-## Python Wheel
+## Python Package
 
-The installable Python package includes only:
+The published Python package includes only:
 
 - `src/frontend_project_analysis/`
 
 ## Release Shape Comparison
 
-| Item | Repository Release Bundle | Python Wheel |
+| Item | Repository Release Bundle | Python Package |
 | --- | --- | --- |
 | `SKILL.md` | Included | Not included |
 | `README.md` | Included | Not included |
@@ -35,8 +35,7 @@ The installable Python package includes only:
 | `tests/` | Included | Not included |
 | `.frontend-project-analysis/` | Not included | Not included |
 | `.env` | Not included | Not included |
-| `docs/` | Not included | Not included |
-| `specs/` | Not included | Not included |
+| `analysis/` | Not included | Not included |
 
 ## Keep Local Only
 
@@ -45,8 +44,7 @@ The installable Python package includes only:
 - `.venv/`
 - `.pytest_cache/`
 - `.ruff_cache/`
-- `docs/`
-- `specs/`
+- `analysis/`
 - `frontend-decomposition-methodology.md`
 
 ## Preflight Checks

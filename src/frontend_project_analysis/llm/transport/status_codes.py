@@ -41,4 +41,3 @@ def status_code_from_error_message(message: str | None) -> int | None:
 
 def error_code_for_http_message(message: str | None) -> str | None:
     return error_code_for_status(status_code_from_error_message(message))
-

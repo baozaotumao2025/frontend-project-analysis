@@ -28,6 +28,7 @@ _SKIP_PATH_SEGMENTS = {
     ".ruff_cache",
     ".venv",
     "__pycache__",
+    "analysis",
     "docs",
     "specs",
 }
@@ -80,37 +81,10 @@ def install_project_scaffold(
     force: bool = False,
     dry_run: bool = False,
 ) -> list[dict[str, str]]:
-    """Copy the reusable project scaffold into ``root``.
+    """Legacy no-op compatibility hook.
 
-    The command is intentionally idempotent: existing files are left alone unless
-    ``force`` is requested. ``dry_run`` reports the planned file operations without
-    changing disk state.
+    The target project no longer receives scaffold files from this hook.
+    It intentionally leaves the repository tree untouched.
     """
 
-    template_root = _template_root()
-    actions: list[dict[str, str]] = []
-
-    for relative_path in SCAFFOLD_MANAGED_PATHS:
-        source = template_root / relative_path
-        if not source.exists():
-            actions.append(
-                {
-                    "path": relative_path,
-                    "source": str(source),
-                    "action": "missing_source",
-                }
-            )
-            continue
-
-        for source_file in _iter_source_files(source):
-            destination = root / source_file.relative_to(template_root)
-            action = _copy_file(source_file, destination, force=force, dry_run=dry_run)
-            actions.append(
-                {
-                    "path": str(destination.relative_to(root)),
-                    "source": str(source_file.relative_to(template_root)),
-                    "action": action,
-                }
-            )
-
-    return actions
+    return []

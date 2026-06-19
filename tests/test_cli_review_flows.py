@@ -12,7 +12,6 @@ from frontend_project_analysis.llm.types import ProviderResponse
 from frontend_project_analysis.models import ArtifactReview
 from frontend_project_analysis.repositories.dependencies import get_artifact_by_ref
 from frontend_project_analysis.repositories.projects import get_project
-from frontend_project_analysis.schemas import ProviderAuditPayload, SemanticReviewPayload
 from tests.cli_support import (
     bootstrap_project,
     fake_semantic_review_response,
@@ -77,15 +76,13 @@ def test_review_semantic_packet_and_exports(
         ],
     )
     assert relations_result.exit_code == 0, relations_result.output
-    psp_path = tmp_path / "docs" / "relations" / "persona-story-page-matrix.md"
-    feature_path = tmp_path / "docs" / "relations" / "feature-coverage-matrix.md"
+    psp_path = tmp_path / "analysis" / "relations" / "persona-story-page-matrix.md"
+    feature_path = tmp_path / "analysis" / "relations" / "feature-coverage-matrix.md"
     assert psp_path.exists()
     assert feature_path.exists()
     assert "Persona Story Page Matrix" in psp_path.read_text(encoding="utf-8")
     assert "Feature Coverage Matrix" in feature_path.read_text(encoding="utf-8")
-    assert "| Persona | Story Map | Page | Feature |" in psp_path.read_text(
-        encoding="utf-8"
-    )
+    assert "| Persona | Story Map | Page | Feature |" in psp_path.read_text(encoding="utf-8")
     assert "| Feature | Service Persona | Source Page | Covered Story |" in feature_path.read_text(
         encoding="utf-8"
     )

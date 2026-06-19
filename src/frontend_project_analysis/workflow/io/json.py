@@ -13,4 +13,3 @@ def export_json_to_path(payload: dict, destination: Path) -> Path:
         encoding="utf-8",
     )
     return destination
-

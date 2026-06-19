@@ -74,7 +74,9 @@ def upsert_artifact(
 
         artifact.round = ROUND_BY_TYPE[artifact_type]
         version = create_version_for_artifact(session, artifact, created_by=created_by)
-        content_changed = previous_version is None or previous_version.content_hash != version.content_hash
+        content_changed = (
+            previous_version is None or previous_version.content_hash != version.content_hash
+        )
 
         if content_changed:
             next_status = (

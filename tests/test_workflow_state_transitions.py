@@ -9,10 +9,14 @@ from frontend_project_analysis.core.domain import ArtifactStatus, ArtifactType
 from frontend_project_analysis.infrastructure.storage import session_scope
 from frontend_project_analysis.models import ArtifactTransition
 from frontend_project_analysis.repositories.artifacts import ensure_project
-from frontend_project_analysis.workflow import WorkflowStateError, assert_transition_allowed, transition_artifact
 from frontend_project_analysis.repositories.versions import upsert_artifact
-from tests.workflow_support import approve_artifact, artifact_in_status
+from frontend_project_analysis.workflow import (
+    WorkflowStateError,
+    assert_transition_allowed,
+    transition_artifact,
+)
 from tests.cli_support import prepare_database
+from tests.workflow_support import approve_artifact, artifact_in_status
 
 
 def test_assert_transition_allowed_rejects_invalid_jump() -> None:

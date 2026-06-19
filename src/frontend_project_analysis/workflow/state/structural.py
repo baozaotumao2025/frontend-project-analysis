@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 import re
+from pathlib import Path
 
 from sqlalchemy.orm import Session
 
-from ...core.domain import ArtifactStatus, ArtifactType, REQUIRED_FRONTMATTER_FIELDS, ROUND_BY_TYPE
+from ...core.domain import REQUIRED_FRONTMATTER_FIELDS, ROUND_BY_TYPE, ArtifactStatus, ArtifactType
 from ...infrastructure.documents import read_document
 from ...models import Project
 from .definitions import CheckFinding, WorkflowStateError
@@ -49,8 +49,7 @@ def run_structural_checks(
                     severity="FAIL",
                     code="round_mismatch",
                     message=(
-                        f"Round {artifact.round} does not match "
-                        f"{artifact.artifact_type.value}."
+                        f"Round {artifact.round} does not match {artifact.artifact_type.value}."
                     ),
                     artifact_ref=ref,
                 )
@@ -80,14 +79,16 @@ def run_structural_checks(
                             artifact_ref=ref,
                         )
                     )
-                if metadata.get("artifact_type") and metadata["artifact_type"] != artifact.artifact_type.value:
+                if (
+                    metadata.get("artifact_type")
+                    and metadata["artifact_type"] != artifact.artifact_type.value
+                ):
                     findings.append(
                         CheckFinding(
                             severity="FAIL",
                             code="artifact_type_mismatch",
                             message=(
-                                "Frontmatter artifact_type does not match "
-                                "database artifact type."
+                                "Frontmatter artifact_type does not match database artifact type."
                             ),
                             artifact_ref=ref,
                         )
@@ -208,7 +209,13 @@ def run_structural_checks(
                     findings,
                     ref,
                     body,
-                    ("Happy Path", "Permission Case", "Error Case", "Edge Case"),
+                    (
+                        "Happy Path",
+                        "Permission Case",
+                        "Error Case",
+                        "Edge Case",
+                        "Accessibility Case",
+                    ),
                 )
                 _append_incomplete_gherkin_scenarios(findings, ref, body)
             elif artifact.artifact_type == ArtifactType.FEATURE_SPEC:
@@ -219,9 +226,14 @@ def run_structural_checks(
                     "missing_feature_spec_sections",
                     (
                         "Basic Information",
+                        "Discovery And Evidence",
+                        "Risks And Assumptions",
                         "Roles And Permissions",
                         "Component Breakdown",
                         "State Boundary",
+                        "Accessibility",
+                        "Observability",
+                        "Release And Compliance",
                         "Cross-Feature Dependencies",
                         "Given-When-Then Acceptance Spec",
                     ),
@@ -328,10 +340,7 @@ def _append_unknown_references(
             CheckFinding(
                 severity="FAIL",
                 code=f"unknown_{expected_type.value}_reference",
-                message=(
-                    f"Unknown {label} reference(s): "
-                    f"{', '.join(unknown)}."
-                ),
+                message=(f"Unknown {label} reference(s): {', '.join(unknown)}."),
                 artifact_ref=artifact_ref,
             )
         )
@@ -362,13 +371,19 @@ def _append_incomplete_gherkin_scenarios(
     body: str,
 ) -> None:
     normalized = body.replace("\r\n", "\n")
-    scenario_headers = list(re.finditer(r"^  Scenario:\s*(.+?)\s*$", normalized, flags=re.MULTILINE))
+    scenario_headers = list(
+        re.finditer(r"^  Scenario:\s*(.+?)\s*$", normalized, flags=re.MULTILINE)
+    )
     if not scenario_headers:
         return
     missing_steps: list[str] = []
     for index, header in enumerate(scenario_headers):
         start = header.end()
-        end = scenario_headers[index + 1].start() if index + 1 < len(scenario_headers) else len(normalized)
+        end = (
+            scenario_headers[index + 1].start()
+            if index + 1 < len(scenario_headers)
+            else len(normalized)
+        )
         block = normalized[start:end]
         present = {
             "Given": "Given" in block,

@@ -1,17 +1,16 @@
 # Frontend Project Analysis
 
-`frontend-project-analysis` 是一个以文档为先的前端项目分析 skill，同时内置一套可复用的 Python 工作流基础设施。它把前端项目拆解成 `Persona`、`Story Map`、`Page`、`Feature`、`GWT` 和 `Feature Spec` 等结构化产物，并用 SQLite 记录依赖、审核、版本和审计信息。
+`frontend-project-analysis` 是一个以文档为先的前端项目分析 skill，同时内置一套可复用的 Python 工作流基础设施。这个 skill 安装在 Codex 环境中运行，不要求目标项目复制一整套工具脚手架。它把前端项目拆解成 `Persona`、`Story Map`、`Page`、`Feature`、`GWT` 和 `Feature Spec` 等结构化产物，并用 SQLite 记录依赖、审核、版本和审计信息。
 
-当前发布版本为 `1.1.0`。
+当前发布版本为 `1.2.0`。
 
 ## 快速开始
 
-如果你想先跑通一条最小路径，直接按这个顺序来：
+如果你想先跑通一条最小路径，先准备你自己的 brief 文件，再按这个顺序来：
 
 ```bash
 uv sync
-uv run fpa install
-uv run fpa init --project crm-web --name "CRM Web"
+uv run fpa init --project crm-web --name "CRM Web" --brief-file ./project-brief.md
 uv run fpa artifact add --project crm-web --type persona --slug sales-rep --title "Sales Rep"
 uv run fpa review structural --project crm-web --artifact persona:sales-rep
 ```
@@ -22,11 +21,13 @@ uv run fpa review structural --project crm-web --artifact persona:sales-rep
 
 1. 命令式使用
    - 适合熟悉 CLI 的用户
-   - 直接运行 `uv run fpa ...` 命令完成安装、初始化、录入、审查、导入导出和维护
+   - 直接运行 `uv run fpa ...` 命令完成初始化、录入、审查、导入导出和维护
 2. 自然语言使用
    - 适合不想记命令的用户
    - 直接告诉 Codex 要做哪一轮分析、输入是什么、输出要落到哪些文件
    - Codex 会结合 `SKILL.md`、`references/methodology.md` 和本仓库文档自动推进流程
+   - 你也可以用多轮对话逐步补充项目背景，等信息足够完整后再执行 `uv run fpa init ...`
+   - 如果你不知道怎么写 brief，可以先运行 `uv run fpa brief interview --output ./project-brief.md`，由 skill 先问 3 个核心问题，再根据权限、约束和集成信号做少量追问帮你收敛信息
 
 一个可以直接用的自然语言请求是：
 
@@ -80,23 +81,24 @@ uv run fpa review structural --project crm-web --artifact persona:sales-rep
 
 ### 项目初始化会创建的内容
 
-执行 `uv run fpa init ...` 后，会创建这些文档目录：
+执行 `uv run fpa init ...` 后，会创建这些分析目录：
 
 ```text
-docs/index.md
-docs/personas/
-docs/personas/index.md
-docs/story-maps/
-docs/story-maps/index.md
-docs/pages/
-docs/pages/index.md
-docs/features/
-docs/features/index.md
-docs/relations/
-docs/relations/persona-story-page-matrix.md
-docs/relations/feature-coverage-matrix.md
-docs/gwt/
-specs/features/
+analysis/index.md
+analysis/brief.md
+analysis/personas/
+analysis/personas/index.md
+analysis/story-maps/
+analysis/story-maps/index.md
+analysis/pages/
+analysis/pages/index.md
+analysis/features/
+analysis/features/index.md
+analysis/relations/
+analysis/relations/persona-story-page-matrix.md
+analysis/relations/feature-coverage-matrix.md
+analysis/gwt/
+analysis/specs/features/
 ```
 
 ### 语义定义
@@ -180,9 +182,35 @@ uv run fpa review --help
 
 ### 3.3 初始化项目
 
+先准备一个用户自己提供的 brief 文件，然后再初始化。`init` 直接读取 brief，并在目标项目里生成 `analysis/` 与 `.frontend-project-analysis/`，不需要把 `src/`、`migrations/` 或其他工具脚手架复制到目标项目：
+
 ```bash
-uv run fpa init --project crm-web --name "CRM Web"
+uv run fpa init --project crm-web --name "CRM Web" --brief-file ./project-brief.md
 ```
+
+初始化后，目标项目里只会出现 `analysis/` 和 `.frontend-project-analysis/` 两类产物。不会再复制 `README.md`、`Makefile`、`pyproject.toml` 或其他工具脚手架文件。
+
+### 3.3.1 Brief 写法
+
+一份好的 brief 通常只需要把分析起点说清楚，不用一次性写成完整 PRD。建议至少包含：
+
+- 产品是做什么的
+- 主要用户有哪些
+- 他们最核心的使用场景是什么
+- 哪些页面、能力或数据对他们不可见
+- 哪些权限边界或业务约束最重要
+
+如果你是通过多轮对话来补充 brief，建议先收敛在这些信息，再执行 `init`。`analysis/brief.md` 会保存那一刻的输入快照。
+如果你一开始不知道怎么写，可以先运行：
+
+```bash
+uv run fpa brief interview --output ./project-brief.md
+```
+
+这个流程会先问 3 个核心问题，然后在预算允许时继续收集 `discovery`、`risk`、`accessibility`、`observability`、`release` 这些横切信号，再汇总成一版可直接喂给 `init` 的 brief。
+你也可以加上 `--max-questions <n>` 控制总提问上限，或者用 `--dry-run` 先预览生成结果而不落盘。
+如果你想保留完整的问答过程，再额外加上 `--transcript ./brief-transcript.md`，这样 brief 和 transcript 会分别保存。
+后续生成的 `Feature Spec` 还会显式保留 discovery evidence、risk、accessibility、observability、release 和 compliance 这些横切约束。
 
 ### 3.4 录入 artifact 和依赖
 
@@ -229,7 +257,7 @@ uv run fpa import markdown-scan --project crm-web
 uv run fpa import markdown-scan --project crm-web --apply
 ```
 
-`import markdown-scan --apply` 不只会把 Markdown frontmatter 同步进数据库，还会刷新 `docs/index.md`、各层级的 index 页，以及 `docs/relations/` 下的关系矩阵。
+`import markdown-scan --apply` 不只会把 Markdown frontmatter 同步进数据库，还会刷新 `analysis/index.md`、各层级的 index 页，以及 `analysis/relations/` 下的关系矩阵。
 
 ### 3.9 维护数据库
 
@@ -285,9 +313,9 @@ make all
 - `FPA_SEMANTIC_REVIEW_AUTO_APPROVE`
 - `FPA_ANTHROPIC_VERSION`
 
-### 3.11 常见使用顺序
+### 3.12 常见使用顺序
 
-1. `install`
+1. 准备 brief
 2. `init`
 3. `artifact add`
 4. `artifact link`
@@ -304,7 +332,7 @@ make all
 
 ### 验证命令
 
-- `./scripts/test-smoke.sh`: CLI 和兼容入口回归
+- `./scripts/test-smoke.sh`: CLI 回归
 - `./scripts/test-check.sh`: `compileall` + smoke
 - `./scripts/test-full.sh`: 全量测试
 - `./scripts/test-all.sh`: 检查 + 全量测试
@@ -320,25 +348,25 @@ make all
 
 ### 发布边界
 
-这个仓库的对外发布边界分两层：
+对外发布分两层：
 
-- Python 运行时代码发布为 `src/frontend_project_analysis/` 下的包
-- skill 入口和文档发布为 `SKILL.md`、`README.md`、`references/`、`agents/openai.yaml` 和 `pyproject.toml`
+- Python 运行时代码：`src/frontend_project_analysis/`
+- skill 入口和文档：`SKILL.md`、`README.md`、`references/`、`agents/openai.yaml` 和 `pyproject.toml`
 
-不会随发布一起带走的内容：
+不会随发布一起带走：
 
 - `.frontend-project-analysis/` 运行时数据库和审计数据
 - `.env` 和 `.venv/`
-- `docs/`、`specs/` 这类本地分析输出
+- `analysis/` 这类本地分析输出
 
-`uv run fpa init ...` 会自动初始化数据库和项目目录结构，不需要你手动先建库。
+`uv run fpa init ...` 会自动初始化数据库和 analysis 工作区，不需要你手动先建库，也不会复制额外的工具脚手架文件。skill 的实现、迁移和命令入口保留在 Codex 环境中的 skill 仓库本体，目标项目只保留输出和状态目录。
 更直观的对照表见 [references/release-checklist.md](references/release-checklist.md)。
 
 ### 维护原则
 
 - 先更新 `references/methodology.md`、`references/workflow.md`、`references/infrastructure.md`，再改 README
 - 状态语义以 [references/state-machine.md](references/state-machine.md) 为准
-- 关系密集型内容优先放在 `docs/relations/` 或导出结果里，不要手工维护成散落说明
+- 关系密集型内容优先放在 `analysis/relations/` 或导出结果里
 - 如果新增或修改命令，必须同步更新 README 和测试
 - 如果修改状态流转，必须同步更新状态机语义图和回归测试
 - 如果修改对外版本号，要同时更新 [pyproject.toml](pyproject.toml) 和 [src/frontend_project_analysis/__init__.py](src/frontend_project_analysis/__init__.py)

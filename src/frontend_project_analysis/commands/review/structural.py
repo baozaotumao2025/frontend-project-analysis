@@ -10,8 +10,7 @@ from ...infrastructure.storage import session_scope
 from ...repositories.dependencies import get_artifact_by_ref
 from ...repositories.projects import get_project
 from ...repositories.reviews import record_review
-from ...workflow import assert_artifact_status_in
-from ...workflow import run_structural_checks, transition_artifact
+from ...workflow import assert_artifact_status_in, run_structural_checks, transition_artifact
 from ..utils import handle_service_error
 from . import review_app
 

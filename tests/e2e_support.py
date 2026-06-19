@@ -14,8 +14,23 @@ def create_existing_project_root(tmp_path: Path, name: str = "fpa-e2e-project") 
     root.mkdir()
     (root / ".gitignore").write_text("node_modules/\n", encoding="utf-8")
     (root / "README.md").write_text("Existing project README.\n", encoding="utf-8")
-    (root / "pyproject.toml").write_text("[project]\nname = \"placeholder\"\n", encoding="utf-8")
+    (root / "pyproject.toml").write_text('[project]\nname = "placeholder"\n', encoding="utf-8")
     return root
+
+
+def prepare_brief_source(tmp_path: Path, name: str = "project-brief.md") -> Path:
+    path = tmp_path.parent / f"{tmp_path.name}-{name}"
+    path.write_text(
+        "# Project Brief\n\n"
+        "## What does the product do?\n"
+        "- Manage customer assignments.\n\n"
+        "## Who are the main users?\n"
+        "- Sales reps and operations leads.\n\n"
+        "## What are the core usage scenarios?\n"
+        "- Reassign customers and review ownership boundaries.\n",
+        encoding="utf-8",
+    )
+    return path
 
 
 def run_fpa(root: Path, args: list[str]):
@@ -120,7 +135,7 @@ def write_round_artifacts(
 
 
 def _write_persona(root: Path) -> None:
-    path = root / "docs" / "personas" / "sales-rep.md"
+    path = root / "analysis" / "personas" / "sales-rep.md"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         "\n".join(
@@ -150,7 +165,7 @@ def _write_persona(root: Path) -> None:
 
 
 def _write_story_map(root: Path, *, complete: bool) -> None:
-    path = root / "docs" / "story-maps" / "sales-rep.md"
+    path = root / "analysis" / "story-maps" / "sales-rep.md"
     path.parent.mkdir(parents=True, exist_ok=True)
     body = (
         "---\n"
@@ -185,7 +200,7 @@ def _write_story_map(root: Path, *, complete: bool) -> None:
 
 
 def _write_page(root: Path, *, complete: bool) -> None:
-    path = root / "docs" / "pages" / "customer-profile.md"
+    path = root / "analysis" / "pages" / "customer-profile.md"
     path.parent.mkdir(parents=True, exist_ok=True)
     body = (
         "---\n"
@@ -225,7 +240,7 @@ def _write_page(root: Path, *, complete: bool) -> None:
 
 
 def _write_feature(root: Path, *, complete: bool) -> None:
-    path = root / "docs" / "features" / "customer-assignment.md"
+    path = root / "analysis" / "features" / "customer-assignment.md"
     path.parent.mkdir(parents=True, exist_ok=True)
     body = (
         "---\n"
@@ -259,12 +274,34 @@ def _write_feature(root: Path, *, complete: bool) -> None:
             "\n"
             "## Source Story\n"
             "- Save the change\n"
+            "\n"
+            "## Discovery And Evidence\n"
+            "- Sales support and operations both need to reassign customer "
+            "ownership during handoffs.\n"
+            "- The brief assumes ownership changes are backed by the customer "
+            "profile service.\n"
+            "\n"
+            "## Risks And Assumptions\n"
+            "- Ownership conflicts can occur if two users edit the same record.\n"
+            "- The assignment lookup is assumed to be stable during the release.\n"
+            "\n"
+            "## Accessibility\n"
+            "- The assignment drawer must be keyboard reachable.\n"
+            "- Screen readers need the selected owner and confirmation state announced.\n"
+            "\n"
+            "## Observability\n"
+            "- Track assignment success and failure counts.\n"
+            "- Emit a trace or log entry when ownership changes are saved.\n"
+            "\n"
+            "## Release And Compliance\n"
+            "- Ship behind a feature flag and support rollback.\n"
+            "- Preserve audit-friendly ownership history for compliance review.\n"
         )
     path.write_text(body, encoding="utf-8")
 
 
 def _write_gwt(root: Path, *, complete: bool) -> None:
-    path = root / "docs" / "gwt" / "customer-assignment.feature"
+    path = root / "analysis" / "gwt" / "customer-assignment.feature"
     path.parent.mkdir(parents=True, exist_ok=True)
     body = "Feature: Customer Assignment\n\n"
     if complete:
@@ -288,6 +325,11 @@ def _write_gwt(root: Path, *, complete: bool) -> None:
             "    Given the customer is already assigned to the selected owner\n"
             "    When the Sales Rep reassigns the customer\n"
             "    Then the assignment remains consistent\n"
+            "\n"
+            "  Scenario: Accessibility Case\n"
+            "    Given a keyboard-only Sales Rep is on the assignment drawer\n"
+            "    When the Sales Rep navigates and confirms the reassignment with the keyboard\n"
+            "    Then the reassignment can be completed without a mouse\n"
         )
     else:
         body += (
@@ -309,12 +351,17 @@ def _write_gwt(root: Path, *, complete: bool) -> None:
             "    Given the customer is already assigned to the selected owner\n"
             "    When the Sales Rep reassigns the customer\n"
             "    Then the assignment remains consistent\n"
+            "\n"
+            "  Scenario: Accessibility Case\n"
+            "    Given a keyboard-only Sales Rep is on the assignment drawer\n"
+            "    When the Sales Rep navigates and confirms the reassignment with the keyboard\n"
+            "    Then the reassignment can be completed without a mouse\n"
         )
     path.write_text(body, encoding="utf-8")
 
 
 def _write_feature_spec(root: Path, *, complete: bool) -> None:
-    path = root / "specs" / "features" / "customer-assignment-spec.md"
+    path = root / "analysis" / "specs" / "features" / "customer-assignment-spec.md"
     path.parent.mkdir(parents=True, exist_ok=True)
     body = (
         "---\n"
@@ -343,6 +390,18 @@ def _write_feature_spec(root: Path, *, complete: bool) -> None:
         "- Assignment drawer\n"
         "- Ownership confirmation dialog\n"
         "\n"
+        "## Discovery And Evidence\n"
+        "\n"
+        "## Risks And Assumptions\n"
+        "\n"
+        "## State Boundary\n"
+        "\n"
+        "## Accessibility\n"
+        "\n"
+        "## Observability\n"
+        "\n"
+        "## Release And Compliance\n"
+        "\n"
         "## Cross-Feature Dependencies\n"
         "- Customer profile data\n"
         "- Assignment lookup data\n"
@@ -352,11 +411,33 @@ def _write_feature_spec(root: Path, *, complete: bool) -> None:
     )
     if complete:
         body = body.replace(
+            "## Discovery And Evidence\n"
+            "\n"
+            "## Risks And Assumptions\n"
+            "\n"
+            "## State Boundary\n"
+            "\n"
+            "## Accessibility\n"
+            "\n"
+            "## Observability\n"
+            "\n"
+            "## Release And Compliance\n"
+            "\n"
             "## Cross-Feature Dependencies\n"
             "- Customer profile data\n"
             "- Assignment lookup data\n",
             "\n".join(
                 [
+                    "## Discovery And Evidence",
+                    "- Sales support and operations both need to reassign customer "
+                    "ownership during handoffs.",
+                    "- The brief assumes ownership changes are backed by the "
+                    "customer profile service.",
+                    "",
+                    "## Risks And Assumptions",
+                    "- Ownership conflicts can occur if two users edit the same record.",
+                    "- The assignment lookup is assumed to be stable during the release.",
+                    "",
                     "## State Boundary",
                     "- Server state:",
                     "  - Customer ownership is stored on the backend and updated through the "
@@ -366,6 +447,18 @@ def _write_feature_spec(root: Path, *, complete: bool) -> None:
                     "confirmation state.",
                     "- Do not store workspace-wide ownership cache in shared component state.",
                     "",
+                    "## Accessibility",
+                    "- The assignment drawer remains keyboard reachable.",
+                    "- Screen readers announce the selected owner and confirmation state.",
+                    "",
+                    "## Observability",
+                    "- Track assignment success and failure counts.",
+                    "- Emit a trace or log entry when ownership changes are saved.",
+                    "",
+                    "## Release And Compliance",
+                    "- Ship behind a feature flag and support rollback.",
+                    "- Preserve audit-friendly ownership history for compliance review.",
+                    "",
                     "## Cross-Feature Dependencies",
                     "- Customer profile data",
                     "- Assignment lookup data",
@@ -374,6 +467,18 @@ def _write_feature_spec(root: Path, *, complete: bool) -> None:
         )
     else:
         body = body.replace(
+            "## Discovery And Evidence\n"
+            "\n"
+            "## Risks And Assumptions\n"
+            "\n"
+            "## State Boundary\n"
+            "\n"
+            "## Accessibility\n"
+            "\n"
+            "## Observability\n"
+            "\n"
+            "## Release And Compliance\n"
+            "\n"
             "## Cross-Feature Dependencies\n"
             "- Customer profile data\n"
             "- Assignment lookup data\n",

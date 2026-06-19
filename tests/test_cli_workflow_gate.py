@@ -697,7 +697,10 @@ def test_workflow_start_blocks_round_6_when_feature_spec_becomes_stale(
         feature_spec = get_artifact_by_ref(session, project, "feature_spec:customer-assignment")
         assert page.status == ArtifactStatus.STALE
         assert feature.status == ArtifactStatus.STALE
-        assert get_artifact_by_ref(session, project, "gwt:customer-assignment").status == ArtifactStatus.STALE
+        assert (
+            get_artifact_by_ref(session, project, "gwt:customer-assignment").status
+            == ArtifactStatus.STALE
+        )
         assert feature_spec.status == ArtifactStatus.STALE
         session.commit()
 
@@ -720,7 +723,9 @@ def test_workflow_start_blocks_round_6_when_feature_spec_becomes_stale(
         project = get_project(session, "crm-web")
         page = get_artifact_by_ref(session, project, "page:customer-profile")
         with pytest.raises(WorkflowStateError, match="hard dependencies are not approved"):
-            approve_artifact(session, get_artifact_by_ref(session, project, "feature_spec:customer-assignment"))
+            approve_artifact(
+                session, get_artifact_by_ref(session, project, "feature_spec:customer-assignment")
+            )
         approve_artifact(session, page)
         feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
         approve_artifact(session, feature)

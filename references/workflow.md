@@ -2,7 +2,7 @@
 
 This page defines the analysis workflow round contract.
 
-For a fresh target repository, bootstrap the project first with `uv run fpa install`, then `uv run fpa init --project <key> --name <name>`. After that, use the round gates and artifact commands below to move through the workflow.
+For a fresh target repository, prepare a user-owned brief first, then run `uv run fpa init --project <key> --name <name> --brief-file <path>` or `uv run fpa init --project <key> --name <name> --brief <text>`. If the brief is not ready yet, use `uv run fpa brief interview --output <path>` to collect one in a bounded Q&A flow, optionally add `--transcript <path>` to keep the conversation log, and then feed that brief into `init`. After that, use the round gates and artifact commands below to move through the workflow.
 
 ## Gate Contract
 
@@ -31,12 +31,13 @@ The table mirrors the regression matrix in `tests/test_cli_workflow_gate.py`: a 
 
 ## Round 1: Persona Definition
 
-- Input: project description
-- Output: `docs/personas/index.md` and `docs/personas/[persona-name].md`
+- Input: `analysis/brief.md`
+- Output: `analysis/personas/index.md` and `analysis/personas/[persona-name].md`
 - Each Persona should include name, core goal, key differences, permission boundary, and invisible pages or capabilities
 - Before approval, register or import the resulting artifacts into the SQLite workflow state
-- Round 1 may start from raw project description; no upstream artifact gate applies
+- Round 1 starts from `analysis/brief.md` and no upstream artifact gate applies
 - A Persona revision MUST reach `approved` before Round 2 can consume it
+- If the repository has no brief yet, collect one first with `uv run fpa brief interview --output <path>` and save the result into `analysis/brief.md` before generating Round 1 artifacts
 
 Persona split rules:
 
@@ -45,8 +46,8 @@ Persona split rules:
 
 ## Round 2: Story Map
 
-- Input: approved `docs/personas/*.md`
-- Output: `docs/story-maps/index.md` and `docs/story-maps/[persona-name].md`
+- Input: approved `analysis/personas/*.md`
+- Output: `analysis/story-maps/index.md` and `analysis/story-maps/[persona-name].md`
 - One Story Map per Persona
 - Format: `Activity -> Step -> Story`
 - Do not mention pages or Features
@@ -57,16 +58,16 @@ Persona split rules:
 
 ## Round 3: Page Map
 
-- Input: approved `docs/story-maps/*.md`
-- Output: `docs/pages/index.md`, `docs/pages/[page-slug].md`, and `docs/relations/persona-story-page-matrix.md`
+- Input: approved `analysis/story-maps/*.md`
+- Output: `analysis/pages/index.md`, `analysis/pages/[page-slug].md`, and `analysis/relations/persona-story-page-matrix.md`
 - Map Story Steps into page, modal, drawer, or tab surfaces
 - Round 3 MUST consume only `approved` Story Map revisions that are not `stale`
 - If an upstream Story Map changes, all derived page revisions become stale instead of being rewritten in place
 
 ## Round 4: Feature Slicing
 
-- Input: approved `docs/pages/*.md`
-- Output: `docs/features/index.md`, `docs/features/[feature-name].md`, and `docs/relations/feature-coverage-matrix.md`
+- Input: approved `analysis/pages/*.md`
+- Output: `analysis/features/index.md`, `analysis/features/[feature-name].md`, and `analysis/relations/feature-coverage-matrix.md`
 - Process 1-3 pages at a time, then pause
 - Each Feature should record name, page, responsibility, state type, cross-page reuse, and source story
 - Round 4 MUST consume only `approved` Page revisions that are not `stale`
@@ -74,8 +75,8 @@ Persona split rules:
 
 ## Round 5: Given-When-Then
 
-- Input: approved `docs/features/*.md`
-- Output: `docs/gwt/[feature-name].feature`
+- Input: approved `analysis/features/*.md`
+- Output: `analysis/gwt/[feature-name].feature`
 - Process one Feature at a time, then pause
 - Round 5 MUST consume only `approved` Feature revisions that are not `stale`
 - If a Feature revision changes later, its GWT revision becomes stale
@@ -83,11 +84,12 @@ Persona split rules:
 ## Round 6: Feature Spec And Delivery Planning
 
 - Input: all approved artifacts
-- Output: `specs/features/[feature-name]-spec.md`
+- Output: `analysis/specs/features/[feature-name]-spec.md`
 - Generate one Feature Spec per Feature
 - Final release planning should rely on recorded dependency edges and approval state, not on manual matrix edits alone
 - Round 6 MUST consume only approved and fresh upstream revisions across the full chain
 - If any upstream revision changes after a spec is approved, the spec becomes stale and MUST be regenerated
+- Feature Spec should make discovery evidence, risks, assumptions, accessibility, observability, release, and compliance constraints explicit when they affect delivery
 
 ## Cross-Round Recovery
 
