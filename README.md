@@ -60,6 +60,7 @@ uv run fpa review structural --project crm-web --artifact persona:sales-rep
 - [frontend-decomposition-methodology.md](frontend-decomposition-methodology.md)
 - [agents/](agents)
 - [references/](references)
+- [runbooks/](runbooks)
 - [scripts/](scripts)
 - [migrations/](migrations)
 - [tests/](tests)
