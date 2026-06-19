@@ -36,7 +36,7 @@ analysis/
       [feature-name]-spec.md
 ```
 
-`analysis/brief.md` is copied from the user-provided project brief and is not auto-generated from a placeholder.
+`analysis/brief.md` is copied from a user-provided, confirmed project brief and is not auto-generated from a placeholder.
 
 ## Naming Rules
 

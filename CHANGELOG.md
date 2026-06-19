@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-06-20
+
+### Added
+
+- Draft brief confirmation flow: `brief interview` and `brief assistant` now produce draft briefs, `brief confirm` promotes them to confirmed briefs, and `init` requires confirmed provenance before bootstrapping.
+- Explicit release guidance for confirmed briefs so initialization no longer accepts bare markdown as an implied source of truth.
+- Clarified launcher-agnostic usage for both Codex and Claude Code, including the host-review packet flow.
+
+### Changed
+
+- `init` now rejects unconfirmed brief input instead of silently treating it as authoritative.
+- The regression suite now covers draft briefs, confirmation, and confirmed bootstrap behavior end to end.
+
 ## [1.3.0] - 2026-06-19
 
 ### Added

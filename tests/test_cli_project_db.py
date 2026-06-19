@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from frontend_project_analysis.workflow.briefs import split_brief_text
 from tests.cli_support import bootstrap_project, invoke_with_root, prepare_brief_source
 
 pytestmark = pytest.mark.smoke
@@ -18,7 +19,11 @@ def test_top_level_init_bootstrap(tmp_path: Path) -> None:
     )
     assert init_result.exit_code == 0, init_result.output
     assert (tmp_path / ".frontend-project-analysis" / "state.db").exists()
-    assert (tmp_path / "analysis" / "brief.md").exists()
+    brief_path = tmp_path / "analysis" / "brief.md"
+    assert brief_path.exists()
+    metadata, _ = split_brief_text(brief_path.read_text(encoding="utf-8"))
+    assert metadata["brief_status"] == "confirmed"
+    assert metadata["brief_confirmed_by_user"] is True
     assert (tmp_path / "analysis" / "personas" / "index.md").exists()
     assert not (tmp_path / "pyproject.toml").exists()
     assert not (tmp_path / "Makefile").exists()
@@ -228,6 +233,33 @@ def test_database_wipe_then_reinitialize_supports_bootstrap_and_gate(tmp_path: P
     assert gate_result.exit_code == 1, gate_result.output
     assert "persona:sales-rep" in gate_result.output
     assert "draft" in gate_result.output
+
+
+def test_project_init_rejects_unconfirmed_brief(tmp_path: Path) -> None:
+    brief_source = tmp_path / "draft-brief.md"
+    brief_source.write_text(
+        "# Project Brief\n\n"
+        "## What does the product do?\n"
+        "- Manage customer assignments.\n",
+        encoding="utf-8",
+    )
+
+    result = invoke_with_root(
+        tmp_path,
+        [
+            "project",
+            "init",
+            "--project",
+            "crm-web",
+            "--name",
+            "CRM Web",
+            "--brief-file",
+            str(brief_source),
+        ],
+    )
+
+    assert result.exit_code != 0, result.output
+    assert "Provide a confirmed brief" in result.output
 
 
 def test_markdown_scan_refreshes_document_indexes(tmp_path: Path) -> None:

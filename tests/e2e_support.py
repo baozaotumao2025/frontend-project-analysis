@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from frontend_project_analysis.workflow.briefs import render_brief_document
 from tests.cli_support import invoke_with_root
 
 PROJECT_KEY = "crm-web"
@@ -21,13 +22,18 @@ def create_existing_project_root(tmp_path: Path, name: str = "fpa-e2e-project") 
 def prepare_brief_source(tmp_path: Path, name: str = "project-brief.md") -> Path:
     path = tmp_path.parent / f"{tmp_path.name}-{name}"
     path.write_text(
-        "# Project Brief\n\n"
-        "## What does the product do?\n"
-        "- Manage customer assignments.\n\n"
-        "## Who are the main users?\n"
-        "- Sales reps and operations leads.\n\n"
-        "## What are the core usage scenarios?\n"
-        "- Reassign customers and review ownership boundaries.\n",
+        render_brief_document(
+            "# Project Brief\n\n"
+            "## What does the product do?\n"
+            "- Manage customer assignments.\n\n"
+            "## Who are the main users?\n"
+            "- Sales reps and operations leads.\n\n"
+            "## What are the core usage scenarios?\n"
+            "- Reassign customers and review ownership boundaries.\n",
+            source_kind="user",
+            status="confirmed",
+            confirmed_by_user=True,
+        ),
         encoding="utf-8",
     )
     return path

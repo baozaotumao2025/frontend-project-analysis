@@ -56,8 +56,11 @@
 ## Input Preparation Terms
 
 - Write `project brief` for the user-owned input that describes the product, users, scenarios, and constraints before `init`
+- Write `draft brief` for a brief that has been collected but not yet confirmed
+- Write `confirmed brief` for a brief that has been explicitly confirmed and carries provenance metadata
 - Write `brief interview` for the bounded Q&A flow that helps a user collect or refine a `project brief`
 - Write `brief assistant` for the LLM-assisted helper that suggests follow-up questions and synthesizes a project brief
+- Write `brief confirm` for the confirmation step that turns a draft brief into a confirmed brief
 - Write `transcript` for the saved question-and-answer record produced by `brief interview`
 - Write `preflight helper` for commands that prepare input without mutating workflow state
 

@@ -8,6 +8,7 @@ from typer.testing import CliRunner
 from frontend_project_analysis.cli import app
 from frontend_project_analysis.llm.types import ProviderResponse
 from frontend_project_analysis.schemas import BriefAssistantPayload, ProviderAuditPayload
+from frontend_project_analysis.workflow.briefs import is_confirmed_brief_text, split_brief_text
 
 pytestmark = pytest.mark.smoke
 
@@ -67,6 +68,12 @@ def test_brief_interview_collects_and_writes_brief(tmp_path: Path) -> None:
     assert result.exit_code == 0, result.output
     assert output.exists()
     text = output.read_text(encoding="utf-8")
+    metadata, body = split_brief_text(text)
+    assert metadata["brief_status"] == "draft"
+    assert metadata["brief_confirmed_by_user"] is False
+    assert metadata["brief_source_kind"] == "brief_interview"
+    assert not is_confirmed_brief_text(text)
+    assert body.startswith("# Project Brief")
     assert "# Project Brief" in text
     assert "Manage customer assignments." in text
     assert "Sales reps and operations leads." in text
@@ -90,6 +97,7 @@ def test_brief_interview_supports_dry_run(tmp_path: Path) -> None:
     assert not output.exists()
     assert "Dry run: brief was not written to disk." in result.output
     assert "# Project Brief" in result.output
+    assert "brief_status: draft" in result.output
 
 
 def test_brief_interview_follows_up_on_vague_answers(tmp_path: Path) -> None:
@@ -110,6 +118,8 @@ def test_brief_interview_follows_up_on_vague_answers(tmp_path: Path) -> None:
     assert result.exit_code == 0, result.output
     assert "A few details are still unclear" in result.output
     text = output.read_text(encoding="utf-8")
+    metadata, _ = split_brief_text(text)
+    assert metadata["brief_status"] == "draft"
     assert "The product helps users manage customer data." in text
     assert "Sales and operations need it." in text
     assert "Users need to complete the customer handoff workflow." not in text
@@ -131,6 +141,8 @@ def test_brief_interview_respects_max_questions(tmp_path: Path) -> None:
     assert result.exit_code == 0, result.output
     assert output.exists()
     text = output.read_text(encoding="utf-8")
+    metadata, _ = split_brief_text(text)
+    assert metadata["brief_status"] == "draft"
     assert "Manage customer assignments." in text
     assert "Sales reps and operations leads." in text
     assert "Reassign customers and review ownership boundaries." in text
@@ -198,6 +210,7 @@ def test_brief_interview_dry_run_prints_transcript(tmp_path: Path) -> None:
     assert not output.exists()
     assert not transcript.exists()
     assert "# Project Brief" in result.output
+    assert "brief_status: draft" in result.output
     assert "# Brief Interview Transcript" in result.output
     assert "Dry run: brief was not written to disk." in result.output
 
@@ -341,5 +354,77 @@ def test_brief_interview_llm_assist_option(monkeypatch, tmp_path: Path) -> None:
 
     assert result.exit_code == 0, result.output
     text = output.read_text(encoding="utf-8")
+    metadata, _ = split_brief_text(text)
+    assert metadata["brief_status"] == "draft"
     assert "## AI Assistant Summary" in text
     assert "Which integrations matter most?" in text
+
+
+def test_brief_confirm_marks_draft_as_confirmed(tmp_path: Path) -> None:
+    draft = tmp_path / "draft-brief.md"
+    draft.write_text(
+        "---\n"
+        "brief_confirmed_by_user: false\n"
+        "brief_format: v1\n"
+        "brief_source_kind: brief_interview\n"
+        "brief_status: draft\n"
+        "title: Project Brief\n"
+        "---\n\n"
+        "# Project Brief\n\n"
+        "## What does the product do?\n"
+        "- Manage customer assignments.\n",
+        encoding="utf-8",
+    )
+    confirmed = tmp_path / "confirmed-brief.md"
+    result = runner.invoke(
+        app,
+        [
+            "brief",
+            "confirm",
+            "--input",
+            str(draft),
+            "--output",
+            str(confirmed),
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    text = confirmed.read_text(encoding="utf-8")
+    metadata, body = split_brief_text(text)
+    assert metadata["brief_status"] == "confirmed"
+    assert metadata["brief_confirmed_by_user"] is True
+    assert metadata["brief_source_kind"] == "brief_interview"
+    assert body.startswith("# Project Brief")
+    assert is_confirmed_brief_text(text)
+
+
+def test_brief_confirm_dry_run_prints_confirmed_brief(tmp_path: Path) -> None:
+    draft = tmp_path / "draft-brief.md"
+    draft.write_text(
+        "---\n"
+        "brief_confirmed_by_user: false\n"
+        "brief_format: v1\n"
+        "brief_source_kind: brief_interview\n"
+        "brief_status: draft\n"
+        "title: Project Brief\n"
+        "---\n\n"
+        "# Project Brief\n\n"
+        "## What does the product do?\n"
+        "- Manage customer assignments.\n",
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "brief",
+            "confirm",
+            "--input",
+            str(draft),
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "brief_status: confirmed" in result.output
+    assert "Dry run: brief was not written to disk." in result.output

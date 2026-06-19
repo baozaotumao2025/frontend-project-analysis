@@ -10,6 +10,13 @@ import typer
 from ..core.config import get_settings
 from ..llm import run_brief_assistant
 from ..schemas import BriefAssistantPayload
+from ..workflow.briefs import (
+    BRIEF_SOURCE_ASSISTANT,
+    BRIEF_SOURCE_INTERVIEW,
+    BRIEF_STATUS_DRAFT,
+    confirm_brief_metadata,
+    render_brief_document,
+)
 from .utils import handle_service_error
 
 brief_app = typer.Typer(
@@ -136,6 +143,59 @@ def _build_transcript_markdown(transcript: list[tuple[str, str]]) -> str:
             ]
         )
     return "\n".join(lines)
+
+
+def _render_draft_brief(
+    body: str,
+    *,
+    source_kind: str,
+    assistant_notes: BriefAssistantPayload | None = None,
+) -> str:
+    extra_metadata: dict[str, object] = {}
+    if assistant_notes is not None:
+        extra_metadata["brief_assistant_can_finalize"] = assistant_notes.can_finalize
+        extra_metadata["brief_assistant_confidence"] = assistant_notes.confidence
+    return render_brief_document(
+        body,
+        source_kind=source_kind,
+        status=BRIEF_STATUS_DRAFT,
+        confirmed_by_user=False,
+        extra_metadata=extra_metadata,
+    )
+
+
+def _confirm_brief_text(
+    text: str,
+    *,
+    source_kind_override: str | None = None,
+) -> str:
+    if text.startswith("---\n"):
+        try:
+            _, frontmatter, body = text.split("---\n", 2)
+        except ValueError:
+            metadata = {}
+            body = text
+        else:
+            import yaml
+
+            metadata = yaml.safe_load(frontmatter) or {}
+            body = body.lstrip("\n")
+    else:
+        metadata = {}
+        body = text
+    confirmed_metadata = confirm_brief_metadata(
+        metadata,
+        body,
+        source_kind=source_kind_override,
+        confirmed_by_user=True,
+    )
+    return render_brief_document(
+        body,
+        source_kind=str(confirmed_metadata["brief_source_kind"]),
+        status=str(confirmed_metadata["brief_status"]),
+        confirmed_by_user=True,
+        extra_metadata=confirmed_metadata,
+    )
 
 
 def _build_brief_assistant_packet(
@@ -417,12 +477,17 @@ def brief_interview(
     ):
         answers.setdefault(key, "unknown")
 
-    markdown = _build_brief_markdown(
+    body = _build_brief_markdown(
         answers,
         assistant_followups=assistant_followups,
         assistant_notes=assistant_notes,
     )
     transcript_markdown = _build_transcript_markdown(question_transcript)
+    markdown = _render_draft_brief(
+        body,
+        source_kind=BRIEF_SOURCE_ASSISTANT if llm_assist else BRIEF_SOURCE_INTERVIEW,
+        assistant_notes=assistant_notes,
+    )
     if dry_run:
         typer.echo(markdown)
         if transcript is not None:
@@ -457,3 +522,27 @@ def brief_assistant(
         transcript=transcript,
         llm_assist=True,
     )
+
+
+@brief_app.command("confirm")
+@handle_service_error
+def brief_confirm(
+    input: Path = typer.Option(..., "--input", exists=True, dir_okay=False),
+    output: Path | None = typer.Option(None, "--output", dir_okay=False),
+    force: bool = typer.Option(False, "--force"),
+    dry_run: bool = typer.Option(False, "--dry-run"),
+) -> None:
+    target = output or input
+    if target.exists() and target != input and not force:
+        raise typer.BadParameter(f"{target} already exists. Use --force to overwrite it.")
+
+    source_text = input.read_text(encoding="utf-8")
+    confirmed_text = _confirm_brief_text(source_text)
+    if dry_run:
+        typer.echo(confirmed_text)
+        typer.echo("Dry run: brief was not written to disk.")
+        return
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(confirmed_text, encoding="utf-8")
+    typer.echo(f"Confirmed brief written to {target}")

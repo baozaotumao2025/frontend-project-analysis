@@ -15,8 +15,9 @@ These commands help prepare inputs before workflow state is initialized, but the
 
 | Command | Purpose | Notes |
 | --- | --- | --- |
-| `fpa brief interview` | Collects a user-owned project brief in a bounded Q&A flow | Use `--transcript` to keep the conversation log; feed the resulting brief into `fpa init` |
-| `fpa brief assistant` | Collects a user-owned project brief with LLM-assisted follow-up and synthesis | Use `--transcript` to keep the conversation log; feed the resulting brief into `fpa init` |
+| `fpa brief interview` | Collects a user-owned project brief in a bounded Q&A flow | Use `--transcript` to keep the conversation log; the output is a draft brief and must be confirmed before `fpa init` |
+| `fpa brief assistant` | Collects a user-owned project brief with LLM-assisted follow-up and synthesis | Use `--transcript` to keep the conversation log; the output is a draft brief and must be confirmed before `fpa init` |
+| `fpa brief confirm` | Marks a draft brief as confirmed and verifies its provenance metadata | Use `--input` for the draft brief, and `--output` when you want to write a separate confirmed copy |
 
 ## Write Entrypoints
 
@@ -24,10 +25,10 @@ These commands can create or mutate workflow state:
 
 | Command | State Effect | Notes |
 | --- | --- | --- |
-| `fpa init` | Bootstraps the project database and analysis workspace from user-provided brief input | Composite entrypoint for a fresh repo; requires `--brief` or `--brief-file`, and supports `--force` and `--dry-run` |
+| `fpa init` | Bootstraps the project database and analysis workspace from confirmed brief input | Composite entrypoint for a fresh repo; requires `--brief` or `--brief-file` containing confirmed brief metadata, and supports `--force` and `--dry-run` |
 | `fpa db init` | Initializes or migrates the workflow database | Safe to run on a fresh target root |
 | `fpa db wipe --yes` | Deletes the workflow database file | Destructive; use only when you intend to reset state |
-| `fpa project init` | Initializes the database and analysis workspace | Alias for `fpa init`; requires user-provided brief input and ensures `.frontend-project-analysis/` is ignored by the target project's `.gitignore` |
+| `fpa project init` | Initializes the database and analysis workspace | Alias for `fpa init`; requires confirmed brief input and ensures `.frontend-project-analysis/` is ignored by the target project's `.gitignore` |
 | `fpa artifact add` | Creates a new `draft` revision only | Pre-approved creation is rejected |
 | `fpa artifact link` | Writes dependency edges | May mark approved downstream revisions `stale` when a new hard dependency is introduced |
 | `fpa import manifest --apply` | Imports artifacts and dependencies as draft-state revisions | Inbound `status` values are ignored as lifecycle overrides |

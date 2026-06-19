@@ -10,6 +10,7 @@ import typer
 from ..core.config import get_paths
 from ..infrastructure.storage import initialize_database, session_scope, wipe_database
 from ..repositories.projects import ensure_project
+from ..workflow.briefs import is_confirmed_brief, split_brief_text
 from ..workflow.io import initialize_project
 from .utils import handle_service_error
 
@@ -41,6 +42,12 @@ def _run_project_init(
         brief_text = brief_file.read_text(encoding="utf-8")
     elif brief_text is not None:
         brief_source = "<inline>"
+    brief_metadata, brief_body = split_brief_text(brief_text or "")
+    if not is_confirmed_brief(brief_metadata, brief_body):
+        raise typer.BadParameter(
+            "Provide a confirmed brief. Run `fpa brief confirm` on the brief file first, "
+            "then pass the confirmed file to init."
+        )
     if dry_run:
         return {
             "command": "project-init",
@@ -67,7 +74,7 @@ def _run_project_init(
                 },
                 {
                     "path": "analysis/brief.md",
-                    "action": "write_brief_from_input",
+                    "action": "write_confirmed_brief_from_input",
                     "source": str(brief_source) if brief_source else None,
                 },
             ],

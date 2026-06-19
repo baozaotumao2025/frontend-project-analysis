@@ -2,7 +2,7 @@
 
 `frontend-project-analysis` 是一个以文档为先的前端项目分析 skill，同时内置一套可复用的 Python 工作流基础设施。这个 skill 安装在 Codex 环境中运行，不要求目标项目复制一整套工具脚手架。它把前端项目拆解成 `Persona`、`Story Map`、`Page`、`Feature`、`GWT` 和 `Feature Spec` 等结构化产物，并用 SQLite 记录依赖、审核、版本和审计信息。
 
-当前发布版本为 `1.3.0`。
+当前发布版本为 `1.3.1`。
 
 ## 快速开始
 
@@ -10,7 +10,8 @@
 
 ```bash
 uv sync
-uv run fpa init --project crm-web --name "CRM Web" --brief-file ./project-brief.md
+uv run fpa brief confirm --input ./project-brief.md --output ./project-brief.confirmed.md
+uv run fpa init --project crm-web --name "CRM Web" --brief-file ./project-brief.confirmed.md
 uv run fpa artifact add --project crm-web --type persona --slug sales-rep --title "Sales Rep"
 uv run fpa review structural --project crm-web --artifact persona:sales-rep
 ```
@@ -26,8 +27,9 @@ uv run fpa review structural --project crm-web --artifact persona:sales-rep
    - 适合不想记命令的用户
    - 直接告诉 Codex 要做哪一轮分析、输入是什么、输出要落到哪些文件
    - Codex 会结合 `SKILL.md`、`references/methodology.md` 和本仓库文档自动推进流程
-   - 你也可以用多轮对话逐步补充项目背景，等信息足够完整后再执行 `uv run fpa init ...`
+   - 你也可以用多轮对话逐步补充项目背景，等信息足够完整后先执行 `uv run fpa brief confirm ...`，再执行 `uv run fpa init ...`
    - 如果你不知道怎么写 brief，可以先运行 `uv run fpa brief interview --output ./project-brief.md`；如果你想让 LLM 帮你补问和收尾，可以用 `uv run fpa brief assistant --output ./project-brief.md`，由 skill 先问 3 个核心问题，再根据权限、约束、集成信号和 AI 建议做追问帮你收敛信息
+   - 这两条命令都会先产出 `draft` brief，正式喂给 `init` 之前请再运行 `uv run fpa brief confirm --input ./project-brief.md --output ./project-brief.confirmed.md`，然后把确认后的文件传给 `init`
 
 一个可以直接用的自然语言请求是：
 
@@ -186,10 +188,11 @@ uv run fpa review --help
 
 ### 3.3 初始化项目
 
-先准备一个用户自己提供的 brief 文件，然后再初始化。`init` 直接读取 brief，并在目标项目里生成 `analysis/` 与 `.frontend-project-analysis/`，不需要把 `src/`、`migrations/` 或其他工具脚手架复制到目标项目：
+先准备一个用户自己提供、且已经确认过的 brief 文件，然后再初始化。`init` 直接读取已确认 brief，并在目标项目里生成 `analysis/` 与 `.frontend-project-analysis/`，不需要把 `src/`、`migrations/` 或其他工具脚手架复制到目标项目：
 
 ```bash
-uv run fpa init --project crm-web --name "CRM Web" --brief-file ./project-brief.md
+uv run fpa brief confirm --input ./project-brief.md --output ./project-brief.confirmed.md
+uv run fpa init --project crm-web --name "CRM Web" --brief-file ./project-brief.confirmed.md
 ```
 
 初始化后，目标项目里只会出现 `analysis/` 和 `.frontend-project-analysis/` 两类产物。不会再复制 `README.md`、`Makefile`、`pyproject.toml` 或其他工具脚手架文件。
@@ -204,7 +207,7 @@ uv run fpa init --project crm-web --name "CRM Web" --brief-file ./project-brief.
 - 哪些页面、能力或数据对他们不可见
 - 哪些权限边界或业务约束最重要
 
-如果你是通过多轮对话来补充 brief，建议先收敛在这些信息，再执行 `init`。`analysis/brief.md` 会保存那一刻的输入快照。
+如果你是通过多轮对话来补充 brief，建议先收敛在这些信息，再执行 `brief confirm`，然后把 confirmed brief 喂给 `init`。`analysis/brief.md` 会保存那一刻的输入快照，并带上 provenance frontmatter。
 如果你一开始不知道怎么写，可以先运行：
 
 ```bash
@@ -212,7 +215,7 @@ uv run fpa brief interview --output ./project-brief.md
 uv run fpa brief assistant --output ./project-brief.md
 ```
 
-这个流程会先问 3 个核心问题，然后在预算允许时继续收集 `discovery`、`risk`、`accessibility`、`observability`、`release` 这些横切信号，再汇总成一版可直接喂给 `init` 的 brief。
+这个流程会先问 3 个核心问题，然后在预算允许时继续收集 `discovery`、`risk`、`accessibility`、`observability`、`release` 这些横切信号，再汇总成一版 draft brief。正式进入 `init` 之前，先用 `brief confirm` 把它变成 confirmed brief。
 你也可以加上 `--max-questions <n>` 控制总提问上限，或者用 `--dry-run` 先预览生成结果而不落盘。
 如果你想保留完整的问答过程，再额外加上 `--transcript ./brief-transcript.md`，这样 brief 和 transcript 会分别保存。
 后续生成的 `Feature Spec` 还会显式保留 discovery evidence、risk、accessibility、observability、release 和 compliance 这些横切约束。

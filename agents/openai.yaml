@@ -1,7 +1,7 @@
 interface:
   display_name: "Frontend Project Analysis"
   short_description: "Document-first frontend decomposition"
-  default_prompt: "Use $frontend-project-analysis in the target project by preparing a user-owned brief first, then run uv run fpa init --project <key> --name <name> --brief-file <path> or --brief <text>, and decompose this frontend project into Persona, Story Map, Page Map, Features, GWT, and Feature Specs under analysis/."
+  default_prompt: "Use $frontend-project-analysis in the target project by preparing a user-owned brief first, confirming it with uv run fpa brief confirm --input <draft> --output <confirmed>, then run uv run fpa init --project <key> --name <name> --brief-file <path> or --brief <text>, and decompose this frontend project into Persona, Story Map, Page Map, Features, GWT, and Feature Specs under analysis/. This workflow is launcher-agnostic and can be used from Codex or Claude Code."
 
 policy:
   allow_implicit_invocation: true

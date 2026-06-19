@@ -2,7 +2,7 @@
 
 This page defines the analysis workflow round contract.
 
-For a fresh target repository, prepare a user-owned brief first, then run `uv run fpa init --project <key> --name <name> --brief-file <path>` or `uv run fpa init --project <key> --name <name> --brief <text>`. If the brief is not ready yet, use `uv run fpa brief interview --output <path>` to collect one in a bounded Q&A flow, optionally add `--transcript <path>` to keep the conversation log, and then feed that brief into `init`. If you want LLM-assisted follow-up and synthesis, use `uv run fpa brief assistant --output <path>` instead. After that, use the round gates and artifact commands below to move through the workflow.
+For a fresh target repository, prepare a user-owned brief first, then confirm it, then run `uv run fpa init --project <key> --name <name> --brief-file <path>` or `uv run fpa init --project <key> --name <name> --brief <text>` with confirmed brief metadata. If the brief is not ready yet, use `uv run fpa brief interview --output <path>` to collect one in a bounded Q&A flow, optionally add `--transcript <path>` to keep the conversation log, then run `uv run fpa brief confirm --input <path> --output <confirmed-path>` before `init`. If you want LLM-assisted follow-up and synthesis, use `uv run fpa brief assistant --output <path>` instead; it also produces a draft brief that must be confirmed before `init`. After that, use the round gates and artifact commands below to move through the workflow.
 
 ## Gate Contract
 
@@ -45,7 +45,7 @@ The same repository keeps `Explore mode` separate from this canonical path so ex
 - Before approval, register or import the resulting artifacts into the SQLite workflow state
 - Round 1 starts from `analysis/brief.md` and no upstream artifact gate applies
 - A Persona revision MUST reach `approved` before Round 2 can consume it
-- If the repository has no brief yet, collect one first with `uv run fpa brief interview --output <path>` or `uv run fpa brief assistant --output <path>` and save the result into `analysis/brief.md` before generating Round 1 artifacts
+- If the repository has no brief yet, collect one first with `uv run fpa brief interview --output <path>` or `uv run fpa brief assistant --output <path>`, confirm it with `uv run fpa brief confirm --input <path> --output <confirmed-path>`, and save the confirmed result into `analysis/brief.md` before generating Round 1 artifacts
 
 Persona split rules:
 

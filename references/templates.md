@@ -3,7 +3,7 @@
 ## Contents
 
 - `analysis/index.md`
-- `analysis/brief.md` (copied from user-provided brief input)
+- `analysis/brief.md` (copied from user-provided confirmed brief input)
 - `analysis/personas/index.md`
 - `analysis/personas/[persona-name].md`
 - `analysis/story-maps/[persona-name].md`
@@ -19,7 +19,7 @@
 # Analysis Index
 ```
 
-`analysis/brief.md` is not a synthetic template; it is the copied project brief supplied by the user.
+`analysis/brief.md` is not a synthetic template; it is the copied, confirmed project brief supplied by the user.
 
 ```md
 # Project Brief

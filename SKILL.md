@@ -14,6 +14,7 @@ Use this skill when the task is to analyze or decompose a frontend product into 
 - The user wants to break a large frontend scope into vertical slices and acceptance artifacts
 - The expected output is Markdown or Gherkin documents
 - The user wants Codex or Claude Code to perform semantic review directly from a generated packet when no external LLM is configured
+- This skill is launcher-agnostic and can be used from Codex or Claude Code with the same repository files and CLI commands
 
 Do not use this skill for component implementation, UI coding, or engineering execution unless the user explicitly pivots out of analysis.
 
@@ -35,8 +36,8 @@ If you need to check which document is authoritative for a topic, read `referenc
 
 ## Workflow Rules
 
-- When bootstrapping a target project, prepare a user-owned brief first, then run `uv run fpa init --project <key> --name <name> --brief-file <path>`, or provide the brief inline with `--brief <text>`
-- If the user does not yet have a brief, use `uv run fpa brief interview --output <path>` to collect one in a bounded Socratic flow; add `--transcript <path>` when you want to keep the full Q&A record
+- When bootstrapping a target project, prepare a user-owned brief first, confirm it with `uv run fpa brief confirm --input <draft> --output <confirmed>`, then run `uv run fpa init --project <key> --name <name> --brief-file <path>`, or provide confirmed brief input inline with `--brief <text>`
+- If the user does not yet have a brief, use `uv run fpa brief interview --output <path>` to collect one in a bounded Socratic flow; add `--transcript <path>` when you want to keep the full Q&A record, and then confirm that draft before `init`
 - Follow the workflow round by round; do not skip rounds unless the user explicitly asks to do so
 - If the user already has approved outputs from earlier rounds, resume from the latest approved round
 - For each round, produce the artifact first, then a self-check against the matching quality gate, then pause
