@@ -63,5 +63,5 @@ Before publishing, verify:
 - `init` initializes the database automatically
 - The published skill package should not contain runtime state or local analysis outputs
 - If the release is intended for external use, confirm that version numbers in `pyproject.toml` and `src/frontend_project_analysis/__init__.py` match
-- For the preferred git commit and tagging sequence, see [`runbooks/README.md`](../runbooks/README.md)
+- For the preferred git commit and tagging sequence, see [`runbooks/release-flow.md`](../runbooks/release-flow.md)
 - For the preferred testing matrix, see [`runbooks/test-matrix.md`](../runbooks/test-matrix.md)
