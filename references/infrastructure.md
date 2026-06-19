@@ -57,7 +57,7 @@ Each target project keeps its workflow state inside:
 - `exports/`: JSON manifests and exported relation files
 - `logs/`: reserved for future automation logs
 - `audits/`: provider request/response archives and event timelines
-- `project init` ensures this directory is listed in the calling project's `.gitignore`
+- `init` ensures this directory is listed in the calling project's `.gitignore`
 
 ## Source Of Truth
 
@@ -104,7 +104,8 @@ In `host` mode, the structured packet is handed to the current host agent, which
 
 Supported workflows:
 
-- `uv run fpa project init --project ... --name ...`
+- `uv run fpa install`
+- `uv run fpa init --project ... --name ...`
 - `uv run fpa db init`
 - `uv run fpa db backup`
 - `uv run fpa db restore --from ...`
@@ -113,7 +114,7 @@ Supported workflows:
 Database migrations are applied automatically when the CLI opens a session or initializes the database.
 The migration layer resolves the repository root `alembic.ini`, points Alembic at `migrations/`,
 and prepends `src/` so `frontend_project_analysis` can be imported during migration runs.
-This is the same wiring `project init` relies on when bootstrapping a fresh target project.
+This is the same wiring `install` and `init` rely on when bootstrapping a fresh target project.
 
 ## Import And Export
 

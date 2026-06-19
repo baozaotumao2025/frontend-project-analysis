@@ -30,6 +30,8 @@ def compute_content_hash(metadata: dict[str, Any], body: str) -> str:
 
 def infer_artifact_type(path: Path) -> ArtifactType | None:
     normalized = path.as_posix()
+    if path.name == "index.md":
+        return None
     if "/docs/personas/" in normalized:
         return ArtifactType.PERSONA
     if "/docs/story-maps/" in normalized:

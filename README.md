@@ -2,7 +2,7 @@
 
 `frontend-project-analysis` 是一个以文档为先的前端项目分析 skill，同时内置一套可复用的 Python 工作流基础设施。它把前端项目拆解成 `Persona`、`Story Map`、`Page`、`Feature`、`GWT` 和 `Feature Spec` 等结构化产物，并用 SQLite 记录依赖、审核、版本和审计信息。
 
-当前发布版本为 `1.0.0`。
+当前发布版本为 `1.1.0`。
 
 ## 快速开始
 
@@ -10,7 +10,8 @@
 
 ```bash
 uv sync
-uv run fpa project init --project crm-web --name "CRM Web"
+uv run fpa install
+uv run fpa init --project crm-web --name "CRM Web"
 uv run fpa artifact add --project crm-web --type persona --slug sales-rep --title "Sales Rep"
 uv run fpa review structural --project crm-web --artifact persona:sales-rep
 ```
@@ -21,7 +22,7 @@ uv run fpa review structural --project crm-web --artifact persona:sales-rep
 
 1. 命令式使用
    - 适合熟悉 CLI 的用户
-   - 直接运行 `uv run fpa ...` 命令完成初始化、录入、审查、导入导出和维护
+   - 直接运行 `uv run fpa ...` 命令完成安装、初始化、录入、审查、导入导出和维护
 2. 自然语言使用
    - 适合不想记命令的用户
    - 直接告诉 Codex 要做哪一轮分析、输入是什么、输出要落到哪些文件
@@ -75,11 +76,11 @@ uv run fpa review structural --project crm-web --artifact persona:sales-rep
   audits/
 ```
 
-`uv run fpa project init ...` 会自动把 `.frontend-project-analysis/` 写入调用项目的 `.gitignore`，这个目录只保存本地运行态数据库和审计数据，避免中间产物进入版本控制。
+`uv run fpa init ...` 会自动把 `.frontend-project-analysis/` 写入调用项目的 `.gitignore`，这个目录只保存本地运行态数据库和审计数据，避免中间产物进入版本控制。
 
 ### 项目初始化会创建的内容
 
-执行 `uv run fpa project init ...` 后，会创建这些文档目录：
+执行 `uv run fpa init ...` 后，会创建这些文档目录：
 
 ```text
 docs/index.md
@@ -180,7 +181,7 @@ uv run fpa review --help
 ### 3.3 初始化项目
 
 ```bash
-uv run fpa project init --project crm-web --name "CRM Web"
+uv run fpa init --project crm-web --name "CRM Web"
 ```
 
 ### 3.4 录入 artifact 和依赖
@@ -257,6 +258,26 @@ uv run fpa db wipe --yes
 - `FPA_LLM_API_KEY`
 - `FPA_LLM_API_PATH`
 - `FPA_LLM_TIMEOUT_SECONDS`
+
+### 3.11 运行测试
+
+仓库提供了几组常用的测试入口，适合本地回归和 CI 拆分执行：
+
+```bash
+./scripts/test-smoke.sh
+./scripts/test-check.sh
+./scripts/test-full.sh
+./scripts/test-all.sh
+```
+
+对应的 Make 目标是：
+
+```bash
+make smoke
+make check
+make full
+make all
+```
 - `FPA_LLM_MAX_OUTPUT_TOKENS`
 - `FPA_LLM_MAX_RETRIES`
 - `FPA_LLM_RETRY_INITIAL_BACKOFF_SECONDS`
@@ -266,14 +287,15 @@ uv run fpa db wipe --yes
 
 ### 3.11 常见使用顺序
 
-1. `project init`
-2. `artifact add`
-3. `artifact link`
-4. `review structural`
-5. `review semantic-packet`
-6. `review semantic-run`、`review semantic-record`，或者在 `host` 模式下直接让当前 Codex / Claude Code 读取 packet 后再记录结果
-7. `review approve` 或 `review reject`
-8. `export manifest` 和 `export relations`
+1. `install`
+2. `init`
+3. `artifact add`
+4. `artifact link`
+5. `review structural`
+6. `review semantic-packet`
+7. `review semantic-run`、`review semantic-record`，或者在 `host` 模式下直接让当前 Codex / Claude Code 读取 packet 后再记录结果
+8. `review approve` 或 `review reject`
+9. `export manifest` 和 `export relations`
 
 如果你要开始下一轮，直接跑 `uv run fpa workflow start --project crm-web --round 2`，它会自动先验 gate。
 如果你想看哪些命令会改状态、哪些只是只读，见 `references/state-entrypoints.md`。
@@ -309,7 +331,7 @@ uv run fpa db wipe --yes
 - `.env` 和 `.venv/`
 - `docs/`、`specs/` 这类本地分析输出
 
-`uv run fpa project init ...` 会自动初始化数据库和项目目录结构，不需要你手动先建库。
+`uv run fpa init ...` 会自动初始化数据库和项目目录结构，不需要你手动先建库。
 更直观的对照表见 [references/release-checklist.md](references/release-checklist.md)。
 
 ### 维护原则

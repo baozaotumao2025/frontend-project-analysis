@@ -13,6 +13,8 @@ def test_cli_exposes_expected_top_level_commands() -> None:
     result = runner.invoke(app, ["--help"])
 
     assert result.exit_code == 0
+    assert "install" in result.stdout
+    assert "init" in result.stdout
     assert "project" in result.stdout
     assert "artifact" in result.stdout
     assert "review" in result.stdout

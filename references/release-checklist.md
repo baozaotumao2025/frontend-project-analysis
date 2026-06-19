@@ -62,6 +62,6 @@ Before publishing, verify:
 
 ## Release Notes
 
-- `project init` initializes the database automatically
+- `init` initializes the database automatically
 - The published skill package should not contain runtime state or local analysis outputs
 - If the release is intended for external use, confirm that version numbers in `pyproject.toml` and `src/frontend_project_analysis/__init__.py` match

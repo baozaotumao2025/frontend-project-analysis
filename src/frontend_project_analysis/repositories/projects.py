@@ -27,6 +27,5 @@ def ensure_project(session: Session, key: str, name: str, root_path: Path) -> Pr
 def get_project(session: Session, key: str) -> Project:
     project = session.scalar(select(Project).where(Project.key == key))
     if project is None:
-        raise RepositoryError(f"Project '{key}' was not found. Run `fpa project init` first.")
+        raise RepositoryError(f"Project '{key}' was not found. Run `uv run fpa init` first.")
     return project
-

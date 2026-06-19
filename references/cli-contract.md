@@ -39,6 +39,6 @@ This page summarizes the user impact of the code-enforced state gates.
 
 ## Operational Notes
 
-- `project init` still needs the repository root to expose `alembic.ini`, `migrations/`, and importable `src/`.
+- `init` still needs the repository root to expose `alembic.ini`, `migrations/`, and importable `src/`.
 - The workflow is intentionally conservative: when in doubt, reset to `draft` or `stale` and force the next round gate to re-validate freshness.
 - This keeps approval history auditable and avoids silently rewriting downstream work.

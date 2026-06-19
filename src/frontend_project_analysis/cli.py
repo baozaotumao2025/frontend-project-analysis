@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 import typer
 
 from .commands import (
@@ -13,6 +15,7 @@ from .commands import (
     register_review_commands,
     register_workflow_commands,
 )
+from .commands.project import _render_install_payload, _run_project_init
 from .core.config import get_paths, get_settings
 from .infrastructure.logging_utils import configure_logging, get_logger
 
@@ -37,6 +40,38 @@ register_export_commands(app)
 register_import_commands(app)
 register_db_commands(app)
 register_workflow_commands(app)
+
+
+@app.command("install")
+def install(
+    force: bool = typer.Option(False, "--force"),
+    dry_run: bool = typer.Option(False, "--dry-run"),
+) -> None:
+    payload = _render_install_payload(force=force, dry_run=dry_run)
+    typer.echo(json.dumps(payload, indent=2))
+
+
+@app.command("init")
+def init(
+    project: str = typer.Option(..., "--project"),
+    name: str = typer.Option(..., "--name"),
+    force: bool = typer.Option(False, "--force"),
+    dry_run: bool = typer.Option(False, "--dry-run"),
+) -> None:
+    install_payload = _render_install_payload(force=force, dry_run=dry_run)
+    init_payload = _run_project_init(project=project, name=name, force=force, dry_run=dry_run)
+    typer.echo(
+        json.dumps(
+            {
+                "command": "init",
+                "force": force,
+                "dry_run": dry_run,
+                "install": install_payload,
+                "project": init_payload,
+            },
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":

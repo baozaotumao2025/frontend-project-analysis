@@ -2,6 +2,8 @@
 
 This page defines the analysis workflow round contract.
 
+For a fresh target repository, bootstrap the project first with `uv run fpa install`, then `uv run fpa init --project <key> --name <name>`. After that, use the round gates and artifact commands below to move through the workflow.
+
 ## Gate Contract
 
 - Each round MUST consume only approved and fresh upstream revisions.

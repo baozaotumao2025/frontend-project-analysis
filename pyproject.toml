@@ -1,6 +1,6 @@
 [project]
 name = "frontend-project-analysis"
-version = "1.0.0"
+version = "1.1.0"
 description = "Document-first frontend project analysis infrastructure with SQLite-backed workflow governance."
 readme = "README.md"
 requires-python = "==3.12.*"
@@ -33,6 +33,10 @@ packages = ["src/frontend_project_analysis"]
 testpaths = ["tests"]
 markers = [
   "smoke: fast regression checks for CLI wiring and compatibility facades",
+  "e2e: end-to-end regression coverage for install/init and workflow recovery",
+  "e2e_install: E2E coverage for install and initialization behavior",
+  "e2e_flow: E2E coverage for multi-round workflow failure recovery",
+  "e2e_reset: E2E coverage for force reinitialization and state reset",
 ]
 
 [tool.ruff]

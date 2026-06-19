@@ -9,6 +9,29 @@ from tests.cli_support import bootstrap_project, invoke_with_root
 pytestmark = pytest.mark.smoke
 
 
+def test_top_level_install_and_init_bootstrap(tmp_path: Path) -> None:
+    dry_run = invoke_with_root(tmp_path, ["install", "--dry-run"])
+    assert dry_run.exit_code == 0, dry_run.output
+    assert not (tmp_path / "pyproject.toml").exists()
+    assert not (tmp_path / "Makefile").exists()
+
+    install_result = invoke_with_root(tmp_path, ["install"])
+    assert install_result.exit_code == 0, install_result.output
+    assert (tmp_path / "pyproject.toml").exists()
+    assert (tmp_path / "Makefile").exists()
+    assert (tmp_path / "alembic.ini").exists()
+    assert (tmp_path / "migrations" / "env.py").exists()
+    assert (tmp_path / "src" / "frontend_project_analysis" / "cli.py").exists()
+
+    init_result = invoke_with_root(
+        tmp_path,
+        ["init", "--project", "crm-web", "--name", "CRM Web"],
+    )
+    assert init_result.exit_code == 0, init_result.output
+    assert (tmp_path / ".frontend-project-analysis" / "state.db").exists()
+    assert (tmp_path / "docs" / "personas" / "index.md").exists()
+
+
 def test_project_init_artifact_and_dependency_flow(tmp_path: Path) -> None:
     bootstrap_project(tmp_path)
     assert (tmp_path / "docs" / "personas").is_dir()
@@ -50,6 +73,52 @@ def test_project_init_keeps_gitignore_entry_idempotent(tmp_path: Path) -> None:
 
     gitignore_lines = (tmp_path / ".gitignore").read_text(encoding="utf-8").splitlines()
     assert gitignore_lines.count(".frontend-project-analysis/") == 1
+
+
+def test_project_init_force_reinitializes_database(tmp_path: Path) -> None:
+    bootstrap_project(tmp_path)
+    add_persona = invoke_with_root(
+        tmp_path,
+        [
+            "artifact",
+            "add",
+            "--project",
+            "crm-web",
+            "--type",
+            "persona",
+            "--slug",
+            "ops-manager",
+            "--title",
+            "Ops Manager",
+        ],
+    )
+    assert add_persona.exit_code == 0, add_persona.output
+
+    force_init = invoke_with_root(
+        tmp_path,
+        [
+            "project",
+            "init",
+            "--project",
+            "crm-web",
+            "--name",
+            "CRM Web",
+            "--force",
+        ],
+    )
+    assert force_init.exit_code == 0, force_init.output
+
+    follow_up = invoke_with_root(
+        tmp_path,
+        [
+            "artifact",
+            "list",
+            "--project",
+            "crm-web",
+        ],
+    )
+    assert follow_up.exit_code == 0, follow_up.output
+    assert "ops-manager" not in follow_up.output
 
 
 def test_artifact_add_no_longer_accepts_status_override(tmp_path: Path) -> None:

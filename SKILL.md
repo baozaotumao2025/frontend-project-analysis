@@ -34,6 +34,7 @@ If you need to check which document is authoritative for a topic, read `referenc
 
 ## Workflow Rules
 
+- When bootstrapping a target project, run `uv run fpa install` first, then `uv run fpa init`
 - Follow the workflow round by round; do not skip rounds unless the user explicitly asks to do so
 - If the user already has approved outputs from earlier rounds, resume from the latest approved round
 - For each round, produce the artifact first, then a self-check against the matching quality gate, then pause
@@ -50,7 +51,7 @@ If you need to check which document is authoritative for a topic, read `referenc
 - Default document layout and file naming follow `references/structure.md`
 - Use the templates in `references/templates.md` only as a starting point; adapt them to the project context
 - Add structured frontmatter to workflow-managed Markdown artifact files so the CLI can validate type, round, status, and project alignment
-- The runtime state directory `.frontend-project-analysis/` belongs to the calling project, should stay local, and `project init` ensures it is listed in that project's `.gitignore`
+- The runtime state directory `.frontend-project-analysis/` belongs to the calling project, should stay local, and `init` ensures it is listed in that project's `.gitignore`
 - Professional terms such as `Persona`, `Story Map`, `Feature`, `Feature Spec`, `Happy Path`, `Edge Case`, `Permission Case`, and `Error Case` should remain in English
 
 ## Boundaries
