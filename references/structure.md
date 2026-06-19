@@ -1,5 +1,13 @@
 # Structure
 
+## Scope
+
+This document defines the default output layout and file responsibility boundaries for the `fpa` workflow.
+
+- It is a canonical reference for generated analysis artifacts.
+- It is not the place for repository-wide governance rules.
+- It is not the place for operational runbook steps.
+
 ## Recommended Output Layout
 
 ```text

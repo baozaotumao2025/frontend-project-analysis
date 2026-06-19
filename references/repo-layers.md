@@ -32,6 +32,14 @@ J --> M[how to maintain]
 
 ## What Each Layer Means
 
+### Consumer map
+
+- `fpa` skill consumes `SKILL.md` and the canonical `references/*` documents.
+- Repository governance consumes `AGENTS.md`.
+- Operators consume `runbooks/*` and the maintainer-oriented command notes in `scripts/README.md`.
+- Human readers consume `README.md`.
+- The implementation layer (`src/`) and verification layer (`tests/`, `scripts/`, `migrations/`) are not skill documentation; they support the shipped tool and its regressions.
+
 ### 1. Skill and policy layer
 
 - `SKILL.md` is the operational entrypoint

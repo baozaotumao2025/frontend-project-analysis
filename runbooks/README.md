@@ -2,6 +2,8 @@
 
 This directory collects maintenance procedures that are useful for repository operators but are not part of the `fpa` skill contract itself.
 
+Runbooks describe how to execute a task. They should not define repository-wide policy, workflow semantics, or canonical terminology.
+
 ## Documents
 
 | Document | Purpose |
