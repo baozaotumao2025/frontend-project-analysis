@@ -12,6 +12,7 @@ A --> D[references/infrastructure.md]
 A --> E[references/state-machine.md]
 A --> E2[references/schema-sketch.md]
 A --> E3[references/validation-matrix.md]
+A --> E4[references/test-matrix.md]
 A --> F[references/quality-gates.md]
 A --> F2[references/glossary.md]
 A --> G[references/structure.md]
@@ -46,6 +47,7 @@ J --> M[how to maintain]
 - `references/state-machine.md` defines lifecycle semantics
 - `references/schema-sketch.md` defines the node / edge / matrix placement for the workflow schema
 - `references/validation-matrix.md` defines which checks are code-owned, LLM-owned, or projection-owned
+- `references/test-matrix.md` defines the preferred layered test strategy and release coverage
 - `references/glossary.md` defines preferred terminology
 - `references/structure.md` defines output layout, naming rules, and file responsibilities
 - `references/cli-contract.md` defines command behavior under the lifecycle gates
@@ -81,9 +83,10 @@ If you are new to the repository, read in this order:
 7. `references/state-machine.md`
 8. `references/schema-sketch.md`
 9. `references/validation-matrix.md`
-10. `references/workflow.md`
-11. `references/quality-gates.md`
-12. `references/cli-contract.md`
-13. `references/state-entrypoints.md`
+10. `references/test-matrix.md`
+11. `references/workflow.md`
+12. `references/quality-gates.md`
+13. `references/cli-contract.md`
+14. `references/state-entrypoints.md`
 14. `src/frontend_project_analysis/`
 15. `tests/`
