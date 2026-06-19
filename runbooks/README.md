@@ -28,3 +28,8 @@ Use this sequence when you are preparing a new git release for the repository.
 7. Push when the remote is ready.
    - Push the commit and tag together.
    - Respect branch protection and any remote release policy.
+
+## Test Matrix
+
+Use [`test-matrix.md`](test-matrix.md) when you need a release-oriented view of
+how to prove the skill works.

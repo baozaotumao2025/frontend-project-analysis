@@ -13,7 +13,6 @@ This page maps each concern to its canonical document.
 | `references/state-machine.md` | Reference | Artifact lifecycle semantics | Canonical status semantics |
 | `references/schema-sketch.md` | Reference | Node, edge, and matrix placement for the workflow schema | Canonical schema sketch |
 | `references/validation-matrix.md` | Reference | Code, LLM, and projection validation responsibilities | Canonical validation matrix |
-| `references/test-matrix.md` | Reference | Test strategy and coverage plan for proving the skill works | Canonical test matrix |
 | `references/cli-contract.md` | Reference | CLI behavior under code-enforced gates | Canonical user-facing command contract |
 | `references/state-entrypoints.md` | Reference | Which commands can mutate workflow state | Canonical entrypoint map |
 | `references/structure.md` | Reference | Output layout, naming rules, and responsibility boundaries | Canonical file layout guide |
