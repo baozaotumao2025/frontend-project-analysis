@@ -69,7 +69,7 @@ if [ "$branch" = "HEAD" ]; then
   exit 1
 fi
 
-git add CHANGELOG.md Makefile README.md SKILL.md pyproject.toml references runbooks scripts src tests agents/openai.yaml migrations
+git add CHANGELOG.md Makefile README.md SKILL.md pyproject.toml references runbooks scripts src tests agents/openai.yaml migrations uv.lock
 git commit -m "chore(release): v${version}"
 if [ -n "$(git status --short)" ]; then
   echo "Working tree is still dirty after the release commit; resolve it before pushing." >&2
