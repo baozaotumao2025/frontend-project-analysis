@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [1.3.3] - 2026-06-20
+
+### Added
+
+- Maintainer-only `release.publish` / `release-publish` flow that runs preflight, regression, release review, version checks, commit, tag, and push in one action.
+- Release metadata validation for `pyproject.toml`, `src/frontend_project_analysis/__init__.py`, and `CHANGELOG.md`.
+
+### Changed
+
+- Release docs now separate the packet-generation chain from the maintainer publish chain.
+
 ## [1.3.2] - 2026-06-20
 
 ### Added

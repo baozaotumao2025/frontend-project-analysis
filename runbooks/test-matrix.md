@@ -26,7 +26,7 @@ workflow contract expects.
 | Integration | Confirm one command or one small flow | import, review, db, project helpers | `tests/test_cli_import_flows.py`, `tests/test_cli_review_flows.py`, `tests/test_cli_project_db.py` |
 | State / Domain | Confirm lifecycle rules and dependency logic | state transitions, freshness, approval, structural checks | `tests/test_workflow_state_transitions.py`, `tests/test_workflow_state_integrity.py`, `tests/test_cli_workflow_gate.py` |
 | E2E | Confirm a full release-relevant workflow | init, brief, recovery, restore, stale propagation | `tests/test_cli_e2e.py` |
-| Release Gate | Confirm the repository is ready to publish | lint, full test run, version consistency, docs contract | `../references/release-checklist.md`, `README.md` |
+| Release Gate | Confirm the repository is ready to publish | lint, full test run, version consistency, docs contract, maintainer publish flow | `../references/release-checklist.md`, `README.md` |
 
 ## Coverage Matrix
 

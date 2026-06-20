@@ -52,11 +52,12 @@ The published Python package includes only:
 Before publishing, verify:
 
 1. `./scripts/release-preflight.sh`
-2. `./scripts/release-llm-review.sh` and a fresh reviewer session or sub-agent complete the semantic review
-3. `git status --short` shows no runtime data such as `.frontend-project-analysis/`
+2. `./scripts/test-full.sh` and `./scripts/test-e2e.sh` complete the regression pass
+3. `./scripts/release-llm-review.sh` and a fresh reviewer session or sub-agent complete the semantic review
+4. `git status --short` shows no runtime data such as `.frontend-project-analysis/`
    - The target project `.gitignore` includes `.frontend-project-analysis/`
-4. `README.md`, `SKILL.md`, and `references/document-map.md` agree on document authority and reading order
-5. Run the docs/code/terminology audit in [`runbooks/release-doc-audit.md`](../runbooks/release-doc-audit.md)
+5. `README.md`, `SKILL.md`, and `references/document-map.md` agree on document authority and reading order
+6. Run the docs/code/terminology audit in [`runbooks/release-doc-audit.md`](../runbooks/release-doc-audit.md)
    - Confirm every public behavior changed in code has a matching description update
    - Confirm every public claim changed in a description file has a matching code path, test, or workflow rule
    - Confirm `references/glossary.md` still owns the vocabulary used by the release
@@ -96,11 +97,13 @@ This audit is the fixed release gate for code/document parity.
 
 - Use `./scripts/release.sh` or `make release` for the combined preflight plus packet-generation path.
 - Use `./scripts/release-preflight.sh` and `./scripts/release-llm-review.sh` separately only when you need to pause between phases.
+- Use `./scripts/release-publish.sh` or `make release.publish` for the maintainer publish path that also commits, tags, and pushes.
 
 ## Release Notes
 
 - `init` initializes the database automatically
 - The published skill package should not contain runtime state or local analysis outputs
 - If the release is intended for external use, confirm that version numbers in `pyproject.toml` and `src/frontend_project_analysis/__init__.py` match
+- If the release is intended for maintainer publication, confirm that `CHANGELOG.md` has a dated section for the new version
 - For the preferred git commit and tagging sequence, see [`runbooks/release-flow.md`](../runbooks/release-flow.md)
 - For the preferred testing matrix, see [`runbooks/test-matrix.md`](../runbooks/test-matrix.md)

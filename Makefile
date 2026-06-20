@@ -1,16 +1,17 @@
 .PHONY: help test quality release e2e \
 	test.smoke test.full test.check test.e2e test.e2e-install test.e2e-flow test.e2e-reset \
 	quality.compile quality.lint \
-	release.preflight release.packet release.card release.all \
+	release.preflight release.packet release.card release.publish release.all \
 	smoke full check compile lint all e2e e2e-install e2e-flow e2e-reset \
-	release release-card release-preflight release-llm-review
+	release release-card release-preflight release-llm-review release-publish
 
 help:
 	@printf '%s\n' \
 		'Groups:' \
 		'  make test               Run smoke and full test suites' \
 		'  make quality            Run compile and lint checks' \
-		'  make release            Run the release chain' \
+		'  make release            Run the review packet chain' \
+		'  make release.publish    Run the maintainer publish flow' \
 		'  Primary grouped targets use dotted names; hyphenated names are compatibility aliases' \
 		'' \
 		'Testing targets:' \
@@ -30,6 +31,7 @@ help:
 		'  make release.preflight  Run deterministic release checks' \
 		'  make release.packet      Generate the full release review packet' \
 		'  make release.card        Generate the minimal reviewer card' \
+		'  make release.publish     Run tests, review, version checks, commit, tag, and push' \
 		'  make release.all         Run preflight plus review packet generation' \
 		'' \
 		'Compatibility aliases:' \
@@ -46,7 +48,8 @@ help:
 		'  make release            Alias for make release.all' \
 		'  make release-card       Alias for make release.card' \
 		'  make release-preflight  Alias for make release.preflight' \
-		'  make release-llm-review  Alias for make release.packet'
+		'  make release-llm-review  Alias for make release.packet' \
+		'  make release-publish    Alias for make release.publish'
 
 test: test.smoke test.full
 
@@ -93,6 +96,9 @@ release.packet:
 release.card:
 	./scripts/release-card.sh
 
+release.publish:
+	./scripts/release-publish.sh
+
 release.all:
 	./scripts/release.sh
 
@@ -119,3 +125,5 @@ release-preflight: release.preflight
 release-llm-review: release.packet
 
 release-card: release.card
+
+release-publish: release.publish

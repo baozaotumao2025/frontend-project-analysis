@@ -36,7 +36,7 @@ For a quick deterministic launcher, run `./scripts/release-preflight.sh` first.
 ## Practical Checks
 
 - Search for public surface references:
-  - `rg -n "fpa |make |./scripts/|src/frontend_project_analysis/" README.md SKILL.md references runbooks`
+  - `rg -n "fpa |make |./scripts/|src/frontend_project_analysis/|release.publish|release-publish" README.md SKILL.md references runbooks`
 - Search for terminology drift:
   - `rg -n "Persona|Story Map|Page Map|Feature Slicing|Feature Spec|Happy Path|Edge Case|Permission Case|Error Case|server state|client state|Shared Component" README.md SKILL.md references runbooks src tests`
 - Search for stale absolute paths:

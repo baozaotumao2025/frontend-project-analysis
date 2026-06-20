@@ -356,9 +356,9 @@ make all
 
 ### Make 入口
 
-优先把 `make test`、`make quality` 和 `make release` 当作组入口，再按需下钻到细分 target。
+优先把 `make test`、`make quality`、`make release` 和 `make release.publish` 当作组入口，再按需下钻到细分 target。
 命令层级约定见 [references/command-layer.md](references/command-layer.md)。
-主目标使用 dotted 命名，如 `make test.smoke`、`make quality.lint` 和 `make release.card`；
+主目标使用 dotted 命名，如 `make test.smoke`、`make quality.lint`、`make release.card` 和 `make release.publish`；
 hyphenated 名称只保留作兼容别名。
 
 快速选择：
@@ -366,7 +366,8 @@ hyphenated 名称只保留作兼容别名。
 | 场景 | 推荐入口 |
 | --- | --- |
 | 日常维护和检查 | `make test` 或 `make quality` |
-| 发布前检查 | `make release` |
+| 发布审查包 | `make release` |
+| 维护者推送发布 | `make release.publish` |
 | 只拿审查卡片 | `make release.card` |
 | 自动化或 skill 调用 | `scripts/*.sh` |
 
@@ -379,6 +380,7 @@ Primary targets:
 - `make release.preflight`
 - `make release.packet`
 - `make release.card`
+- `make release.publish`
 - `make test.smoke`
 - `make test.full`
 - `make test.check`
@@ -388,6 +390,7 @@ Primary targets:
 Compatibility aliases:
 
 - `make release-card`
+- `make release-publish`
 
 ### 发布边界
 
@@ -404,7 +407,8 @@ Compatibility aliases:
 
 `uv run fpa init ...` 会自动初始化数据库和 analysis 工作区，不需要你手动先建库，也不会复制额外的工具脚手架文件。skill 的实现、迁移和命令入口保留在 Codex 环境中的 skill 仓库本体，目标项目只保留输出和状态目录。
 更直观的对照表见 [references/release-checklist.md](references/release-checklist.md)。
-如果你准备发版，优先跑 `make release` 或 `./scripts/release.sh`。
+如果你准备生成给 reviewer 的发布包，优先跑 `make release` 或 `./scripts/release.sh`。
+如果你准备把这个 skill 仓库真正发布到远端，优先跑 `make release.publish` 或 `./scripts/release-publish.sh`。
 如果你只想拿给 reviewer 的最小卡片，跑 `make release.card` 或 `./scripts/release-card.sh`。
 它不会自动跑完整 preflight，适合在你已经完成前置检查后快速生成卡片。
 如果你想分步执行，也可以先跑 `./scripts/release-preflight.sh` / `make release-preflight`，再跑 `./scripts/release-llm-review.sh` / `make release-llm-review`。

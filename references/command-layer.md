@@ -40,7 +40,8 @@ considered canonical for each kind of operation.
 - Use `make test`, `make quality`, and `make release` as the main entry points
   for humans.
 - Use the more specific grouped targets when you need a single check, such as
-  `make test.smoke`, `make quality.lint`, or `make release.card`.
+  `make test.smoke`, `make quality.lint`, `make release.card`, or
+  `make release.publish`.
 - Use `scripts/*.sh` directly when you need the canonical automation behavior or
   want to call the workflow from the skill.
 
