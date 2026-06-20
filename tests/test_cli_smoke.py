@@ -21,6 +21,7 @@ def test_cli_exposes_expected_top_level_commands() -> None:
     assert "export" in result.stdout
     assert "import" in result.stdout
     assert "db" in result.stdout
+    assert "submit" in result.stdout
 
 
 def test_cli_subcommand_groups_render_help() -> None:
@@ -30,6 +31,7 @@ def test_cli_subcommand_groups_render_help() -> None:
         ["artifact", "--help"],
         ["review", "--help"],
         ["workflow", "--help"],
+        ["submit", "--help"],
     ):
         result = runner.invoke(app, args)
         assert result.exit_code == 0

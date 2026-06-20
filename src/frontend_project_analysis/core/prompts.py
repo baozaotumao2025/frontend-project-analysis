@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 
+from .config import Settings
 from .domain import SEMANTIC_REVIEW_RUBRICS, ArtifactType
 
 _SEMANTIC_REVIEW_BASE_PROMPT = """You are a strict product analysis reviewer.
@@ -12,6 +13,40 @@ Review the provided artifact packet and return only JSON that matches the suppli
 
 Use only the packet in this request. Do not rely on prior drafting context or hidden scratch work.
 First look for counterexamples and failure cases, then decide whether the artifact can pass.
+"""
+
+_SUBMISSION_INTENT_SYSTEM_PROMPT_TEMPLATE = """You are a strict submission intent router.
+
+Classify the user's request into one of the supported intents.
+
+Return only JSON that matches the requested schema.
+Do not rely on prior drafting context or hidden scratch work.
+Be conservative: if the request is ambiguous or mixed, classify it as ambiguous.
+
+Supported intents:
+- maintainer_publish
+- downstream_submit
+- ambiguous
+
+Focus on:
+- repository target
+- submission target
+- whether the request is about the skill repository or a downstream project
+"""
+
+_SUBMISSION_INTENT_USER_PROMPT_TEMPLATE = """Classify this submission request and return JSON only.
+
+Request:
+{user_message}
+
+Repository context:
+{repository_context}
+
+Available actions:
+{available_actions}
+
+Routing rules:
+{routing_rules}
 """
 
 
@@ -159,6 +194,59 @@ def build_release_review_reviewer_card(packet: dict) -> str:
         *[f"- {item}" for item in audit_focus],
     ]
     return "\n".join(lines)
+
+
+def _render_template(template: str, **context: str) -> str:
+    return template.format(**context)
+
+
+def _submission_intent_prompt_context(packet: dict | None = None) -> dict[str, str]:
+    packet = packet or {}
+    return {
+        "user_message": str(packet.get("user_message", "")),
+        "repository_context": json.dumps(
+            packet.get("repository_context", {}), indent=2, ensure_ascii=True
+        ),
+        "available_actions": json.dumps(
+            packet.get(
+                "available_actions",
+                ["maintainer_publish", "downstream_submit"],
+            ),
+            indent=2,
+            ensure_ascii=True,
+        ),
+        "routing_rules": json.dumps(packet.get("routing_rules", []), indent=2, ensure_ascii=True),
+    }
+
+
+def build_submission_intent_system_prompt(
+    packet: dict | None = None,
+    settings: Settings | None = None,
+) -> str:
+    template = (
+        settings.submission_intent_system_prompt_template
+        if settings and settings.submission_intent_system_prompt_template
+        else _SUBMISSION_INTENT_SYSTEM_PROMPT_TEMPLATE
+    )
+    return _render_template(template, **_submission_intent_prompt_context(packet)).strip()
+
+
+def build_submission_intent_user_prompt(packet: dict, settings: Settings | None = None) -> str:
+    template = (
+        settings.submission_intent_user_prompt_template
+        if settings and settings.submission_intent_user_prompt_template
+        else _SUBMISSION_INTENT_USER_PROMPT_TEMPLATE
+    )
+    return _render_template(template, **_submission_intent_prompt_context(packet)).strip()
+
+
+def build_submission_intent_prompt(packet: dict, settings: Settings | None = None) -> str:
+    return "\n\n".join(
+        [
+            build_submission_intent_system_prompt(packet, settings=settings),
+            build_submission_intent_user_prompt(packet, settings=settings),
+        ]
+    )
 
 
 def build_brief_assistant_system_prompt(stage: str = "followup") -> str:

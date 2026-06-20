@@ -22,6 +22,7 @@ from .workflow import (
     SemanticReviewPayload,
 )
 from .brief import BriefAssistantPayload
+from .submission import SubmissionIntentPayload
 
 __all__ = [
     "AnthropicReviewRequest",
@@ -39,5 +40,6 @@ __all__ = [
     "ProviderAuditEventPayload",
     "ProviderAuditPayload",
     "ReviewRecord",
+    "SubmissionIntentPayload",
     "SemanticReviewPayload",
 ]

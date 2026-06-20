@@ -18,6 +18,7 @@ from .commands import (
     register_workflow_commands,
 )
 from .commands.project import _run_project_init
+from .commands.submit import submit
 from .core.config import get_paths, get_settings
 from .infrastructure.logging_utils import configure_logging, get_logger
 
@@ -43,6 +44,7 @@ register_export_commands(app)
 register_import_commands(app)
 register_db_commands(app)
 register_workflow_commands(app)
+app.command("submit")(submit)
 
 
 @app.command("init")

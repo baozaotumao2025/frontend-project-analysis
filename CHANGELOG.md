@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+## [1.3.4] - 2026-06-20
+
+### Added
+
+- Natural-language submission routing with the `fpa submit` entrypoint for maintainer publish and downstream submit flows.
+- Configurable prompt templates for submission intent routing so the router follows the same override pattern as other LLM-assisted flows.
+- A downstream project commit policy for generated analysis bundles, including bundle shape, version syncing, changelog, push, and tag rules.
+- An ADR relationship map to help maintainers check for decision overlap before adding new governance records.
+
+### Changed
+
+- README navigation now surfaces the natural-language submission route alongside the existing workflow commands.
+- The CLI now exposes `submit` as a first-class command and routes ambiguous requests conservatively.
+- The maintainer release bundle now includes version metadata, changelog, ADR guidance, and routing documentation updates.
+
+### Fixed
+
+- Ambiguous natural-language submission requests now fail closed instead of leaking into the wrong workflow.
+- Submission routing no longer conflates maintainer publish with downstream project submission.
+
 ## [1.3.3] - 2026-06-20
 
 ### Added

@@ -1,4 +1,4 @@
-"""LLM provider facade for brief assistance and review workflows."""
+"""LLM provider facade for brief assistance, intent routing, and review workflows."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ from ..core.config import Settings, require_llm_settings
 from ..core.errors import ConfigurationError
 from .brief import run_brief_assistant
 from .payloads import run_mock_review
+from .submission import run_submission_intent
 from .providers.anthropic import run_anthropic_review
 from .providers.gemini import run_gemini_review
 from .providers.openai import run_openai_compatible_review, run_openai_review
@@ -14,6 +15,7 @@ from .types import ProviderResponse
 __all__ = [
     "run_brief_assistant",
     "run_mock_review",
+    "run_submission_intent",
     "run_semantic_review",
 ]
 

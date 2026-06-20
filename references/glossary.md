@@ -75,6 +75,21 @@
 - Write `release` for rollout, rollout guardrails, rollback, and deployment readiness concerns
 - Write `compliance` for privacy, legal, regulatory, or policy constraints
 
+## Downstream Submission Terms
+
+- Write `generated project` for a repository created from `fpa` analysis output
+- Write `downstream project` for the user-owned repository that receives generated artifacts
+- Write `submission bundle` for the coherent set of files that should be committed together
+- Write `commit type` for the custom generated-project classification used in commit messages
+- Write `analysis` for changes to generated analysis artifacts such as Personas, Story Maps, Page Maps, Features, GWT, and Feature Specs
+- Write `sync` for changes that align generated docs, README, changelog, or other project surfaces
+- Write `release` for changes to version metadata, changelog release sections, tags, or release notes
+- Write `policy` for changes to the rules that govern generated-project structure or workflow
+- Write `tooling` for changes to scripts, automation, validation, or supporting command surfaces
+- Write `maintainer publish` for the skill repository's own release flow
+- Write `downstream submit` for the user-owned generated-project submission flow
+- Write `natural language routing` for the user-facing classification step that chooses between `maintainer publish` and `downstream submit`
+
 ## Workflow Modes
 
 - Write `Formal mode` for the entry path that consumes only `approved` and `fresh` upstream revisions and produces canonical workflow artifacts

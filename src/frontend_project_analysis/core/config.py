@@ -52,6 +52,8 @@ class Settings(BaseSettings):
     semantic_review_output_name: str = Field(
         default="semantic-review-packet.json",
     )
+    submission_intent_system_prompt_template: str | None = None
+    submission_intent_user_prompt_template: str | None = None
 
 
 _SETTINGS: Settings | None = None

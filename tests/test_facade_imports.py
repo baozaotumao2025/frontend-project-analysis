@@ -12,6 +12,7 @@ def test_schemas_facade_reexports_core_payloads() -> None:
     assert schemas.SemanticReviewPayload.__name__ == "SemanticReviewPayload"
     assert schemas.ProviderAuditPayload.__name__ == "ProviderAuditPayload"
     assert schemas.OpenAIReviewRequest.__name__ == "OpenAIReviewRequest"
+    assert schemas.SubmissionIntentPayload.__name__ == "SubmissionIntentPayload"
 
 
 def test_infrastructure_facade_reexports_runtime_helpers() -> None:

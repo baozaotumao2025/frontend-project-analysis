@@ -16,6 +16,8 @@ def handle_service_error(fn):
     def wrapper(*args, **kwargs):
         try:
             return fn(*args, **kwargs)
+        except typer.Exit:
+            raise
         except (AppError, ServiceError, ConfigurationError, ValidationError) as exc:
             from ..infrastructure.logging_utils import get_logger
 

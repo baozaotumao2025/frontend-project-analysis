@@ -2,7 +2,7 @@
 
 `frontend-project-analysis` 是一个以文档为先的前端项目分析 skill，同时内置一套可复用的 Python 工作流基础设施。这个 skill 安装在 Codex 环境中运行，不要求目标项目复制一整套工具脚手架。它把前端项目拆解成 `Persona`、`Story Map`、`Page`、`Feature`、`GWT` 和 `Feature Spec` 等结构化产物，并用 SQLite 记录依赖、审核、版本和审计信息。
 
-当前发布版本为 `1.3.2`。
+当前发布版本为 `1.3.4`。
 
 ## 快速开始
 
@@ -189,6 +189,7 @@ uv run fpa --help
 uv run fpa project --help
 uv run fpa artifact --help
 uv run fpa review --help
+uv run fpa submit --help
 ```
 
 ### 3.3 初始化项目
@@ -257,11 +258,22 @@ uv run fpa review reject --project crm-web --artifact feature:customer-assignmen
 如果用户手改了 `analysis/` 里的 Markdown，或者某个 revision 变成了 `stale`，优先用 `review resubmit` 把重导入、结构重审和语义重审串起来。
 `review approve` 只接受已经进入 `semantic_review` 的 revision；如果 revision 变成 `stale`，需要先重新做 `review structural` 再继续后续审查。
 
-### 3.7 命令与 gate 影响
+### 3.7 自然语言路由
+
+如果你不想手动判断是维护者发版，还是下游项目提交，可以直接用：
+
+```bash
+uv run fpa submit "请帮我提交当前生成物"
+uv run fpa submit "请把 skill 仓库发版到远端"
+```
+
+`submit` 会先做意图路由，再把请求分到 `maintainer publish` 或 `downstream submit`。这层路由和 prompt 模板都和现有 LLM 提示保持同一套可覆盖配置方式。
+
+### 3.8 命令与 gate 影响
 
 命令对状态的具体影响、回退语义和导入约束不在 README 展开，统一以 [references/cli-contract.md](references/cli-contract.md) 为准。
 
-### 3.8 导入和导出
+### 3.9 导入和导出
 
 ```bash
 uv run fpa export manifest --project crm-web
@@ -274,7 +286,7 @@ uv run fpa import markdown-scan --project crm-web --apply
 
 `import markdown-scan --apply` 不只会把 Markdown frontmatter 同步进数据库，还会刷新 `analysis/index.md`、各层级的 index 页，以及 `analysis/relations/` 下的关系矩阵。
 
-### 3.9 维护数据库
+### 3.10 维护数据库
 
 ```bash
 uv run fpa db init
@@ -283,7 +295,7 @@ uv run fpa db restore --from /path/to/backup.db
 uv run fpa db wipe --yes
 ```
 
-### 3.10 配置环境变量
+### 3.11 配置环境变量
 
 项目根目录下的 `.env` 负责运行时配置。常用键包括：
 
@@ -302,7 +314,7 @@ uv run fpa db wipe --yes
 - `FPA_LLM_API_PATH`
 - `FPA_LLM_TIMEOUT_SECONDS`
 
-### 3.11 运行测试
+### 3.12 运行测试
 
 仓库提供了几组常用的测试入口，适合本地回归和 CI 拆分执行：
 
@@ -328,7 +340,7 @@ make all
 - `FPA_SEMANTIC_REVIEW_AUTO_APPROVE`
 - `FPA_ANTHROPIC_VERSION`
 
-### 3.12 常见使用顺序
+### 3.13 常见使用顺序
 
 1. 准备 brief
 2. `init`
@@ -421,6 +433,15 @@ Compatibility aliases:
 - 如果新增或修改命令，必须同步更新 README 和测试
 - 如果修改状态流转，必须同步更新状态机语义图和回归测试
 - 如果修改对外版本号，要同时更新 [pyproject.toml](pyproject.toml) 和 [src/frontend_project_analysis/__init__.py](src/frontend_project_analysis/__init__.py)
+
+### 下游提交规范
+
+如果你用这个 skill 生成了下游项目的分析产物，并准备把它提交到你自己的仓库，先看
+[references/downstream-commit-policy.md](references/downstream-commit-policy.md)。
+它定义了生成物项目的提交 bundle、commit type、版本同步、changelog、push 和 tag 规则。
+如果你想用自然语言直接发起操作，先区分是 `maintainer publish` 还是 `downstream submit`；
+两者的路由规则见 [references/downstream-commit-policy.md](references/downstream-commit-policy.md)。
+自然语言路由的提示词也和现有 LLM 提示一样，走模板化和 settings 可覆盖的方式。
 
 ## 5. 补充说明
 

@@ -14,3 +14,4 @@ Runbooks describe how to execute a task. They should not define repository-wide 
 | [`review-resubmit.md`](review-resubmit.md) | Operator steps for revalidating Markdown edits and stale revisions |
 | [`test-matrix.md`](test-matrix.md) | Preferred test strategy for proving the skill works |
 | [`host-review-isolation.md`](host-review-isolation.md) | Operational steps for reviewing a frozen packet in a fresh host context |
+| [`downstream-commit-flow.md`](downstream-commit-flow.md) | Step-by-step commit flow for generated downstream projects |
