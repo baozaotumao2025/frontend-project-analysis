@@ -165,8 +165,12 @@ CLI 层面的用户影响和命令约束见 [references/cli-contract.md](referen
 - `gemini`
 - `mock`
 
-`host` 模式不由本仓库代码去调用外部大模型，而是把语义审查 packet 交给一个新的 Codex 或 Claude Code 审查上下文来判断；在支持 sub-agent 的 Codex 环境里，必须用 `fork_context: false` 起一个 fresh reviewer sub-agent，只读 packet，不继承生成文档时的上下文。
-这个 fresh-context 规则也适用于 round 1 到 round 6 的 packet 驱动语义检查，以及 release review packet。
+### Host Review Isolation
+
+`host` 模式不由本仓库代码去调用外部大模型，而是把语义审查 packet 交给一个新的 Codex 或 Claude Code 审查上下文来判断。这个 fresh-context 规则适用于 round 1 到 round 6 的 packet 驱动语义检查，以及 release review packet。
+
+在支持 sub-agent 的 Codex 环境里，必须用 `fork_context: false` 起一个 fresh reviewer sub-agent，只读 packet，不继承生成文档时的上下文。
+
 `FPA_SEMANTIC_REVIEW_AUTO_APPROVE=true` 时，语义审查 `passed` 会直接进入 `approved`；否则会停在 `semantic_review`，等待人工 `review approve`。
 
 ## 3. 项目怎么使用
@@ -249,7 +253,7 @@ uv run fpa review approve --project crm-web --artifact feature:customer-assignme
 uv run fpa review reject --project crm-web --artifact feature:customer-assignment
 ```
 
-`host` 模式下，`semantic-run` 不会调用外部模型，而是直接把 packet 交给新的 Codex 或 Claude Code 审查上下文做判断，再用 `semantic-record` 记录结果。审查输出要先找 counterexamples，并且每条 finding 都要带 evidence，否则会被降级成 `needs_revision`。如果 Codex 环境支持 sub-agent，就应当用 `fork_context: false` 启一个 fresh reviewer sub-agent。
+`host` 模式下，`semantic-run` 不会调用外部模型，而是直接把 packet 交给 fresh reviewer context 做判断，再用 `semantic-record` 记录结果。审查输出要先找 counterexamples，并且每条 finding 都要带 evidence，否则会被降级成 `needs_revision`。这里遵循前面的 `Host Review Isolation` 规则。
 如果用户手改了 `analysis/` 里的 Markdown，或者某个 revision 变成了 `stale`，优先用 `review resubmit` 把重导入、结构重审和语义重审串起来。
 `review approve` 只接受已经进入 `semantic_review` 的 revision；如果 revision 变成 `stale`，需要先重新做 `review structural` 再继续后续审查。
 
