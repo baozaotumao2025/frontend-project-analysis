@@ -346,6 +346,182 @@ def test_run_structural_checks_reports_unknown_cross_references(tmp_path: Path) 
         assert "unknown_persona_reference" in {finding.code for finding in feature_findings}
 
 
+def test_run_structural_checks_accepts_localized_aliases_and_markdown_links(
+    tmp_path: Path,
+) -> None:
+    paths = prepare_database(tmp_path)
+    persona_path = tmp_path / "docs" / "personas" / "sales-rep.md"
+    persona_path.parent.mkdir(parents=True, exist_ok=True)
+    persona_path.write_text(
+        "---\n"
+        "artifact_type: persona\n"
+        "slug: sales-rep\n"
+        "round: 1\n"
+        "status: draft\n"
+        "project: crm-web\n"
+        "title: Sales Rep\n"
+        "---\n"
+        "# Sales Rep\n",
+        encoding="utf-8",
+    )
+
+    page_path = tmp_path / "docs" / "pages" / "customer-profile.md"
+    page_path.parent.mkdir(parents=True, exist_ok=True)
+    page_path.write_text(
+        "---\n"
+        "artifact_type: page\n"
+        "slug: customer-profile\n"
+        "round: 3\n"
+        "status: draft\n"
+        "project: crm-web\n"
+        "title: Customer Profile\n"
+        "---\n"
+        "# Customer Profile\n"
+        "\n"
+        "## Route Information\n"
+        "- Route: `/customer-profile`\n"
+        "\n"
+        "## Accessible Persona\n"
+        "- 销售代表\n"
+        "\n"
+        "## Story Steps Covered\n"
+        "- Review customer details\n"
+        "\n"
+        "## Page Responsibility\n"
+        "Shows the customer profile.\n"
+        "\n"
+        "## Related Features\n"
+        "- [客户分配](../features/customer-assignment.md)\n",
+        encoding="utf-8",
+    )
+
+    feature_path = tmp_path / "docs" / "features" / "customer-assignment.md"
+    feature_path.parent.mkdir(parents=True, exist_ok=True)
+    feature_path.write_text(
+        "---\n"
+        "artifact_type: feature\n"
+        "slug: customer-assignment\n"
+        "round: 4\n"
+        "status: draft\n"
+        "project: crm-web\n"
+        "title: Customer Assignment\n"
+        "---\n"
+        "# Customer Assignment\n"
+        "\n"
+        "## Page\n"
+        "- [Customer Profile](../pages/customer-profile.md)\n"
+        "\n"
+        "## Persona Served\n"
+        "- 销售代表\n"
+        "\n"
+        "## Business Responsibility\n"
+        "Lets sales reps reassign an account.\n"
+        "\n"
+        "## State Type\n"
+        "- both\n"
+        "\n"
+        "## Cross-Page Reuse\n"
+        "- yes\n"
+        "\n"
+        "## Source Story\n"
+        "- Review customer details\n",
+        encoding="utf-8",
+    )
+
+    with session_scope(paths) as session:
+        project = ensure_project(session, "crm-web", "CRM Web", tmp_path)
+        upsert_artifact(
+            session=session,
+            project=project,
+            artifact_type=ArtifactType.PERSONA,
+            slug="sales-rep",
+            title="Sales Rep",
+            source_path=str(persona_path.relative_to(tmp_path)),
+            status=ArtifactStatus.DRAFT,
+            metadata={"aliases": ["销售代表"]},
+            created_by="test",
+        )
+        upsert_artifact(
+            session=session,
+            project=project,
+            artifact_type=ArtifactType.PAGE,
+            slug="customer-profile",
+            title="Customer Profile",
+            source_path=str(page_path.relative_to(tmp_path)),
+            status=ArtifactStatus.DRAFT,
+            metadata={},
+            created_by="test",
+        )
+        upsert_artifact(
+            session=session,
+            project=project,
+            artifact_type=ArtifactType.FEATURE,
+            slug="customer-assignment",
+            title="Customer Assignment",
+            source_path=str(feature_path.relative_to(tmp_path)),
+            status=ArtifactStatus.DRAFT,
+            metadata={},
+            created_by="test",
+        )
+
+        page_findings = run_structural_checks(session, project, target_ref="page:customer-profile")
+        feature_findings = run_structural_checks(
+            session, project, target_ref="feature:customer-assignment"
+        )
+        assert "unknown_persona_reference" not in {finding.code for finding in page_findings}
+        assert "unknown_feature_reference" not in {finding.code for finding in page_findings}
+        assert "unknown_page_reference" not in {finding.code for finding in feature_findings}
+        assert "unknown_persona_reference" not in {finding.code for finding in feature_findings}
+
+
+def test_run_structural_checks_reports_unknown_localized_references(tmp_path: Path) -> None:
+    paths = prepare_database(tmp_path)
+    page_path = tmp_path / "docs" / "pages" / "customer-profile.md"
+    page_path.parent.mkdir(parents=True, exist_ok=True)
+    page_path.write_text(
+        "---\n"
+        "artifact_type: page\n"
+        "slug: customer-profile\n"
+        "round: 3\n"
+        "status: draft\n"
+        "project: crm-web\n"
+        "title: Customer Profile\n"
+        "---\n"
+        "# Customer Profile\n"
+        "\n"
+        "## Route Information\n"
+        "- Route: `/customer-profile`\n"
+        "\n"
+        "## Accessible Persona\n"
+        "- [未定义角色](../personas/unknown-role.md)\n"
+        "\n"
+        "## Story Steps Covered\n"
+        "- Review customer details\n"
+        "\n"
+        "## Related Features\n"
+        "- [不存在的功能](../features/unknown-feature.md)\n",
+        encoding="utf-8",
+    )
+
+    with session_scope(paths) as session:
+        project = ensure_project(session, "crm-web", "CRM Web", tmp_path)
+        upsert_artifact(
+            session=session,
+            project=project,
+            artifact_type=ArtifactType.PAGE,
+            slug="customer-profile",
+            title="Customer Profile",
+            source_path=str(page_path.relative_to(tmp_path)),
+            status=ArtifactStatus.DRAFT,
+            metadata={},
+            created_by="test",
+        )
+
+        findings = run_structural_checks(session, project, target_ref="page:customer-profile")
+        assert "unknown_persona_reference" in {finding.code for finding in findings}
+        assert "unknown_feature_reference" in {finding.code for finding in findings}
+
+
 def test_run_structural_checks_reports_missing_gwt_scenarios(tmp_path: Path) -> None:
     paths = prepare_database(tmp_path)
     gwt_path = tmp_path / "docs" / "gwt" / "customer-assignment.feature"

@@ -52,7 +52,7 @@ The published Python package includes only:
 Before publishing, verify:
 
 1. `./scripts/release-preflight.sh`
-2. `./scripts/release-llm-review.sh` and a fresh reviewer session complete the semantic review
+2. `./scripts/release-llm-review.sh` and a fresh reviewer session or sub-agent complete the semantic review
 3. `git status --short` shows no runtime data such as `.frontend-project-analysis/`
    - The target project `.gitignore` includes `.frontend-project-analysis/`
 4. `README.md`, `SKILL.md`, and `references/document-map.md` agree on document authority and reading order
@@ -81,6 +81,7 @@ Use these checks to decide whether the `Formal mode` / `Explore mode` capability
   - `references/adr/0006-formal-and-explore-workflow-modes.md`
 - The release audit reports no untracked mismatch for the new commands or terminology
 - The formal round gate behavior and stale propagation behavior remain unchanged for canonical delivery
+- Any host-mode packet review continues to require a fresh reviewer sub-agent when Codex sub-agents are available
 
 ## Docs And Terminology Audit
 

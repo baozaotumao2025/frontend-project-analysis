@@ -330,6 +330,133 @@ def test_e2e_review_reject_and_restore_recovery(tmp_path: Path) -> None:
 
 
 @pytest.mark.e2e
+def test_e2e_localized_cross_references_and_sequential_review(
+    tmp_path: Path,
+) -> None:
+    root = create_existing_project_root(tmp_path, name="fpa-e2e-localized")
+    brief_source = prepare_brief_source(root)
+    review_payload = write_review_payload(root, filename="localized-review.json")
+
+    init_result = run_fpa(
+        root,
+        [
+            "init",
+            "--project",
+            PROJECT_KEY,
+            "--name",
+            PROJECT_NAME,
+            "--brief-file",
+            str(brief_source),
+        ],
+    )
+    assert init_result.exit_code == 0, init_result.output
+
+    persona_path = root / "analysis" / "personas" / "sales-rep.md"
+    persona_path.write_text(
+        "---\n"
+        "artifact_type: persona\n"
+        "slug: sales-rep\n"
+        "round: 1\n"
+        "status: draft\n"
+        "project: crm-web\n"
+        "title: Sales Rep\n"
+        "aliases:\n"
+        "  - 销售代表\n"
+        "---\n"
+        "# Sales Rep\n",
+        encoding="utf-8",
+    )
+    page_path = root / "analysis" / "pages" / "customer-profile.md"
+    page_path.write_text(
+        "---\n"
+        "artifact_type: page\n"
+        "slug: customer-profile\n"
+        "round: 3\n"
+        "status: draft\n"
+        "project: crm-web\n"
+        "title: Customer Profile\n"
+        "---\n"
+        "# Customer Profile\n"
+        "\n"
+        "## Route Information\n"
+        "- Route: `/customer-profile`\n"
+        "\n"
+        "## Accessible Persona\n"
+        "- 销售代表\n"
+        "\n"
+        "## Story Steps Covered\n"
+        "- Review customer details\n"
+        "\n"
+        "## Page Responsibility\n"
+        "Shows the customer profile.\n"
+        "\n"
+        "## Related Features\n"
+        "- [客户分配](../features/customer-assignment.md)\n",
+        encoding="utf-8",
+    )
+    feature_path = root / "analysis" / "features" / "customer-assignment.md"
+    feature_path.write_text(
+        "---\n"
+        "artifact_type: feature\n"
+        "slug: customer-assignment\n"
+        "round: 4\n"
+        "status: draft\n"
+        "project: crm-web\n"
+        "title: Customer Assignment\n"
+        "---\n"
+        "# Customer Assignment\n"
+        "\n"
+        "## Page\n"
+        "- [Customer Profile](../pages/customer-profile.md)\n"
+        "\n"
+        "## Persona Served\n"
+        "- 销售代表\n"
+        "\n"
+        "## Business Responsibility\n"
+        "Lets sales reps reassign an account.\n"
+        "\n"
+        "## State Type\n"
+        "- both\n"
+        "\n"
+        "## Cross-Page Reuse\n"
+        "- yes\n"
+        "\n"
+        "## Source Story\n"
+        "- Review customer details\n",
+        encoding="utf-8",
+    )
+
+    scan_result = run_fpa(
+        root,
+        [
+            "import",
+            "markdown-scan",
+            "--project",
+            PROJECT_KEY,
+            "--apply",
+        ],
+    )
+    assert scan_result.exit_code == 0, scan_result.output
+
+    run_review_cycle(root, "persona:sales-rep", review_payload)
+    run_review_cycle(root, "page:customer-profile", review_payload)
+    run_review_cycle(root, "feature:customer-assignment", review_payload)
+
+    round_4_gate = run_fpa(
+        root,
+        [
+            "workflow",
+            "start",
+            "--project",
+            PROJECT_KEY,
+            "--round",
+            "4",
+        ],
+    )
+    assert round_4_gate.exit_code == 0, round_4_gate.output
+
+
+@pytest.mark.e2e
 def test_e2e_artifact_link_stales_approved_dependents(tmp_path: Path) -> None:
     root = create_existing_project_root(tmp_path, name="fpa-e2e-link-stale")
     bootstrap_project(root)

@@ -67,8 +67,9 @@ def review_semantic_run(
             if output:
                 typer.secho(
                     "Host review packet written to "
-                    f"{output}. Review it in Codex or Claude Code, then record the "
-                    "result with `fpa review semantic-record`.",
+                    f"{output}. Review it in a fresh reviewer sub-agent context "
+                    "(use `fork_context: false` in Codex when available), then "
+                    "record the result with `fpa review semantic-record`.",
                     fg=typer.colors.YELLOW,
                     err=True,
                 )
@@ -76,7 +77,8 @@ def review_semantic_run(
                 typer.echo(json.dumps(packet, indent=2, ensure_ascii=True))
                 typer.secho(
                     "No external LLM is configured. Review the packet above in "
-                    "Codex or Claude Code, then record the result with "
+                    "a fresh reviewer sub-agent context (use `fork_context: false` "
+                    "in Codex when available), then record the result with "
                     "`fpa review semantic-record`.",
                     fg=typer.colors.YELLOW,
                     err=True,

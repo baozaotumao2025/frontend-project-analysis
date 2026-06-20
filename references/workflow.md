@@ -2,7 +2,7 @@
 
 This page defines the analysis workflow round contract.
 
-For a fresh target repository, prepare a user-owned brief first, then confirm it, then run `uv run fpa init --project <key> --name <name> --brief-file <path>` or `uv run fpa init --project <key> --name <name> --brief <text>` with confirmed brief metadata. If the brief is not ready yet, use `uv run fpa brief interview --output <path>` to collect one in a bounded Q&A flow, optionally add `--transcript <path>` to keep the conversation log, then run `uv run fpa brief confirm --input <path> --output <confirmed-path>` before `init`. If you want LLM-assisted follow-up and synthesis, use `uv run fpa brief assistant --output <path>` instead; it also produces a draft brief that must be confirmed before `init`. After that, use the round gates and artifact commands below to move through the workflow.
+For a fresh target repository, prepare a user-owned brief first, then confirm it, then run `uv run fpa init --project <key> --name <name> --brief-file <path>` or `uv run fpa init --project <key> --name <name> --brief <text>` with confirmed brief metadata. If the brief is not ready yet, use `uv run fpa brief interview --output <path>` to collect one in a bounded Q&A flow, optionally add `--transcript <path>` to keep the conversation log, then run `uv run fpa brief confirm --input <path> --output <confirmed-path>` before `init`. If you want LLM-assisted follow-up and synthesis, use `uv run fpa brief assistant --output <path>` instead; it also produces a draft brief that must be confirmed before `init`. After that, use the round gates and artifact commands below to move through the workflow. Any semantic review that runs in host mode must be handed to a fresh reviewer sub-agent context and must not reuse the drafting conversation.
 
 ## Gate Contract
 
@@ -61,6 +61,7 @@ Persona split rules:
 - Do not mention pages or Features
 - Semantic review should judge business coherence; structural review still runs via CLI
 - If no external LLM is configured, use `FPA_LLM_PROVIDER=host` and let a fresh Codex or Claude Code reviewer context judge the frozen semantic packet; when Codex can spawn a sub-agent, that is the required execution path
+- The same fresh-context rule applies to every packet-driven semantic check across the round chain
 - Round 2 MUST consume only `approved` Persona revisions that are not `stale`
 - If a Persona revision changes later, any Story Map revision that depends on it becomes stale and MUST be revalidated and approved before it can feed Round 3
 

@@ -53,6 +53,12 @@ workflow contract expects.
 | `db backup` / `db restore` | Can recover state from a snapshot | backup path existence, restore payload, post-restore assertions |
 | `db wipe` | Deletes workflow state when explicitly requested | database file absence plus clean re-init |
 
+## LLM Validation Rules
+
+- `brief assistant`, `review semantic-run`, `review semantic-record`, and `review resubmit` are the repository's LLM-backed validation entrypoints.
+- Whenever one of those entrypoints runs in host mode, the packet must be reviewed in a fresh sub-agent context with `fork_context: false` when Codex sub-agents are available.
+- The release packet flow follows the same isolation rule, even though it uses its own reviewer card and packet wrapper.
+
 ## Minimum Release Suite
 
 Before any public release, run at least:

@@ -108,6 +108,7 @@ Semantic review is host-first and optionally external-LLM-assisted.
 When `FPA_LLM_PROVIDER=host`, the CLI emits a frozen review packet and expects a fresh Codex or Claude Code reviewer context to judge it instead of the repository code calling an external API.
 If the current Codex environment can spawn a sub-agent, that sub-agent MUST be used with `fork_context: false` to create the fresh reviewer context.
 Same-session review is not acceptable when a fresh sub-agent is available.
+This rule applies to every packet-based semantic review path, including the round gates, `review resubmit`, and the release packet flow.
 
 The backend prepares a structured review packet containing:
 
@@ -119,6 +120,7 @@ The backend prepares a structured review packet containing:
 
 The LLM should return structured JSON so the result can be recorded without weakening consistency controls.
 In `host` mode, the packet is meant to be reviewed in a fresh context that does not reuse the drafting conversation; the result is recorded with `review semantic-record`.
+The same isolation expectation applies to the release packet review flow and any other LLM-backed validation that consumes a frozen packet.
 
 ## Database Maintenance
 
@@ -153,7 +155,7 @@ When the skill needs workflow state, it should call CLI commands instead of infe
 ## Environment Configuration
 
 Use `.env` for runtime configuration so the same skill can target different providers and project layouts without code edits.
-If no external model is configured, set `FPA_LLM_PROVIDER=host` and let the current Codex or Claude Code session make the semantic judgment from the emitted packet.
+If no external model is configured, set `FPA_LLM_PROVIDER=host` and let a fresh Codex or Claude Code reviewer context make the semantic judgment from the emitted packet; when Codex can spawn a sub-agent, that is the required execution path.
 
 Recommended keys:
 

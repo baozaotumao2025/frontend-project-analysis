@@ -65,7 +65,7 @@ stateDiagram-v2
 - A user-provided brief, followed by `uv run fpa brief confirm --input <draft> --output <confirmed>` and then `uv run fpa init --project <key> --name <name> --brief-file <path>` or `uv run fpa init --project <key> --name <name> --brief <text>`, bootstraps the target repository with the workflow database, `analysis/` workspace, and local state directory before any round begins.
 - `draft` is the default working state for a new revision.
 - `structurally_valid` means the revision is structurally sound, but not yet semantically accepted.
-- `semantic_review` means the semantic review result has been recorded, whether it came from an external LLM or from the current Codex / Claude Code host review path, and human approval is still pending unless auto-approve is enabled.
+- `semantic_review` means the semantic review result has been recorded, whether it came from an external LLM or from a fresh Codex / Claude Code host reviewer context, and human approval is still pending unless auto-approve is enabled.
 - `approved` is the terminal acceptance state for the current revision, not for the artifact forever.
 - `rejected` means the current revision is not accepted.
 - `stale` means an already approved downstream revision must be revisited because an upstream approved revision changed.

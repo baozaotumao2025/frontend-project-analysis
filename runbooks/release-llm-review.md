@@ -9,6 +9,7 @@ Use this runbook after the deterministic release preflight passes and you want a
 - The LLM review must run in a fresh Codex or Claude Code session.
 - Do not reuse the drafting session for the review.
 - The reviewer session must read only the frozen packet produced by the script.
+- If Codex sub-agents are available, the reviewer session should be a fresh sub-agent with `fork_context: false`.
 - If the reviewer context is not demonstrably fresh, the review is invalid.
 
 ## Flow

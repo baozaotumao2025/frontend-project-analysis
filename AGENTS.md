@@ -30,3 +30,7 @@
 - 如果某条内容是在约束 AI 下次不要再犯错，优先写成 `AGENTS.md` 中的短规则，再在 `references/` 里补充定义或依据。
 - 不要把 `SKILL.md` 的 workflow、round、template、quality gate 内容搬进 `AGENTS.md`。
 - 如果 `AGENTS.md` 与 `SKILL.md`、`references/*`、或 `runbooks/*` 出现冲突，先保持 `AGENTS.md` 简短，以更高层文档的约定为准。
+
+
+## 测试规则
+- 所有涉及到使用LLM进行判断的测试，必须新开一个subagent执行，避免上下文污染。

@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [1.3.2] - 2026-06-20
+
+### Added
+
+- ADR 0007 now records the locale-tolerant cross-reference rule for Page and Feature authoring.
+
+### Changed
+
+- Fresh-context guidance now applies to all packet-driven LLM validation flows, including brief-assisted convergence, round-chain semantic review, review resubmit, and release review.
+- Structural validation now accepts canonical labels, frontmatter aliases, and resolvable Markdown links in cross-reference sections, which makes localized authoring less brittle.
+- `analysis/pages/[page-slug].md` and `analysis/features/[feature-name].md` template guidance now documents the accepted cross-reference forms.
+
+### Fixed
+
+- Localized labels such as Chinese Persona names no longer need to match a bare English title exactly when a canonical alias or resolvable Markdown link is available.
+- Markdown link style cross-references now resolve through the structural validator instead of being treated as unknown text.
+
 ## [1.3.1] - 2026-06-20
 
 ### Added

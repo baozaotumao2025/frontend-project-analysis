@@ -30,6 +30,7 @@ Specifically:
 - Same-session review is not an acceptable substitute when fresh sub-agent review is available.
 - The reviewer output MUST include counterexamples and evidence-backed findings.
 - If the output lacks either requirement, code MUST downgrade the decision to `needs_revision`.
+- This same isolation rule also applies to packet-driven semantic review flows for the round chain and release review packet when host mode is used.
 
 We keep the enforcement rules in `references/infrastructure.md`, `references/validation-matrix.md`, `references/cli-contract.md`, and `runbooks/host-review-isolation.md`.
 

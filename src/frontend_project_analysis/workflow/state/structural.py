@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -18,6 +19,8 @@ _STRUCTURED_FRONTMATTER_TYPES = {
     ArtifactType.PAGE,
     ArtifactType.FEATURE,
 }
+_MARKDOWN_LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
+_REFERENCE_ALIAS_KEYS = ("aliases", "alias", "display_names", "alternate_titles")
 
 
 def run_structural_checks(
@@ -323,18 +326,12 @@ def _append_unknown_references(
     label: str,
 ) -> None:
     known_labels = {
-        _normalize_reference_label(artifact.slug): artifact
+        normalized
         for artifact in artifacts
         if artifact.artifact_type == expected_type
+        for normalized in _reference_labels_for_artifact(artifact)
     }
-    known_labels.update(
-        {
-            _normalize_reference_label(artifact.title): artifact
-            for artifact in artifacts
-            if artifact.artifact_type == expected_type
-        }
-    )
-    unknown = [item for item in items if _normalize_reference_label(item) not in known_labels]
+    unknown = [item for item in items if not _reference_item_matches(item, known_labels)]
     if unknown:
         findings.append(
             CheckFinding(
@@ -432,3 +429,57 @@ def _append_state_boundary_terms(
 
 def _normalize_reference_label(value: str) -> str:
     return " ".join(value.strip().lower().split())
+
+
+def _reference_item_matches(item: str, known_labels: set[str]) -> bool:
+    return any(
+        normalized in known_labels
+        for normalized in _normalized_reference_candidates(item)
+        if normalized
+    )
+
+
+def _normalized_reference_candidates(item: str) -> set[str]:
+    candidates: set[str] = set()
+    stripped = item.strip()
+    if not stripped:
+        return candidates
+    candidates.add(_normalize_reference_label(stripped))
+    for link_text, link_target in _MARKDOWN_LINK_RE.findall(stripped):
+        normalized_text = _normalize_reference_label(link_text)
+        if normalized_text:
+            candidates.add(normalized_text)
+        normalized_target = _normalize_reference_label(_reference_target_label(link_target))
+        if normalized_target:
+            candidates.add(normalized_target)
+    if _MARKDOWN_LINK_RE.search(stripped):
+        linkless = _MARKDOWN_LINK_RE.sub(lambda match: match.group(1).strip(), stripped)
+        normalized_linkless = _normalize_reference_label(linkless)
+        if normalized_linkless:
+            candidates.add(normalized_linkless)
+    return candidates
+
+
+def _reference_target_label(target: str) -> str:
+    cleaned = target.strip().strip("<>")
+    if not cleaned:
+        return ""
+    cleaned = cleaned.split("?", 1)[0].split("#", 1)[0]
+    return Path(cleaned).stem
+
+
+def _reference_labels_for_artifact(artifact: Any) -> set[str]:
+    labels = {
+        _normalize_reference_label(artifact.slug),
+        _normalize_reference_label(artifact.title),
+    }
+    metadata = getattr(artifact, "metadata_json", {}) or {}
+    for key in _REFERENCE_ALIAS_KEYS:
+        value = metadata.get(key)
+        if isinstance(value, str):
+            labels.add(_normalize_reference_label(value))
+        elif isinstance(value, list):
+            for item in value:
+                if isinstance(item, str) and item.strip():
+                    labels.add(_normalize_reference_label(item))
+    return {label for label in labels if label}

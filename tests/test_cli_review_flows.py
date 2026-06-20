@@ -149,6 +149,7 @@ def test_review_semantic_run_host_mode_emits_packet_without_recording(
     prepare_feature_for_semantic_review(tmp_path)
 
     monkeypatch.setenv("FPA_LLM_PROVIDER", "host")
+    packet_path = tmp_path / "semantic-packet.json"
 
     with session_scope(project_paths(tmp_path)) as session:
         project_row = get_project(session, "crm-web")
@@ -169,10 +170,16 @@ def test_review_semantic_run_host_mode_emits_packet_without_recording(
             "crm-web",
             "--artifact",
             "feature:customer-assignment",
+            "--output",
+            str(packet_path),
         ],
     )
     assert run_result.exit_code == 0, run_result.output
-    assert '"provider": "host"' in run_result.output
+    assert "fresh reviewer sub-agent context" in run_result.output
+    assert packet_path.exists()
+    packet = json.loads(packet_path.read_text(encoding="utf-8"))
+    assert packet["fresh_session_required"] is True
+    assert packet["packet_only"] is True
 
     with session_scope(project_paths(tmp_path)) as session:
         project_row = get_project(session, "crm-web")
@@ -277,6 +284,27 @@ def test_review_semantic_run_passed_can_auto_approve(
         )
         assert artifact_row.status == ArtifactStatus.APPROVED
         assert review is not None
+
+
+def test_review_approve_requires_recorded_semantic_review(
+    tmp_path: Path,
+) -> None:
+    bootstrap_project(tmp_path)
+    prepare_feature_for_semantic_review(tmp_path)
+
+    approve_result = invoke_with_root(
+        tmp_path,
+        [
+            "review",
+            "approve",
+            "--project",
+            "crm-web",
+            "--artifact",
+            "feature:customer-assignment",
+        ],
+    )
+    assert approve_result.exit_code == 1, approve_result.output
+    assert "Expected one of: semantic_review" in approve_result.output
 
 
 def test_review_semantic_record_missing_evidence_is_downgraded(
@@ -464,6 +492,7 @@ def test_review_resubmit_host_mode_writes_packet_without_recording_semantic_revi
         ],
     )
     assert resubmit_result.exit_code == 0, resubmit_result.output
+    assert "fresh reviewer sub-agent context" in resubmit_result.output
 
     packet_path = (
         tmp_path
@@ -472,6 +501,9 @@ def test_review_resubmit_host_mode_writes_packet_without_recording_semantic_revi
         / "feature-customer-assignment-resubmit-semantic-packet.json"
     )
     assert packet_path.exists()
+    packet = json.loads(packet_path.read_text(encoding="utf-8"))
+    assert packet["fresh_session_required"] is True
+    assert packet["packet_only"] is True
 
     with session_scope(project_paths(tmp_path)) as session:
         project_row = get_project(session, "crm-web")

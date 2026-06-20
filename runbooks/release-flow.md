@@ -13,7 +13,7 @@ Use this sequence when you are preparing a new git release for the repository.
    - Do not include runtime state such as `.frontend-project-analysis/`.
 4. Run the fresh-session LLM review.
    - `./scripts/release-llm-review.sh`
-   - Open a new reviewer session and load only the generated packet.
+   - Open a new reviewer session or fresh reviewer sub-agent and load only the generated packet.
    - If the review reports issues, fix them and rerun from step 2.
 5. Create the release commit.
    - Stage the full release set.

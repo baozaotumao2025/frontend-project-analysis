@@ -25,7 +25,8 @@ def run_semantic_review(packet: dict, settings: Settings | None = None) -> Provi
         raise ConfigurationError(
             "Host review mode does not call an external LLM. "
             "Use `fpa review semantic-packet` or `fpa review semantic-run` to hand the packet "
-            "to Codex or Claude Code, then record the result with `fpa review semantic-record`."
+            "to a fresh reviewer sub-agent, then record the result with "
+            "`fpa review semantic-record`."
         )
     if provider == "openai":
         return run_openai_review(packet, resolved)

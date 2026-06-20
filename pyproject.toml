@@ -1,6 +1,6 @@
 [project]
 name = "frontend-project-analysis"
-version = "1.3.1"
+version = "1.3.2"
 description = "Document-first frontend project analysis infrastructure with SQLite-backed workflow governance."
 readme = "README.md"
 requires-python = "==3.12.*"

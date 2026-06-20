@@ -2,7 +2,7 @@
 
 `frontend-project-analysis` 是一个以文档为先的前端项目分析 skill，同时内置一套可复用的 Python 工作流基础设施。这个 skill 安装在 Codex 环境中运行，不要求目标项目复制一整套工具脚手架。它把前端项目拆解成 `Persona`、`Story Map`、`Page`、`Feature`、`GWT` 和 `Feature Spec` 等结构化产物，并用 SQLite 记录依赖、审核、版本和审计信息。
 
-当前发布版本为 `1.3.1`。
+当前发布版本为 `1.3.2`。
 
 ## 快速开始
 
@@ -166,6 +166,7 @@ CLI 层面的用户影响和命令约束见 [references/cli-contract.md](referen
 - `mock`
 
 `host` 模式不由本仓库代码去调用外部大模型，而是把语义审查 packet 交给一个新的 Codex 或 Claude Code 审查上下文来判断；在支持 sub-agent 的 Codex 环境里，必须用 `fork_context: false` 起一个 fresh reviewer sub-agent，只读 packet，不继承生成文档时的上下文。
+这个 fresh-context 规则也适用于 round 1 到 round 6 的 packet 驱动语义检查，以及 release review packet。
 `FPA_SEMANTIC_REVIEW_AUTO_APPROVE=true` 时，语义审查 `passed` 会直接进入 `approved`；否则会停在 `semantic_review`，等待人工 `review approve`。
 
 ## 3. 项目怎么使用
@@ -248,7 +249,7 @@ uv run fpa review approve --project crm-web --artifact feature:customer-assignme
 uv run fpa review reject --project crm-web --artifact feature:customer-assignment
 ```
 
-`host` 模式下，`semantic-run` 不会调用外部模型，而是直接把 packet 交给新的 Codex 或 Claude Code 审查上下文做判断，再用 `semantic-record` 记录结果。审查输出要先找 counterexamples，并且每条 finding 都要带 evidence，否则会被降级成 `needs_revision`。
+`host` 模式下，`semantic-run` 不会调用外部模型，而是直接把 packet 交给新的 Codex 或 Claude Code 审查上下文做判断，再用 `semantic-record` 记录结果。审查输出要先找 counterexamples，并且每条 finding 都要带 evidence，否则会被降级成 `needs_revision`。如果 Codex 环境支持 sub-agent，就应当用 `fork_context: false` 启一个 fresh reviewer sub-agent。
 如果用户手改了 `analysis/` 里的 Markdown，或者某个 revision 变成了 `stale`，优先用 `review resubmit` 把重导入、结构重审和语义重审串起来。
 `review approve` 只接受已经进入 `semantic_review` 的 revision；如果 revision 变成 `stale`，需要先重新做 `review structural` 再继续后续审查。
 
@@ -331,7 +332,7 @@ make all
 4. `artifact link`
 5. `review structural`
 6. `review semantic-packet`
-7. `review semantic-run`、`review semantic-record`，或者在 `host` 模式下直接让当前 Codex / Claude Code 读取 packet 后再记录结果
+7. `review semantic-run`、`review semantic-record`，或者在 `host` 模式下交给 fresh reviewer sub-agent 读取 packet 后再记录结果
 8. `review approve` 或 `review reject`
 9. `export manifest` 和 `export relations`
 

@@ -32,4 +32,6 @@ def build_semantic_packet(session, project: Project, artifact: Artifact) -> dict
         "dependencies": dependencies,
         "dependents": dependents,
         "rubric": SEMANTIC_REVIEW_RUBRICS[artifact.artifact_type],
+        "fresh_session_required": True,
+        "packet_only": True,
     }

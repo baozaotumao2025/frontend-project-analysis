@@ -164,7 +164,8 @@ def review_resubmit(
             session.commit()
             typer.secho(
                 "Host review packet written to "
-                f"{output}. Use a fresh reviewer context to review it, then pass the "
+                f"{output}. Use a fresh reviewer sub-agent context (use "
+                "`fork_context: false` in Codex when available), then pass the "
                 "result back with `fpa review resubmit --review-input <path>`.",
                 fg=typer.colors.YELLOW,
                 err=True,

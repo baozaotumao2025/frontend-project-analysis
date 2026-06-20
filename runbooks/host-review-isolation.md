@@ -13,6 +13,7 @@ The goal is not to force a different model. The goal is to force a different rev
 - The reviewer session must not inspect the drafting chat, hidden scratch work, or intermediate reasoning.
 - The reviewer session must return JSON only.
 - The reviewer result must include counterexamples and evidence-backed findings.
+- This separation applies to semantic review for the round chain, `review resubmit`, and the release packet flow.
 
 ## Practical Steps
 

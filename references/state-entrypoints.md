@@ -40,6 +40,8 @@ These commands can create or mutate workflow state:
 | `fpa review approve` | Moves a `semantic_review` revision to `approved` | Also propagates freshness invalidation through dependents when needed |
 | `fpa review reject` | Moves a revision to `rejected` | Ends the current revision's approval path |
 
+`fpa brief assistant` is the LLM-assisted brief convergence entrypoint, while `fpa review semantic-run`, `fpa review semantic-record`, and `fpa review resubmit` are the packet-driven semantic review entrypoints. When any of those packet-driven reviews are handled in host mode inside a Codex environment, the review must run in a fresh sub-agent context with `fork_context: false` when sub-agents are available.
+
 ## Gate Entrypoints
 
 These commands check state and do not mutate it:

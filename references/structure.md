@@ -38,6 +38,8 @@ analysis/
 
 `analysis/brief.md` is copied from a user-provided, confirmed project brief and is not auto-generated from a placeholder.
 
+Cross-reference sections may use canonical labels, localized aliases declared in frontmatter `aliases`, or Markdown links whose display text or target resolves to a known artifact.
+
 ## Naming Rules
 
 - Persona files: semantic kebab-case such as `finance-manager.md`

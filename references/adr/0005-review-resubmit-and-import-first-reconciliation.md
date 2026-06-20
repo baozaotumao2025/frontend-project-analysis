@@ -34,6 +34,7 @@ That mismatch is not canonical state and MUST be resolved by `import markdown-sc
 
 When host review is available in a Codex environment, the reviewer context MUST be a fresh sub-agent with `fork_context: false`.
 The reviewer output MUST include counterexamples and evidence-backed findings, otherwise the result is downgraded to `needs_revision`.
+The same packet-only handoff shape is used by the round-chain semantic review flow and the release review packet flow.
 
 ## Why This Decision
 

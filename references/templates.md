@@ -96,6 +96,10 @@
 - []
 ```
 
+Cross-reference items in `## Accessible Persona` and `## Related Features` should prefer canonical artifact labels.
+If a localized display label is needed, keep it as a frontmatter alias or use a Markdown link whose display text is localized
+but whose target still resolves to a known artifact.
+
 `analysis/features/[feature-name].md`
 
 ```md
@@ -114,6 +118,10 @@
 ## Source Story
 - []
 ```
+
+Cross-reference items in `## Page` and `## Persona Served` should prefer canonical labels or frontmatter aliases.
+Avoid inventing free-form labels that do not map back to an existing artifact.
+Markdown links are allowed when the display text or target can still be resolved unambiguously.
 
 `analysis/gwt/[feature-name].feature`
 

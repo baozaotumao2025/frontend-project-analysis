@@ -12,6 +12,7 @@ This directory records durable architectural and workflow decisions.
 | `0004-host-review-fresh-context-isolation.md` | Host Review Fresh Context Isolation | Accepted | Requires host semantic review to use a fresh reviewer context |
 | `0005-review-resubmit-and-import-first-reconciliation.md` | Review Resubmit And Import-First Reconciliation | Accepted | Defines the recovery path for manual Markdown edits and stale revisions |
 | `0006-formal-and-explore-workflow-modes.md` | Formal And Explore Workflow Modes | Accepted | Defines the split between canonical delivery and exploratory analysis |
+| `0007-locale-tolerant-cross-reference-resolution.md` | Locale-Tolerant Cross-Reference Resolution | Accepted | Allows localized labels and resolvable Markdown links in cross-reference sections |
 
 ## Reading Guide
 
