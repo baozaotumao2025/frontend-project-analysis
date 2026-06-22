@@ -272,6 +272,70 @@ def test_import_markdown_scan_ignores_frontmatter_status_override(tmp_path: Path
         assert page.status == ArtifactStatus.DRAFT
 
 
+def test_import_markdown_scan_blocks_unknown_analysis_files(tmp_path: Path) -> None:
+    bootstrap_project(tmp_path)
+    rogue_path = tmp_path / "analysis" / "notes.md"
+    rogue_path.parent.mkdir(parents=True, exist_ok=True)
+    rogue_path.write_text("# Unindexed notes\n", encoding="utf-8")
+
+    result = invoke_with_root(
+        tmp_path,
+        [
+            "import",
+            "markdown-scan",
+            "--project",
+            "crm-web",
+            "--apply",
+        ],
+    )
+    assert result.exit_code != 0, result.output
+    assert "unsupported analysis files" in result.output.lower()
+
+
+def test_import_manifest_blocks_duplicate_artifact_refs(tmp_path: Path) -> None:
+    bootstrap_project(tmp_path)
+    payload_path = tmp_path / "manifest.json"
+    payload_path.write_text(
+        json.dumps(
+            {
+                "artifacts": [
+                    {
+                        "ref": "page:customer-profile",
+                        "title": "Customer Profile",
+                        "status": "draft",
+                        "source_path": "analysis/pages/customer-profile.md",
+                        "metadata": {"slug": "customer-profile"},
+                    },
+                    {
+                        "ref": "page:customer-profile",
+                        "title": "Customer Profile Again",
+                        "status": "draft",
+                        "source_path": "analysis/pages/customer-profile-copy.md",
+                        "metadata": {"slug": "customer-profile"},
+                    },
+                ]
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    result = invoke_with_root(
+        tmp_path,
+        [
+            "import",
+            "manifest",
+            "--project",
+            "crm-web",
+            "--input",
+            str(payload_path),
+            "--apply",
+        ],
+    )
+    assert result.exit_code != 0, result.output
+    assert "duplicate artifact reference" in result.output.lower()
+
+
 def test_hard_dependency_on_approved_artifact_stales_dependents(tmp_path: Path) -> None:
     bootstrap_project(tmp_path)
     prepare_feature_for_semantic_review(tmp_path)

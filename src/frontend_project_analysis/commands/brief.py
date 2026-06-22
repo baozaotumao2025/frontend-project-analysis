@@ -8,6 +8,7 @@ from pathlib import Path
 import typer
 
 from ..core.config import get_settings
+from ..core.packets import build_brief_assistant_packet
 from ..llm import run_brief_assistant
 from ..schemas import BriefAssistantPayload
 from ..workflow.briefs import (
@@ -198,21 +199,6 @@ def _confirm_brief_text(
     )
 
 
-def _build_brief_assistant_packet(
-    answers: dict[str, str],
-    transcript: list[tuple[str, str]],
-    remaining_budget: int,
-    *,
-    stage: str,
-) -> dict:
-    return {
-        "stage": stage,
-        "answers": answers,
-        "transcript": transcript,
-        "remaining_budget": remaining_budget,
-    }
-
-
 def _ask(prompt: str) -> str:
     return _normalize_answer(typer.prompt(prompt))
 
@@ -370,7 +356,12 @@ def _collect_ai_followups(
     if transcript is None or remaining_budget <= 0:
         return [], None, 0
     settings = get_settings()
-    packet = _build_brief_assistant_packet(answers, transcript, remaining_budget, stage="followup")
+    packet = build_brief_assistant_packet(
+        answers,
+        transcript,
+        remaining_budget,
+        stage="followup",
+    )
     assistant_response = run_brief_assistant(packet, settings, stage="followup")
     assistant = assistant_response.payload
     followups: list[tuple[str, str]] = []
@@ -396,7 +387,7 @@ def _collect_ai_summary(
     if transcript is None:
         return None
     settings = get_settings()
-    packet = _build_brief_assistant_packet(answers, transcript, 0, stage="summary")
+    packet = build_brief_assistant_packet(answers, transcript, 0, stage="summary")
     assistant_response = run_brief_assistant(packet, settings, stage="summary")
     return assistant_response.payload
 

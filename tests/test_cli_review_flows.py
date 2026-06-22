@@ -60,6 +60,9 @@ def test_review_semantic_packet_and_exports(
     packet = json.loads(packet_path.read_text(encoding="utf-8"))
     assert packet["artifact"]["ref"] == "feature:customer-assignment"
     assert packet["llm"]["provider"] == "host"
+    assert packet["llm"]["review_isolation"]["mode"] == "fresh_reviewer_subagent"
+    assert packet["llm"]["review_isolation"]["fork_context"] is False
+    assert packet["llm"]["review_isolation"]["required"] is True
 
     manifest_result = invoke_with_root(
         tmp_path,
@@ -178,8 +181,12 @@ def test_review_semantic_run_host_mode_emits_packet_without_recording(
     assert "fresh reviewer sub-agent context" in run_result.output
     assert packet_path.exists()
     packet = json.loads(packet_path.read_text(encoding="utf-8"))
+    assert packet["llm"]["review_isolation"]["mode"] == "fresh_reviewer_subagent"
     assert packet["fresh_session_required"] is True
     assert packet["packet_only"] is True
+    assert packet["frozen_packet"] is True
+    assert packet["analysis_inventory"]
+    assert packet["coverage_ledger"]
 
     with session_scope(project_paths(tmp_path)) as session:
         project_row = get_project(session, "crm-web")
@@ -191,6 +198,45 @@ def test_review_semantic_run_host_mode_emits_packet_without_recording(
         )
         assert artifact_row.status == ArtifactStatus.STRUCTURALLY_VALID
         assert review_count_after == review_count_before
+
+
+def test_review_semantic_run_blocks_when_focus_source_is_missing(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    bootstrap_project(tmp_path)
+    prepare_feature_for_semantic_review(tmp_path)
+
+    from frontend_project_analysis.commands.review import semantic_run as semantic_run_module
+
+    def fake_run_semantic_review(packet: dict, settings=None) -> ProviderResponse:
+        return fake_semantic_review_response(
+            packet,
+            decision=ReviewStatus.PASSED,
+            summary="Semantic review passed.",
+        )
+
+    monkeypatch.setattr(semantic_run_module, "run_semantic_review", fake_run_semantic_review)
+    monkeypatch.setenv("FPA_LLM_PROVIDER", "mock")
+    with session_scope(project_paths(tmp_path)) as session:
+        project_row = get_project(session, "crm-web")
+        artifact_row = get_artifact_by_ref(session, project_row, "feature:customer-assignment")
+        artifact_row.source_path = "analysis/features/customer-assignment.md"
+        session.commit()
+
+    run_result = invoke_with_root(
+        tmp_path,
+        [
+            "review",
+            "semantic-run",
+            "--project",
+            "crm-web",
+            "--artifact",
+            "feature:customer-assignment",
+        ],
+    )
+    assert run_result.exit_code != 0, run_result.output
+    assert "source file" in run_result.output.lower()
 
 
 def test_review_semantic_run_passed_waits_for_human_approval_by_default(
@@ -210,6 +256,7 @@ def test_review_semantic_run_passed_waits_for_human_approval_by_default(
         )
 
     monkeypatch.setattr(semantic_run_module, "run_semantic_review", fake_run_semantic_review)
+    monkeypatch.setenv("FPA_LLM_PROVIDER", "mock")
 
     run_result = invoke_with_root(
         tmp_path,
@@ -256,6 +303,7 @@ def test_review_semantic_run_passed_can_auto_approve(
         )
 
     monkeypatch.setattr(semantic_run_module, "run_semantic_review", fake_run_semantic_review)
+    monkeypatch.setenv("FPA_LLM_PROVIDER", "mock")
     monkeypatch.setenv("FPA_SEMANTIC_REVIEW_AUTO_APPROVE", "true")
 
     run_result = invoke_with_root(
@@ -502,6 +550,7 @@ def test_review_resubmit_host_mode_writes_packet_without_recording_semantic_revi
     )
     assert packet_path.exists()
     packet = json.loads(packet_path.read_text(encoding="utf-8"))
+    assert packet["llm"]["review_isolation"]["mode"] == "fresh_reviewer_subagent"
     assert packet["fresh_session_required"] is True
     assert packet["packet_only"] is True
 

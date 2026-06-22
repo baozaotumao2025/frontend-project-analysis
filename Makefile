@@ -1,5 +1,6 @@
 .PHONY: help test quality release e2e \
 	test.smoke test.full test.check test.e2e test.e2e-install test.e2e-flow test.e2e-reset \
+	test.coverage \
 	quality.compile quality.lint \
 	release.preflight release.packet release.card release.publish release.all \
 	smoke full check compile lint all e2e e2e-install e2e-flow e2e-reset \
@@ -17,6 +18,7 @@ help:
 		'Testing targets:' \
 		'  make test.smoke         Run smoke tests' \
 		'  make test.full          Run the full test suite' \
+		'  make test.coverage      Run the full test suite with coverage reporting' \
 		'  make test.check         Run compile plus smoke checks' \
 		'  make test.e2e           Run default E2E suite' \
 		'  make test.e2e-install   Run install-focused E2E suite' \
@@ -65,6 +67,9 @@ test.smoke:
 test.full:
 	.venv/bin/python -m pytest
 
+test.coverage:
+	bash ./scripts/test-coverage.sh
+
 test.check:
 	python3 -m compileall src/frontend_project_analysis tests
 	.venv/bin/python -m pytest -m smoke
@@ -105,6 +110,8 @@ release.all:
 smoke: test.smoke
 
 full: test.full
+
+coverage: test.coverage
 
 check: test.check
 

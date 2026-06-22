@@ -6,7 +6,7 @@ This page maps each concern to its canonical document.
 
 | Scope | Primary consumer | Included files |
 | --- | --- | --- |
-| `fpa` skill core | The `frontend-project-analysis` skill and its maintainers | `SKILL.md`, `references/methodology.md`, `references/workflow.md`, `references/quality-gates.md`, `references/infrastructure.md`, `references/state-machine.md`, `references/schema-sketch.md`, `references/validation-matrix.md`, `references/cli-contract.md`, `references/state-entrypoints.md`, `references/structure.md`, `references/templates.md`, `references/glossary.md`, `references/release-checklist.md`, `references/repo-layers.md`, `references/command-layer.md`, `references/adr/*.md` |
+| `fpa` skill core | The `frontend-project-analysis` skill and its maintainers | `SKILL.md`, `references/methodology.md`, `references/workflow.md`, `references/quality-gates.md`, `references/infrastructure.md`, `references/state-machine.md`, `references/schema-sketch.md`, `references/validation-matrix.md`, `references/evidence-gated-abstraction.md`, `references/cli-contract.md`, `references/state-entrypoints.md`, `references/structure.md`, `references/templates.md`, `references/glossary.md`, `references/release-checklist.md`, `references/repo-layers.md`, `references/command-layer.md`, `references/adr/*.md` |
 | Generated project submission guidance | Users of `fpa` output in downstream repositories | `references/downstream-commit-policy.md`, `runbooks/downstream-commit-flow.md` |
 | Repository governance | All agents operating in this repository | `AGENTS.md` |
 | Operator runbooks | Repository operators and maintainers | `runbooks/README.md`, `runbooks/*.md`, `scripts/README.md` |
@@ -19,6 +19,7 @@ This page maps each concern to its canonical document.
 | If the content is about... | Put it in... |
 | --- | --- |
 | workflow rounds, gates, artifact semantics, or canonical analysis rules | `references/*` |
+| evidence boundary, inventory, coverage ledger, or frozen packet control | `references/evidence-gated-abstraction.md` |
 | repository-wide permanent behavior rules for agents | `AGENTS.md` |
 | step-by-step execution, maintenance, release, or test procedures | `runbooks/*` |
 | default output layout, naming rules, or file responsibility boundaries for `fpa` | `references/structure.md` |
@@ -40,6 +41,7 @@ This page maps each concern to its canonical document.
 | `references/state-machine.md` | Reference | Artifact lifecycle semantics | Canonical status semantics |
 | `references/schema-sketch.md` | Reference | Node, edge, and matrix placement for the workflow schema | Canonical schema sketch |
 | `references/validation-matrix.md` | Reference | Code, LLM, and projection validation responsibilities | Canonical validation matrix |
+| `references/evidence-gated-abstraction.md` | Reference | Evidence boundary, inventory, coverage, and frozen packet control layer | Canonical evidence-control overlay |
 | `references/cli-contract.md` | Reference | CLI behavior under code-enforced gates | Canonical user-facing command contract |
 | `references/state-entrypoints.md` | Reference | Which commands can mutate workflow state | Canonical entrypoint map |
 | `references/structure.md` | Reference | Output layout, naming rules, and responsibility boundaries | Canonical file layout guide |

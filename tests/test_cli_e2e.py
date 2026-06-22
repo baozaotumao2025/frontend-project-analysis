@@ -553,6 +553,7 @@ def test_e2e_semantic_run_auto_approves_when_enabled(
         )
 
     monkeypatch.setattr(semantic_run_module, "run_semantic_review", fake_run_semantic_review)
+    monkeypatch.setenv("FPA_LLM_PROVIDER", "mock")
     monkeypatch.setenv("FPA_SEMANTIC_REVIEW_AUTO_APPROVE", "true")
 
     run_result = run_fpa(

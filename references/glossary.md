@@ -25,6 +25,10 @@
 - `server state`
 - `client state`
 - `Shared Component`
+- `analysis_inventory`
+- `coverage ledger`
+- `frozen packet`
+- `independent worker`
 - `revision`
 - `fresh`
 - `fresh-session`
@@ -52,6 +56,10 @@
 - Write `archived` for a retained revision that is no longer part of active workflow
 - Write `server state` for persisted workflow or backend-owned state
 - Write `client state` for local UI-owned state or transient presentation state
+- Write `analysis_inventory` for the explicit evidence set a round is allowed to inspect
+- Write `coverage ledger` for the per-file disposition table in a round
+- Write `frozen packet` for a review snapshot that must not drift with the drafting context
+- Write `independent worker` for a reviewer context that must not reuse the drafting context
 
 ## Input Preparation Terms
 

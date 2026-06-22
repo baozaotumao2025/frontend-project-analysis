@@ -7,6 +7,7 @@ This document separates validation into three responsibilities:
 - `code`: deterministic structural and lifecycle enforcement
 - `LLM` / host review: semantic judgment in a fresh reviewer context
 - `projection`: derived indexes and matrices that should stay consistent with the source graph
+- `evidence control`: inventory, coverage, and frozen packet reconciliation before review
 
 The rule is simple: do not let the LLM decide whether a required field exists, whether a file is present, or whether a dependency is approved. Those are code-owned checks. Let the LLM judge meaning, coherence, and fit.
 
@@ -30,6 +31,15 @@ The rule is simple: do not let the LLM decide whether a required field exists, w
 | `GWT` | scenario presence; complete `Given / When / Then`; required scenario names; source exists; round gate freshness | scenario intent; business-facing wording; behavioral coverage quality | The current code enforces scenario shape, not only syntax |
 | `Feature Spec` | fixed section coverage; `server state` and `client state` both explicit; source exists; round gate freshness | boundary clarity; dependency honesty; cross-cutting completeness when relevant | This is where delivery-facing detail should become explicit |
 | `brief assistant` | transcript capture; brief output file; optional AI follow-up and summary sections | follow-up question quality; synthesis quality; missing-gap detection | This is the LLM-assisted entry path for creating or refining a `project brief` |
+
+## Evidence Control Matrix
+
+| Control surface | Code checks | Semantic checks | Notes |
+| --- | --- | --- | --- |
+| `analysis_inventory` | file enumeration, scope boundaries, missing item detection | evidence completeness, scope honesty | This is the first checkpoint before abstraction |
+| `coverage ledger` | every item has `mapped`, `excluded`, or `needs_review` | exclusion rationale quality, unresolved ambiguity | No round should proceed with blank coverage |
+| `frozen packet` | packet is snapshot-based and immutable for the review step | reviewer only sees the frozen packet | Prevents context drift |
+| `independent worker` | fresh context isolation | counterexample-first review quality | Required when host mode is used |
 
 ## LLM Validation Matrix
 
@@ -81,6 +91,8 @@ These files are derived views and should be regenerated from the database and ar
 | `analysis/features/index.md` | Feature bodies + metadata | code |
 | `analysis/relations/persona-story-page-matrix.md` | artifact graph lineage | code |
 | `analysis/relations/feature-coverage-matrix.md` | artifact graph lineage | code |
+
+Derived projections may also include round-local inventory and coverage views when those help humans inspect whether the evidence boundary was fully reconciled.
 
 ## Practical Rule
 

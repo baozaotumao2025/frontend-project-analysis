@@ -3,13 +3,14 @@
 ## Purpose
 
 This document compresses the current workflow model into a concrete schema sketch.
-It separates three concerns:
+It separates four concerns:
 
 - `node`: durable artifact identity and revision ownership
 - `edge`: explicit relationships between nodes
 - `index/matrix`: derived projections for browsing and reporting
+- `evidence control`: round-local inventory and coverage state used to freeze review inputs
 
-The rule of thumb is simple: if something needs its own approval, stale propagation, or rollback lineage, it belongs on a node. If it only expresses a relationship, it belongs on an edge. If it is primarily a view for humans, it belongs in an index or matrix.
+The rule of thumb is simple: if something needs its own approval, stale propagation, or rollback lineage, it belongs on a node. If it only expresses a relationship, it belongs on an edge. If it is primarily a view for humans, it belongs in an index or matrix. If it is only needed to decide whether a round has fully enumerated and reconciled its evidence, it belongs in the evidence control layer rather than becoming a durable graph node.
 
 ## Node Layer
 
@@ -27,6 +28,7 @@ The rule of thumb is simple: if something needs its own approval, stale propagat
 - `artifact_versions` is the revision payload.
 - `status` lives on the node envelope because approval, freshness, stale propagation, and supersession are revision-aware lifecycle concerns.
 - `metadata_json` is acceptable for parser output or light structured hints, but not for replacing explicit edges or index rows.
+- `analysis_inventory`, `coverage ledger`, and `frozen packet` details are round-local control data; they should be represented as ephemeral workflow state or packet content, not as durable graph nodes unless a future ADR explicitly promotes them.
 
 ### Content placement by artifact type
 
@@ -83,6 +85,7 @@ These files are projections, not source of truth. They should be regenerated fro
 | `analysis/features/index.md` | Feature inventory | Feature, Responsibility, Page, Persona Served, State Type, Cross-Page Reuse |
 | `analysis/relations/persona-story-page-matrix.md` | lineage matrix | Persona, Story Map, Page, Feature |
 | `analysis/relations/feature-coverage-matrix.md` | feature coverage matrix | Feature, Service Persona, Source Page, Covered Story |
+| round-local inventory / coverage view | evidence control projection | File, Disposition, Reason, Frozen Packet Reference |
 
 ### What belongs in a matrix instead of a node
 
@@ -101,7 +104,8 @@ If a field exists mainly so a report can answer a browsing question, keep it in 
 3. Put relationship verbs on `artifact_dependencies`.
 4. Put lifecycle history on `artifact_transitions`.
 5. Put review evidence on `artifact_reviews` and `artifact_review_findings`.
-6. Put human-facing summaries and lookup tables in `analysis/*/index.md` and `analysis/relations/*.md`.
+6. Keep `analysis_inventory`, `coverage ledger`, and `frozen packet` data out of the durable graph unless the workflow later needs their own lifecycle.
+7. Put human-facing summaries and lookup tables in `analysis/*/index.md` and `analysis/relations/*.md`.
 
 ## Bottom Line
 
@@ -111,4 +115,4 @@ The current model is already shaped correctly:
 - edge = dependency and lineage
 - matrix = browsable derived view
 
-The main optimization left is to keep sub-steps, scenario fragments, and coverage rows out of the graph unless they truly need their own lifecycle.
+The main optimization left is to keep sub-steps, scenario fragments, and durable coverage rows out of the graph unless they truly need their own lifecycle.

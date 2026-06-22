@@ -18,6 +18,7 @@ fpa = "frontend_project_analysis.cli:app"
 
 [dependency-groups]
 dev = [
+  "coverage>=7.14.2",
   "pytest>=8.4,<9",
   "ruff>=0.12,<1",
 ]
@@ -38,6 +39,16 @@ markers = [
   "e2e_flow: E2E coverage for multi-round workflow failure recovery",
   "e2e_reset: E2E coverage for force reinitialization and state reset",
 ]
+
+[tool.coverage.run]
+branch = true
+source = ["src/frontend_project_analysis"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+precision = 2
+fail_under = 80.66
 
 [tool.ruff]
 target-version = "py312"

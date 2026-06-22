@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -24,6 +25,7 @@ class RoundGateResult:
     input_type: ArtifactType | None
     checked_count: int
     blocked_refs: tuple[str, ...]
+    evidence_complete: bool = True
 
     @property
     def passed(self) -> bool:
@@ -74,18 +76,26 @@ def evaluate_round_gate(
             .order_by(Artifact.slug)
         )
     )
-    blocked_refs = tuple(
-        f"{_artifact_ref(artifact)} ({artifact.status.value})"
-        for artifact in artifacts
-        if artifact.status != ArtifactStatus.APPROVED
-    )
+    root = Path(project.root_path)
+    blocked: list[str] = []
+    for artifact in artifacts:
+        issues: list[str] = []
+        if artifact.status != ArtifactStatus.APPROVED:
+            issues.append(artifact.status.value)
+        if artifact.source_path:
+            source_path = root / artifact.source_path
+            if not source_path.exists():
+                issues.append(f"missing source file '{artifact.source_path}'")
+        if issues:
+            blocked.append(f"{_artifact_ref(artifact)} ({'; '.join(issues)})")
     return RoundGateResult(
         round_number=round_number,
         project_key=project.key,
         mode=mode,
         input_type=input_type,
         checked_count=len(artifacts),
-        blocked_refs=blocked_refs,
+        blocked_refs=tuple(blocked),
+        evidence_complete=not blocked,
     )
 
 
@@ -108,5 +118,6 @@ def assert_round_gate(
     blocked = ", ".join(result.blocked_refs)
     raise WorkflowStateError(
         f"Round {round_number} cannot start for project '{project.key}' because the "
-        f"following {result.input_type.value} revisions are not approved: {blocked}."
+        f"following {result.input_type.value} revisions are not approved or have missing "
+        f"source files: {blocked}."
     )

@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from ..core.domain import SEMANTIC_REVIEW_RUBRICS
 from ..models import Artifact, Project
+from .evidence import build_semantic_evidence_snapshot, artifact_ref
 
 
 def build_semantic_packet(session, project: Project, artifact: Artifact) -> dict:
-    from ..repositories.dependencies import artifact_ref
-
+    evidence = build_semantic_evidence_snapshot(session, project, artifact)
     dependencies = [artifact_ref(dep.to_artifact) for dep in artifact.outgoing_dependencies]
     dependents = [artifact_ref(dep.from_artifact) for dep in artifact.incoming_dependencies]
     metadata = dict(artifact.metadata_json or {})
@@ -31,6 +31,27 @@ def build_semantic_packet(session, project: Project, artifact: Artifact) -> dict
         "body": body,
         "dependencies": dependencies,
         "dependents": dependents,
+        "analysis_inventory": [
+            {
+                "ref": item.ref,
+                "role": item.role,
+                "status": item.status,
+                "source_path": item.source_path,
+                "source_exists": item.source_exists,
+                "has_version": item.has_version,
+            }
+            for item in evidence.inventory
+        ],
+        "coverage_ledger": [
+            {
+                "ref": item.ref,
+                "role": item.role,
+                "disposition": item.disposition,
+                "reason": item.reason,
+            }
+            for item in evidence.inventory
+        ],
+        "frozen_packet": True,
         "rubric": SEMANTIC_REVIEW_RUBRICS[artifact.artifact_type],
         "fresh_session_required": True,
         "packet_only": True,

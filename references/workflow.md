@@ -2,6 +2,14 @@
 
 This page defines the analysis workflow round contract.
 
+The round chain assumes an evidence-control loop in front of every semantic step:
+
+- enumerate the round inventory
+- reconcile it into a coverage ledger
+- freeze the packet
+- review the frozen packet in an independent worker context
+- block progress when coverage or freshness is incomplete
+
 For a fresh target repository, prepare a user-owned brief first, then confirm it, then run `uv run fpa init --project <key> --name <name> --brief-file <path>` or `uv run fpa init --project <key> --name <name> --brief <text>` with confirmed brief metadata. If the brief is not ready yet, use `uv run fpa brief interview --output <path>` to collect one in a bounded Q&A flow, optionally add `--transcript <path>` to keep the conversation log, then run `uv run fpa brief confirm --input <path> --output <confirmed-path>` before `init`. If you want LLM-assisted follow-up and synthesis, use `uv run fpa brief assistant --output <path>` instead; it also produces a draft brief that must be confirmed before `init`. After that, use the round gates and artifact commands below to move through the workflow. Any semantic review that runs in host mode must be handed to a fresh reviewer sub-agent context and must not reuse the drafting conversation.
 
 ## Gate Contract
@@ -40,7 +48,9 @@ The same repository keeps `Explore mode` separate from this canonical path so ex
 ## Round 1: Persona Definition
 
 - Input: `analysis/brief.md`
+- Evidence input: brief sources plus round inventory
 - Output: `analysis/personas/index.md` and `analysis/personas/[persona-name].md`
+- Coverage output: Persona coverage ledger
 - Each Persona should include name, core goal, key differences, permission boundary, and invisible pages or capabilities
 - Before approval, register or import the resulting artifacts into the SQLite workflow state
 - Round 1 starts from `analysis/brief.md` and no upstream artifact gate applies
@@ -55,7 +65,9 @@ Persona split rules:
 ## Round 2: Story Map
 
 - Input: approved `analysis/personas/*.md`
+- Evidence input: approved Persona plus round inventory
 - Output: `analysis/story-maps/index.md` and `analysis/story-maps/[persona-name].md`
+- Coverage output: Persona-to-story coverage ledger
 - One Story Map per Persona
 - Format: `Activity -> Step -> Story`
 - Do not mention pages or Features
@@ -68,7 +80,9 @@ Persona split rules:
 ## Round 3: Page Map
 
 - Input: approved `analysis/story-maps/*.md`
+- Evidence input: approved Story Map plus round inventory
 - Output: `analysis/pages/index.md`, `analysis/pages/[page-slug].md`, and `analysis/relations/persona-story-page-matrix.md`
+- Coverage output: story-to-page coverage ledger
 - Map Story Steps into page, modal, drawer, or tab surfaces
 - Round 3 MUST consume only `approved` Story Map revisions that are not `stale`
 - If an upstream Story Map changes, all derived page revisions become stale instead of being rewritten in place
@@ -76,7 +90,9 @@ Persona split rules:
 ## Round 4: Feature Slicing
 
 - Input: approved `analysis/pages/*.md`
+- Evidence input: approved Page set plus batch inventory
 - Output: `analysis/features/index.md`, `analysis/features/[feature-name].md`, and `analysis/relations/feature-coverage-matrix.md`
+- Coverage output: page-to-feature coverage ledger
 - Process 1-3 pages at a time, then pause
 - Each Feature should record name, page, responsibility, state type, cross-page reuse, and source story
 - Round 4 MUST consume only `approved` Page revisions that are not `stale`
@@ -85,7 +101,9 @@ Persona split rules:
 ## Round 5: Given-When-Then
 
 - Input: approved `analysis/features/*.md`
+- Evidence input: approved Feature plus frozen packet
 - Output: `analysis/gwt/[feature-name].feature`
+- Coverage output: scenario coverage ledger
 - Process one Feature at a time, then pause
 - Round 5 MUST consume only `approved` Feature revisions that are not `stale`
 - If a Feature revision changes later, its GWT revision becomes stale
@@ -93,7 +111,9 @@ Persona split rules:
 ## Round 6: Feature Spec And Delivery Planning
 
 - Input: all approved artifacts
+- Evidence input: all approved upstream artifacts plus frozen packet
 - Output: `analysis/specs/features/[feature-name]-spec.md`
+- Coverage output: delivery-risk coverage ledger
 - Generate one Feature Spec per Feature
 - Final release planning should rely on recorded dependency edges and approval state, not on manual matrix edits alone
 - Round 6 MUST consume only approved and fresh upstream revisions across the full chain

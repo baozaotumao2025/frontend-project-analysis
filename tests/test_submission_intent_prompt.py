@@ -14,6 +14,11 @@ def test_submission_intent_prompt_uses_default_template() -> None:
         "repository_context": {"branch": "main", "head": "abc123"},
         "available_actions": ["maintainer_publish", "downstream_submit"],
         "routing_rules": ["be conservative", "return JSON only"],
+        "llm_isolation": {
+            "mode": "fresh_submission_router_context",
+            "fork_context": False,
+            "required": True,
+        },
     }
 
     system_prompt = build_submission_intent_system_prompt(packet)
@@ -25,6 +30,8 @@ def test_submission_intent_prompt_uses_default_template() -> None:
     assert "帮我发布 skill 仓库" in user_prompt
     assert '"branch": "main"' in user_prompt
     assert "be conservative" in user_prompt
+    assert "fresh isolated router context" in system_prompt
+    assert '"mode": "fresh_submission_router_context"' in user_prompt
     assert system_prompt in combined
     assert user_prompt in combined
 
@@ -39,6 +46,11 @@ def test_submission_intent_prompt_honors_template_overrides() -> None:
         "repository_context": {"project": "crm-web"},
         "available_actions": ["downstream_submit"],
         "routing_rules": ["custom-rule"],
+        "llm_isolation": {
+            "mode": "fresh_submission_router_context",
+            "fork_context": False,
+            "required": True,
+        },
     }
 
     system_prompt = build_submission_intent_system_prompt(packet, settings=settings)
@@ -51,3 +63,4 @@ def test_submission_intent_prompt_honors_template_overrides() -> None:
     assert "downstream_submit" in user_prompt
     assert "custom-rule" in combined
     assert "downstream_submit" in combined
+    assert "fresh isolated router context" in system_prompt

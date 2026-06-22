@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from ..core.config import Settings, require_llm_settings
+from ..core.contracts import assert_isolation_contract
 from ..core.errors import ConfigurationError
 from .brief import run_brief_assistant
 from .payloads import run_mock_review
@@ -22,6 +23,12 @@ __all__ = [
 
 def run_semantic_review(packet: dict, settings: Settings | None = None) -> ProviderResponse:
     resolved = require_llm_settings(settings)
+    assert_isolation_contract(
+        packet,
+        key="review_isolation",
+        mode="fresh_reviewer_subagent",
+        label="Semantic review",
+    )
     provider = (resolved.llm_provider or "host").strip().lower()
     if provider == "host":
         raise ConfigurationError(

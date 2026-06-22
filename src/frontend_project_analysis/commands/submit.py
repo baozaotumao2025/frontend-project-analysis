@@ -9,6 +9,7 @@ from pathlib import Path
 import typer
 
 from ..core.config import get_paths, get_settings
+from ..core.packets import build_submission_packet
 from ..llm import run_submission_intent
 from .utils import handle_service_error
 
@@ -37,16 +38,10 @@ def _build_repository_context(root: Path) -> dict[str, object]:
 
 
 def _build_submission_packet(request: str, root: Path) -> dict[str, object]:
-    return {
-        "user_message": request,
-        "repository_context": _build_repository_context(root),
-        "available_actions": ["maintainer_publish", "downstream_submit", "ambiguous"],
-        "routing_rules": [
-            "Be conservative when the request is ambiguous.",
-            "Return JSON only.",
-            "Use repository context to distinguish skill publication from downstream submission.",
-        ],
-    }
+    return build_submission_packet(
+        request,
+        repository_context=_build_repository_context(root),
+    )
 
 
 def _render_submission_result(result) -> str:
@@ -76,4 +71,3 @@ def submit(request: str | None = typer.Argument(None, help="Natural language req
     typer.echo(_render_submission_result(result))
     if result.payload.model_dump().get("intent") == "ambiguous":
         raise typer.Exit(1)
-

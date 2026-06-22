@@ -17,6 +17,23 @@ def test_host_submission_routing_is_blocked() -> None:
     settings = Settings(llm_provider="host")
 
     with pytest.raises(ConfigurationError, match="submission intent router"):
+        run_submission_intent(
+            {
+                "user_message": "帮我发布 skill 仓库",
+                "llm_isolation": {
+                    "mode": "fresh_submission_router_context",
+                    "fork_context": False,
+                    "required": True,
+                },
+            },
+            settings,
+        )
+
+
+def test_submission_routing_requires_isolation_contract() -> None:
+    settings = Settings(llm_provider="mock", llm_model="mock-model")
+
+    with pytest.raises(ConfigurationError, match="fresh isolated context contract"):
         run_submission_intent({"user_message": "帮我发布 skill 仓库"}, settings)
 
 
@@ -26,6 +43,11 @@ def test_mock_submission_routing_resolves_downstream_submit() -> None:
         "user_message": "Please submit the current generated project",
         "repository_context": {"project": "crm-web"},
         "routing_rules": ["be conservative"],
+        "llm_isolation": {
+            "mode": "fresh_submission_router_context",
+            "fork_context": False,
+            "required": True,
+        },
     }
 
     result = run_submission_intent(packet, settings)
@@ -39,4 +61,3 @@ def test_mock_submission_routing_resolves_downstream_submit() -> None:
     assert result.payload.suggested_action == "Proceed with downstream submit flow."
     assert result.audit.provider_name == "mock"
     assert result.audit.endpoint == "mock://submission-intent"
-

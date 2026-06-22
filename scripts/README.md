@@ -19,6 +19,7 @@ full command hierarchy policy.
 - `./scripts/test-e2e-reset.sh`: force reset E2E coverage
 - `./scripts/test-full.sh`: full test suite
 - `./scripts/test-all.sh`: compile, smoke, and full tests
+- `./scripts/test-coverage.sh`: full test suite with coverage reporting
 
 ## Lint
 
@@ -27,9 +28,9 @@ full command hierarchy policy.
 ## Release
 
 - `./scripts/release-preflight.sh`: release-time test, lint, path-leak, version, and parity-audit launcher
-- `./scripts/release-llm-review.sh`: release packet generator for a fresh-session LLM review
+- `./scripts/release-llm-review.sh`: release frozen packet generator for a fresh-session LLM review
 - `./scripts/release-card.sh`: minimal fresh-session reviewer card generator after preflight
-- `./scripts/release.sh`: release preflight followed by fresh-session LLM review packet generation
+- `./scripts/release.sh`: release preflight followed by fresh-session frozen packet generation
 - `./scripts/release-publish.sh`: maintainer publish flow that runs preflight, regression, review, version checks, commit, tag, and push
 
 ## Make Targets

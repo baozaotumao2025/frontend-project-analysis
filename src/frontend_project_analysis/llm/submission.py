@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from ..core.config import Settings
+from ..core.contracts import assert_isolation_contract
 from ..core.errors import ConfigurationError, ProviderValidationError
 from ..core.prompts import (
     build_submission_intent_system_prompt,
@@ -80,6 +81,12 @@ def validate_submission_intent_content(
 
 
 def run_submission_intent(packet: dict, settings: Settings) -> ProviderResponse:
+    assert_isolation_contract(
+        packet,
+        key="llm_isolation",
+        mode="fresh_submission_router_context",
+        label="Submission routing",
+    )
     provider = (settings.llm_provider or "host").strip().lower()
     if provider == "host":
         raise ConfigurationError(

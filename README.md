@@ -2,6 +2,8 @@
 
 `frontend-project-analysis` 是一个以文档为先的前端项目分析 skill，同时内置一套可复用的 Python 工作流基础设施。这个 skill 安装在 Codex 环境中运行，不要求目标项目复制一整套工具脚手架。它把前端项目拆解成 `Persona`、`Story Map`、`Page`、`Feature`、`GWT` 和 `Feature Spec` 等结构化产物，并用 SQLite 记录依赖、审核、版本和审计信息。
 
+在这条主链路之外，仓库还定义了一层 evidence-gated abstraction：先枚举 `analysis_inventory`，再做 `coverage ledger` 对账，随后冻结 `frozen packet`，最后让 `independent worker` 做语义判断。相关规范见 [references/evidence-gated-abstraction.md](references/evidence-gated-abstraction.md) 和 [references/adr/0009-evidence-gated-abstraction-control-layer.md](references/adr/0009-evidence-gated-abstraction-control-layer.md)。
+
 当前发布版本为 `1.3.4`。
 
 ## 快速开始
@@ -30,6 +32,8 @@ uv run fpa review structural --project crm-web --artifact persona:sales-rep
    - 你也可以用多轮对话逐步补充项目背景，等信息足够完整后先执行 `uv run fpa brief confirm ...`，再执行 `uv run fpa init ...`
    - 如果你不知道怎么写 brief，可以先运行 `uv run fpa brief interview --output ./project-brief.md`；如果你想让 LLM 帮你补问和收尾，可以用 `uv run fpa brief assistant --output ./project-brief.md`，由 skill 先问 3 个核心问题，再根据权限、约束、集成信号和 AI 建议做追问帮你收敛信息
    - 这两条命令都会先产出 `draft` brief，正式喂给 `init` 之前请再运行 `uv run fpa brief confirm --input ./project-brief.md --output ./project-brief.confirmed.md`，然后把确认后的文件传给 `init`
+
+如果你想直接照着自然语言推进完整拆解，可以先看这份快捷指令手册：[runbooks/shortcut-manual.md](runbooks/shortcut-manual.md)。
 
 一个可以直接用的自然语言请求是：
 
@@ -109,6 +113,7 @@ analysis/specs/features/
 状态机语义图见 [references/state-machine.md](references/state-machine.md)。
 状态 gate 与回退的设计背景见 [references/adr/index.md](references/adr/index.md)。
 CLI 层面的用户影响和命令约束见 [references/cli-contract.md](references/cli-contract.md)。
+证据控制层的 inventory、coverage、冻结 packet 与独立审查口径见 [references/evidence-gated-abstraction.md](references/evidence-gated-abstraction.md)。
 
 
 ## 2. 项目能做什么
@@ -167,7 +172,7 @@ CLI 层面的用户影响和命令约束见 [references/cli-contract.md](referen
 
 ### Host Review Isolation
 
-`host` 模式不由本仓库代码去调用外部大模型，而是把语义审查 packet 交给一个新的 Codex 或 Claude Code 审查上下文来判断。这个 fresh-context 规则适用于 round 1 到 round 6 的 packet 驱动语义检查，以及 release review packet。
+`host` 模式不由本仓库代码去调用外部大模型，而是把 frozen packet 交给一个新的 Codex 或 Claude Code 审查上下文来判断。这个 fresh-context 规则适用于 round 1 到 round 6 的 packet 驱动语义检查，以及 release review packet。
 
 在支持 sub-agent 的 Codex 环境里，必须用 `fork_context: false` 起一个 fresh reviewer sub-agent，只读 packet，不继承生成文档时的上下文。
 
@@ -364,6 +369,7 @@ make all
 - `./scripts/test-check.sh`: `compileall` + smoke
 - `./scripts/test-full.sh`: 全量测试
 - `./scripts/test-all.sh`: 检查 + 全量测试
+- `./scripts/test-coverage.sh`: 全量测试 + coverage report
 - `./scripts/lint.sh`: Ruff lint
 
 ### Make 入口

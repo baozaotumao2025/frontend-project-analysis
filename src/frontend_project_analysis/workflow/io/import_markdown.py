@@ -11,6 +11,7 @@ from ...core.domain import ArtifactStatus
 from ...infrastructure.documents import infer_artifact_type, read_document
 from ...models import Project
 from ...repositories.versions import upsert_artifact
+from ..state.definitions import WorkflowStateError
 from .document_indexes import refresh_document_indexes
 from .relations import render_relations_markdown
 
@@ -25,6 +26,17 @@ def _ensure_gitignore_entry(root: Path, entry: str) -> None:
         return
     existing_lines.append(entry)
     gitignore_path.write_text("\n".join(existing_lines) + "\n", encoding="utf-8")
+
+
+def _is_known_projection_sidecar(path: Path) -> bool:
+    normalized = path.as_posix()
+    if path.name == "index.md":
+        return True
+    if normalized.endswith("/brief.md"):
+        return True
+    if "/analysis/relations/" in normalized:
+        return True
+    return False
 
 
 def initialize_project(
@@ -87,35 +99,68 @@ def import_markdown_files(
         *sorted((root / ANALYSIS_DIR_NAME).rglob("*.md")),
         *sorted((root / ANALYSIS_DIR_NAME / "gwt").rglob("*.feature")),
     ]
-    previews: list[dict] = []
+    preview_items: list[dict] = []
+    unknown_files: list[str] = []
+    seen_refs: dict[str, str] = {}
+
     for path in candidates:
         inferred_type = infer_artifact_type(path)
+        relative_path = str(path.relative_to(root))
         if inferred_type is None:
+            if _is_known_projection_sidecar(path):
+                continue
+            unknown_files.append(relative_path)
             continue
+
         metadata, _body = read_document(path)
         slug = str(metadata.get("slug") or path.stem.replace("-spec", ""))
         title = str(metadata.get("title") or path.stem.replace("-", " ").title())
-        previews.append(
+        ref = f"{inferred_type.value}:{slug}"
+        previous_path = seen_refs.get(ref)
+        if previous_path is not None and previous_path != relative_path:
+            raise WorkflowStateError(
+                "Markdown scan found duplicate artifact references: "
+                f"'{ref}' appears in both '{previous_path}' and '{relative_path}'."
+            )
+        seen_refs[ref] = relative_path
+        preview_items.append(
             {
-                "path": str(path.relative_to(root)),
-                "artifact_type": inferred_type.value,
+                "path": relative_path,
+                "artifact_type": inferred_type,
                 "slug": slug,
                 "title": title,
+                "metadata": metadata,
             }
         )
+
+    if unknown_files:
+        raise WorkflowStateError(
+            "Markdown scan found unsupported analysis files that cannot be indexed: "
+            + ", ".join(sorted(unknown_files))
+        )
+
+    for item in preview_items:
         if apply_changes:
             upsert_artifact(
                 session=session,
                 project=project,
-                artifact_type=inferred_type,
-                slug=slug,
-                title=title,
-                source_path=str(path.relative_to(root)),
+                artifact_type=item["artifact_type"],
+                slug=item["slug"],
+                title=item["title"],
+                source_path=item["path"],
                 status=ArtifactStatus.DRAFT,
-                metadata=metadata,
+                metadata=item["metadata"],
                 created_by="markdown-scan",
             )
     if apply_changes:
         refresh_document_indexes(root)
         render_relations_markdown(session, project, root)
-    return previews
+    return [
+        {
+            "path": item["path"],
+            "artifact_type": item["artifact_type"].value,
+            "slug": item["slug"],
+            "title": item["title"],
+        }
+        for item in preview_items
+    ]

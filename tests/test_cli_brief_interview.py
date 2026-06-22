@@ -16,6 +16,9 @@ runner = CliRunner()
 
 
 def _fake_brief_assistant(packet: dict, settings=None, stage: str = "followup") -> ProviderResponse:
+    assert packet["llm_isolation"]["mode"] == "fresh_brief_assistant_context"
+    assert packet["llm_isolation"]["fork_context"] is False
+    assert packet["llm_isolation"]["required"] is True
     if stage == "followup":
         payload = BriefAssistantPayload(
             stage="followup",

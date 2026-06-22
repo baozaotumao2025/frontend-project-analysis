@@ -8,6 +8,40 @@ from ...core.domain import ArtifactStatus, DependencyType
 from ...models import Project
 from ...repositories.dependencies import add_dependency, parse_artifact_ref
 from ...repositories.versions import upsert_artifact
+from ..state.definitions import WorkflowStateError
+
+
+def _validate_manifest_artifacts(artifact_items: list[dict]) -> None:
+    seen_refs: dict[str, int] = {}
+    for index, item in enumerate(artifact_items):
+        if not isinstance(item, dict):
+            raise WorkflowStateError(
+                f"Manifest artifact entry at index {index} must be an object."
+            )
+        for field in ("ref", "title"):
+            if field not in item:
+                raise WorkflowStateError(
+                    f"Manifest artifact entry at index {index} is missing '{field}'."
+                )
+        ref = str(item["ref"])
+        previous_index = seen_refs.get(ref)
+        if previous_index is not None:
+            raise WorkflowStateError(
+                f"Manifest contains duplicate artifact reference '{ref}' at indexes "
+                f"{previous_index} and {index}."
+            )
+        seen_refs[ref] = index
+        for dependency_index, dependency in enumerate(item.get("dependencies", [])):
+            if not isinstance(dependency, dict):
+                raise WorkflowStateError(
+                    f"Dependency {dependency_index} for artifact '{ref}' must be an object."
+                )
+            for field in ("to", "type"):
+                if field not in dependency:
+                    raise WorkflowStateError(
+                        f"Dependency {dependency_index} for artifact '{ref}' is missing "
+                        f"'{field}'."
+                    )
 
 
 def import_manifest_payload(
@@ -17,6 +51,9 @@ def import_manifest_payload(
     apply_changes: bool,
 ) -> dict:
     artifact_items = payload.get("artifacts", [])
+    if not isinstance(artifact_items, list):
+        raise WorkflowStateError("Manifest payload must contain an 'artifacts' array.")
+    _validate_manifest_artifacts(artifact_items)
     preview: list[dict] = []
     for item in artifact_items:
         ref = item["ref"]

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 
 from .config import Settings
+from .contracts import build_isolation_contract
 from .domain import SEMANTIC_REVIEW_RUBRICS, ArtifactType
 
 _SEMANTIC_REVIEW_BASE_PROMPT = """You are a strict product analysis reviewer.
@@ -151,6 +152,7 @@ def build_release_review_packet_manifest(packet: dict) -> dict:
         "review_kind": "release",
         "fresh_session_required": True,
         "packet_only": True,
+        "review_isolation": build_isolation_contract("fresh_release_reviewer_context"),
         "response_format": "json",
         "findings_order": "counterexamples-first",
         "focus": [
@@ -181,6 +183,7 @@ def build_release_review_reviewer_card(packet: dict) -> str:
         "2. Do not inspect the drafting conversation or hidden scratch work.",
         "3. Return JSON only.",
         "4. List counterexamples first, then evidence-backed findings.",
+        f"Isolation contract: `{json.dumps(packet.get('review_isolation', {}), ensure_ascii=True)}`",
         "",
         "## What to review",
         f"- Repository context: `{json.dumps(repository_context, ensure_ascii=True)}`",
@@ -228,7 +231,10 @@ def build_submission_intent_system_prompt(
         if settings and settings.submission_intent_system_prompt_template
         else _SUBMISSION_INTENT_SYSTEM_PROMPT_TEMPLATE
     )
-    return _render_template(template, **_submission_intent_prompt_context(packet)).strip()
+    return (
+        _render_template(template, **_submission_intent_prompt_context(packet)).strip()
+        + "\n\nTreat this as a fresh isolated router context. Do not reuse prior drafting state."
+    )
 
 
 def build_submission_intent_user_prompt(packet: dict, settings: Settings | None = None) -> str:
@@ -237,7 +243,9 @@ def build_submission_intent_user_prompt(packet: dict, settings: Settings | None 
         if settings and settings.submission_intent_user_prompt_template
         else _SUBMISSION_INTENT_USER_PROMPT_TEMPLATE
     )
-    return _render_template(template, **_submission_intent_prompt_context(packet)).strip()
+    rendered = _render_template(template, **_submission_intent_prompt_context(packet)).strip()
+    isolation_contract = json.dumps(packet.get("llm_isolation", {}), ensure_ascii=True)
+    return rendered + "\n\nIsolation contract: " + isolation_contract
 
 
 def build_submission_intent_prompt(packet: dict, settings: Settings | None = None) -> str:
@@ -254,6 +262,8 @@ def build_brief_assistant_system_prompt(stage: str = "followup") -> str:
         "You are a careful brief assistant that helps refine a project brief through"
         " Socratic questioning and synthesis.\n\n"
         "Use only the interview transcript and current brief packet.\n"
+        "Treat this as a fresh isolated assistant context and do not reuse prior drafting "
+        "conversation state.\n"
         "Do not invent facts.\n"
         "Prefer concrete gaps, follow-up questions, and concise synthesis.\n\n"
         "Return JSON only.\n"
@@ -272,6 +282,7 @@ def build_brief_assistant_user_prompt(packet: dict, stage: str = "followup") -> 
         "Review the current brief interview packet and produce a brief assistant result.\n\n"
         f"Stage: {stage}\n"
         f"Remaining question budget: {budget}\n\n"
+        f"Isolation contract: {json.dumps(packet.get('llm_isolation', {}), ensure_ascii=True)}\n\n"
         f"Transcript:\n{json.dumps(transcript, indent=2, ensure_ascii=True)}\n\n"
         f"Current answers:\n{json.dumps(answers, indent=2, ensure_ascii=True)}\n"
     )

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from ..core.config import Settings
+from ..core.contracts import assert_isolation_contract
 from ..core.errors import ConfigurationError, ProviderValidationError
 from ..core.prompts import (
     build_brief_assistant_system_prompt,
@@ -116,6 +117,12 @@ def run_brief_assistant(
     *,
     stage: str = "followup",
 ) -> ProviderResponse:
+    assert_isolation_contract(
+        packet,
+        key="llm_isolation",
+        mode="fresh_brief_assistant_context",
+        label="Brief assistant",
+    )
     provider = (settings.llm_provider or "host").strip().lower()
     if provider == "host":
         raise ConfigurationError(
