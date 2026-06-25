@@ -78,5 +78,5 @@ Rejected because it would reintroduce hidden coupling and make approved history 
 
 - `references/state-machine.md` continues to define canonical lifecycle semantics.
 - `references/workflow.md` continues to define the formal round contract.
-- `references/state-entrypoints.md` should eventually list the mode-specific entrypoints once the CLI is implemented.
+- `references/state-entrypoints.md` already lists the mode-specific entrypoints for both formal and explore paths.
 - `references/cli-contract.md` should describe the user-visible difference between the two modes after implementation.

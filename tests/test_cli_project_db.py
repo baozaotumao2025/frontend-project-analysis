@@ -40,13 +40,24 @@ def test_project_init_artifact_and_dependency_flow(tmp_path: Path) -> None:
     assert (tmp_path / "analysis" / "story-maps" / "index.md").exists()
     assert (tmp_path / "analysis" / "pages" / "index.md").exists()
     assert (tmp_path / "analysis" / "features" / "index.md").exists()
+    assert (tmp_path / "analysis" / "relations" / "index.md").exists()
     assert (tmp_path / "analysis" / "relations" / "persona-story-page-matrix.md").exists()
     assert (tmp_path / "analysis" / "relations" / "feature-coverage-matrix.md").exists()
+    assert (tmp_path / "analysis" / "relations" / "gwt-feature-matrix.md").exists()
+    assert (tmp_path / "analysis" / "relations" / "graph.html").exists()
+    root_index_text = (tmp_path / "analysis" / "index.md").read_text(encoding="utf-8")
+    graph_html_text = (tmp_path / "analysis" / "relations" / "graph.html").read_text(
+        encoding="utf-8"
+    )
+    assert "./relations/index.md" in root_index_text
+    assert "./relations/graph.html" in root_index_text
+    assert "Relationship Graph Placeholder" in graph_html_text
+    assert "export graph-html --project crm-web" in graph_html_text
     assert (tmp_path / ".frontend-project-analysis" / "state.db").exists()
     gitignore_text = (tmp_path / ".gitignore").read_text(encoding="utf-8")
     assert ".frontend-project-analysis/" in gitignore_text
     assert (
-        "Registered persona:sales-rep"
+        "Registered persona:alpha-persona"
         in invoke_with_root(
             tmp_path,
             [
@@ -57,9 +68,9 @@ def test_project_init_artifact_and_dependency_flow(tmp_path: Path) -> None:
                 "--type",
                 "persona",
                 "--slug",
-                "sales-rep",
+                "alpha-persona",
                 "--title",
-                "Sales Rep",
+                "Alpha Persona",
             ],
         ).output
     )
@@ -212,9 +223,9 @@ def test_database_wipe_then_reinitialize_supports_bootstrap_and_gate(tmp_path: P
             "--type",
             "persona",
             "--slug",
-            "sales-rep",
+            "alpha-persona",
             "--title",
-            "Sales Rep",
+            "Alpha Persona",
         ],
     )
     assert persona_add_result.exit_code == 0, persona_add_result.output
@@ -231,7 +242,7 @@ def test_database_wipe_then_reinitialize_supports_bootstrap_and_gate(tmp_path: P
         ],
     )
     assert gate_result.exit_code == 1, gate_result.output
-    assert "persona:sales-rep" in gate_result.output
+    assert "persona:alpha-persona" in gate_result.output
     assert "draft" in gate_result.output
 
 
@@ -264,20 +275,20 @@ def test_project_init_rejects_unconfirmed_brief(tmp_path: Path) -> None:
 
 def test_markdown_scan_refreshes_document_indexes(tmp_path: Path) -> None:
     bootstrap_project(tmp_path)
-    markdown_path = tmp_path / "analysis" / "pages" / "customer-profile.md"
+    markdown_path = tmp_path / "analysis" / "pages" / "alpha-page.md"
     markdown_path.write_text(
         "---\n"
         "artifact_type: page\n"
-        "slug: customer-profile\n"
+        "slug: alpha-page\n"
         "round: 3\n"
         "status: draft\n"
         "project: crm-web\n"
-        "title: Customer Profile\n"
+        "title: Alpha Page\n"
         "---\n"
-        "# Customer Profile\n"
+        "# Alpha Page\n"
         "\n"
         "## Accessible Persona\n"
-        "- Sales Rep\n"
+        "- Alpha Persona\n"
         "\n"
         "## Responsibility\n"
         "Shows the customer profile.\n",
@@ -297,15 +308,15 @@ def test_markdown_scan_refreshes_document_indexes(tmp_path: Path) -> None:
     assert scan_result.exit_code == 0, scan_result.output
 
     page_index = (tmp_path / "analysis" / "pages" / "index.md").read_text(encoding="utf-8")
-    assert "Customer Profile" in page_index
-    assert "/customer-profile" in page_index
-    assert "[Customer Profile](./customer-profile.md)" in page_index
+    assert "Alpha Page" in page_index
+    assert "/alpha-page" in page_index
+    assert "[Alpha Page](./alpha-page.md)" in page_index
 
 
 def test_markdown_scan_populates_feature_and_story_map_indexes(tmp_path: Path) -> None:
     bootstrap_project(tmp_path)
 
-    story_map_path = tmp_path / "analysis" / "story-maps" / "sales-rep.md"
+    story_map_path = tmp_path / "analysis" / "story-maps" / "alpha-persona.md"
     story_map_path.write_text(
         "## Start\n"
         "- Enter the customer workspace.\n"
@@ -322,23 +333,23 @@ def test_markdown_scan_populates_feature_and_story_map_indexes(tmp_path: Path) -
         encoding="utf-8",
     )
 
-    feature_path = tmp_path / "analysis" / "features" / "customer-assignment.md"
+    feature_path = tmp_path / "analysis" / "features" / "alpha-feature.md"
     feature_path.write_text(
         "---\n"
         "artifact_type: feature\n"
-        "slug: customer-assignment\n"
+        "slug: alpha-feature\n"
         "round: 4\n"
         "status: draft\n"
         "project: crm-web\n"
-        "title: Customer Assignment\n"
+        "title: Alpha Feature\n"
         "---\n"
-        "# Customer Assignment\n"
+        "# Alpha Feature\n"
         "\n"
         "## Page\n"
-        "- Customer Profile\n"
+        "- Alpha Page\n"
         "\n"
         "## Persona Served\n"
-        "- Sales Rep\n"
+        "- Alpha Persona\n"
         "\n"
         "## Business Responsibility\n"
         "Lets sales reps reassign an account.\n"
@@ -370,10 +381,10 @@ def test_markdown_scan_populates_feature_and_story_map_indexes(tmp_path: Path) -
 
     assert "Enter the customer workspace." in story_map_index
     assert "Leave the customer workspace." in story_map_index
-    assert "[Sales Rep](./sales-rep.md)" in story_map_index
-    assert "Sales Rep Story Map" not in story_map_index
+    assert "[Alpha Persona](./alpha-persona.md)" in story_map_index
+    assert "Alpha Persona Story Map" not in story_map_index
     assert "Lets sales reps reassign an account." in feature_index
-    assert "Customer Assignment" in feature_index
+    assert "Alpha Feature" in feature_index
 
 
 def test_markdown_scan_apply_refreshes_relation_matrices(tmp_path: Path) -> None:
@@ -389,9 +400,9 @@ def test_markdown_scan_apply_refreshes_relation_matrices(tmp_path: Path) -> None
             "--type",
             "story_map",
             "--slug",
-            "sales-rep",
+            "alpha-persona",
             "--title",
-            "Sales Rep Story Map",
+            "Alpha Persona Story Map",
         ],
     )
     assert story_map_add.exit_code == 0, story_map_add.output
@@ -406,9 +417,9 @@ def test_markdown_scan_apply_refreshes_relation_matrices(tmp_path: Path) -> None
             "--type",
             "page",
             "--slug",
-            "customer-profile",
+            "alpha-page",
             "--title",
-            "Customer Profile",
+            "Alpha Page",
         ],
     )
     assert page_add.exit_code == 0, page_add.output
@@ -421,9 +432,9 @@ def test_markdown_scan_apply_refreshes_relation_matrices(tmp_path: Path) -> None
             "--project",
             "crm-web",
             "--from",
-            "story_map:sales-rep",
+            "story_map:alpha-persona",
             "--to",
-            "persona:sales-rep",
+            "persona:alpha-persona",
         ],
     )
     assert story_link.exit_code == 0, story_link.output
@@ -436,9 +447,9 @@ def test_markdown_scan_apply_refreshes_relation_matrices(tmp_path: Path) -> None
             "--project",
             "crm-web",
             "--from",
-            "page:customer-profile",
+            "page:alpha-page",
             "--to",
-            "story_map:sales-rep",
+            "story_map:alpha-persona",
         ],
     )
     assert page_link.exit_code == 0, page_link.output
@@ -451,9 +462,9 @@ def test_markdown_scan_apply_refreshes_relation_matrices(tmp_path: Path) -> None
             "--project",
             "crm-web",
             "--from",
-            "feature:customer-assignment",
+            "feature:alpha-feature",
             "--to",
-            "page:customer-profile",
+            "page:alpha-page",
         ],
     )
     assert feature_link.exit_code == 0, feature_link.output
@@ -472,31 +483,45 @@ def test_markdown_scan_apply_refreshes_relation_matrices(tmp_path: Path) -> None
 
     psp_path = tmp_path / "analysis" / "relations" / "persona-story-page-matrix.md"
     feature_path = tmp_path / "analysis" / "relations" / "feature-coverage-matrix.md"
-    assert "story_map:sales-rep" in psp_path.read_text(encoding="utf-8")
-    assert "page:customer-profile" in psp_path.read_text(encoding="utf-8")
-    assert "feature:customer-assignment" in feature_path.read_text(encoding="utf-8")
-    assert "page:customer-profile" in feature_path.read_text(encoding="utf-8")
+    gwt_feature_path = tmp_path / "analysis" / "relations" / "gwt-feature-matrix.md"
+    assert "story_map:alpha-persona" in psp_path.read_text(encoding="utf-8")
+    assert "page:alpha-page" in psp_path.read_text(encoding="utf-8")
+    assert "feature:alpha-feature" in feature_path.read_text(encoding="utf-8")
+    assert "page:alpha-page" in feature_path.read_text(encoding="utf-8")
+    assert "GWT Feature Matrix" in gwt_feature_path.read_text(encoding="utf-8")
+    assert (
+        "| Persona | Story Map | Page | Feature | GWT |"
+        in psp_path.read_text(encoding="utf-8")
+    )
+    assert (
+        "| Feature | Persona | Page | Story Map | GWT |"
+        in feature_path.read_text(encoding="utf-8")
+    )
+    assert (
+        "| GWT | Feature | Page | Persona | Story Map |"
+        in gwt_feature_path.read_text(encoding="utf-8")
+    )
 
 
 def test_markdown_scan_reads_page_route_information_from_body(tmp_path: Path) -> None:
     bootstrap_project(tmp_path)
-    markdown_path = tmp_path / "analysis" / "pages" / "customer-profile.md"
+    markdown_path = tmp_path / "analysis" / "pages" / "alpha-page.md"
     markdown_path.write_text(
         "---\n"
         "artifact_type: page\n"
-        "slug: customer-profile\n"
+        "slug: alpha-page\n"
         "round: 3\n"
         "status: draft\n"
         "project: crm-web\n"
-        "title: Customer Profile\n"
+        "title: Alpha Page\n"
         "---\n"
-        "# Customer Profile\n"
+        "# Alpha Page\n"
         "\n"
         "## Route Information\n"
-        "- Route: `/crm/customer-profile`\n"
+        "- Route: `/crm/alpha-page`\n"
         "\n"
         "## Accessible Persona\n"
-        "- Sales Rep\n"
+        "- Alpha Persona\n"
         "\n"
         "## Responsibility\n"
         "Shows the customer profile.\n",
@@ -516,4 +541,4 @@ def test_markdown_scan_reads_page_route_information_from_body(tmp_path: Path) ->
     assert scan_result.exit_code == 0, scan_result.output
 
     page_index = (tmp_path / "analysis" / "pages" / "index.md").read_text(encoding="utf-8")
-    assert "/crm/customer-profile" in page_index
+    assert "/crm/alpha-page" in page_index

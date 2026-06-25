@@ -171,8 +171,11 @@ def build_release_review_packet_manifest(packet: dict) -> dict:
 def build_release_review_reviewer_card(packet: dict) -> str:
     repository_context = packet.get("repository_context", {})
     changed_surface = packet.get("changed_surface", [])
+    changed_surface_count = packet.get("changed_surface_count")
     prompt_rules = packet.get("prompt_rules", [])
     audit_focus = packet.get("audit_focus", [])
+    if changed_surface_count is None:
+        changed_surface_count = len(changed_surface)
     lines = [
         "# Release Reviewer Card",
         "",
@@ -183,11 +186,12 @@ def build_release_review_reviewer_card(packet: dict) -> str:
         "2. Do not inspect the drafting conversation or hidden scratch work.",
         "3. Return JSON only.",
         "4. List counterexamples first, then evidence-backed findings.",
-        f"Isolation contract: `{json.dumps(packet.get('review_isolation', {}), ensure_ascii=True)}`",
+        "Isolation contract: "
+        f"`{json.dumps(packet.get('review_isolation', {}), ensure_ascii=True)}`",
         "",
         "## What to review",
         f"- Repository context: `{json.dumps(repository_context, ensure_ascii=True)}`",
-        f"- Changed surface count: `{len(changed_surface)}`",
+        f"- Changed surface count: `{changed_surface_count}`",
         f"- Audit focus count: `{len(audit_focus)}`",
         "",
         "## Prompt rules",

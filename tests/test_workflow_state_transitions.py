@@ -98,8 +98,8 @@ def test_transition_artifact_requires_gate_sequence(tmp_path: Path) -> None:
             session=session,
             project=project,
             artifact_type=ArtifactType.PERSONA,
-            slug="sales-rep",
-            title="Sales Rep",
+            slug="alpha-persona",
+            title="Alpha Persona",
             source_path=None,
             status=ArtifactStatus.DRAFT,
             metadata={},
@@ -141,7 +141,7 @@ def test_transition_artifact_supports_allowed_recovery_and_terminal_edges(
     next_status: ArtifactStatus,
 ) -> None:
     paths = prepare_database(tmp_path)
-    source_path = tmp_path / "docs" / "personas" / f"sales-rep-{initial_status.value}.md"
+    source_path = tmp_path / "docs" / "personas" / f"alpha-persona-{initial_status.value}.md"
     source_path.parent.mkdir(parents=True, exist_ok=True)
     source_path.write_text("first version", encoding="utf-8")
 
@@ -151,8 +151,8 @@ def test_transition_artifact_supports_allowed_recovery_and_terminal_edges(
             session=session,
             project=project,
             artifact_type=ArtifactType.PERSONA,
-            slug=f"sales-rep-{initial_status.value}",
-            title="Sales Rep",
+            slug=f"alpha-persona-{initial_status.value}",
+            title="Alpha Persona",
             source_path=str(source_path.relative_to(tmp_path)),
             status=ArtifactStatus.DRAFT,
             metadata={},
@@ -174,8 +174,8 @@ def test_transition_artifact_supports_allowed_recovery_and_terminal_edges(
                 session=session,
                 project=project,
                 artifact_type=ArtifactType.PERSONA,
-                slug=f"sales-rep-{initial_status.value}",
-                title="Sales Rep",
+                slug=f"alpha-persona-{initial_status.value}",
+                title="Alpha Persona",
                 source_path=str(source_path.relative_to(tmp_path)),
                 status=ArtifactStatus.DRAFT,
                 metadata={},
@@ -221,14 +221,14 @@ def test_transition_artifact_accepts_explicit_self_transitions(
 
     with session_scope(paths) as session:
         project = ensure_project(session, "crm-web", "CRM Web", tmp_path)
-        source_path = tmp_path / "docs" / "personas" / "sales-rep.md"
+        source_path = tmp_path / "docs" / "personas" / "alpha-persona.md"
         source_path.parent.mkdir(parents=True, exist_ok=True)
         source_path.write_text("first version", encoding="utf-8")
         artifact = artifact_in_status(
             session,
             project,
             artifact_type=ArtifactType.PERSONA,
-            slug="sales-rep",
+            slug="alpha-persona",
             source_path=str(source_path.relative_to(tmp_path)),
             target_status=target_status,
         )
@@ -278,14 +278,14 @@ def test_superseded_rejects_reopen_attempts(
     paths = prepare_database(tmp_path)
     with session_scope(paths) as session:
         project = ensure_project(session, "crm-web", "CRM Web", tmp_path)
-        source_path = tmp_path / "docs" / "personas" / "sales-rep.md"
+        source_path = tmp_path / "docs" / "personas" / "alpha-persona.md"
         source_path.parent.mkdir(parents=True, exist_ok=True)
         source_path.write_text("first version", encoding="utf-8")
         artifact = artifact_in_status(
             session,
             project,
             artifact_type=ArtifactType.PERSONA,
-            slug="sales-rep",
+            slug="alpha-persona",
             source_path=str(source_path.relative_to(tmp_path)),
             target_status=ArtifactStatus.SUPERSEDED,
         )
@@ -320,14 +320,14 @@ def test_archived_rejects_all_reopen_attempts(
     paths = prepare_database(tmp_path)
     with session_scope(paths) as session:
         project = ensure_project(session, "crm-web", "CRM Web", tmp_path)
-        source_path = tmp_path / "docs" / "personas" / "sales-rep.md"
+        source_path = tmp_path / "docs" / "personas" / "alpha-persona.md"
         source_path.parent.mkdir(parents=True, exist_ok=True)
         source_path.write_text("first version", encoding="utf-8")
         artifact = artifact_in_status(
             session,
             project,
             artifact_type=ArtifactType.PERSONA,
-            slug="sales-rep",
+            slug="alpha-persona",
             source_path=str(source_path.relative_to(tmp_path)),
             target_status=ArtifactStatus.ARCHIVED,
         )

@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-06-25
+
+### Added
+
+- Unified relation-row projection across the three matrix views so `Persona`, `Story Map`, `Page`, `Feature`, and `GWT` coverage now stays consistent across every exported relation surface.
+- Clickable relation matrices plus `analysis/relations/index.md` and `analysis/relations/graph.html` as first-class browsing surfaces for relationship-heavy analysis output.
+- `export graph-json` for machine-readable relationship graph export with canonical `rows`, `nodes`, `edges`, stable `group` / `layout` metadata, and precomputed adjacency and traversal fields such as `adjacent_refs`, `upstream_refs`, and `downstream_refs`.
+- `export graph-html` for a static interactive relationship graph that supports deep links, focus filters, path-scope controls, and URL-restorable view state.
+
+### Changed
+
+- GWT artifacts now require an explicit frontmatter `feature` binding and relation export validates that the frontmatter binding and hard dependency graph stay aligned.
+- Relation matrices now include full five-column coverage (`Persona | Story Map | Page | Feature | GWT`, reordered per view) instead of partial projections.
+- Relationship exports now share one canonical graph builder so Markdown matrices, graph JSON, and graph HTML no longer drift from each other.
+- Matrix deep links now open the relationship graph with type-aware default path direction: `Persona` opens downstream, `GWT` opens upstream, and `Feature` opens both directions.
+
+### Fixed
+
+- Relation exports now fail closed when a `GWT` references a missing `Feature`, when graph bindings disagree with hard dependencies, or when matrix coverage would otherwise miss or hallucinate artifacts.
+- HTML graph state is now shareable and reproducible because focus, filter, and path-scope changes are synchronized back into the URL.
+
+### Notes
+
+- Release doc parity for the relationship export surfaces was tightened so the template inventory now includes `analysis/features/index.md` and `analysis/relations/graph.html`.
+- Release-facing infrastructure docs now state explicitly that `import markdown-scan --apply` refreshes indexes and relation matrices, but does not regenerate `graph.html` or `*-graph.json` exports.
+
 ## [1.3.4] - 2026-06-20
 
 ### Added

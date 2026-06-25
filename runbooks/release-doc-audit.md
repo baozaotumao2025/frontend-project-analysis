@@ -28,6 +28,9 @@ For a quick deterministic launcher, run `./scripts/release-preflight.sh` first.
 4. Check the canonical references that define repository behavior.
    - `README.md`, `SKILL.md`, and `references/document-map.md` should still agree on authority and reading order.
    - `references/cli-contract.md`, `references/state-entrypoints.md`, `references/quality-gates.md`, and the relevant `runbooks/*` files should reflect any changed command or workflow behavior.
+   - Re-check ADR scope before release.
+   - Changes that only refine projection files, export surfaces, or reference-layer presentation normally stay in `references/*` and do not need a new ADR.
+   - Add or revise an ADR only when the release introduces a new durable architectural boundary, lifecycle rule, authority split, or governance decision.
 5. Record the result.
    - `OK`: no mismatch remains.
    - `WARN`: the mismatch is intentional and documented as future work.

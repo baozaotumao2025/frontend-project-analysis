@@ -49,7 +49,10 @@ def _fake_submission_router(packet: dict, settings) -> ProviderResponse:
 def test_submit_command_routes_to_maintainer_publish(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("FPA_LLM_PROVIDER", "mock")
     monkeypatch.setenv("FPA_LLM_MODEL", "mock-model")
-    monkeypatch.setattr("frontend_project_analysis.commands.submit.run_submission_intent", _fake_submission_router)
+    monkeypatch.setattr(
+        "frontend_project_analysis.commands.submit.run_submission_intent",
+        _fake_submission_router,
+    )
 
     result = invoke_with_root(tmp_path, ["submit", "Please publish the skill repository"])
 
@@ -63,7 +66,10 @@ def test_submit_command_routes_to_maintainer_publish(tmp_path: Path, monkeypatch
 def test_submit_command_routes_to_downstream_submit(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("FPA_LLM_PROVIDER", "mock")
     monkeypatch.setenv("FPA_LLM_MODEL", "mock-model")
-    monkeypatch.setattr("frontend_project_analysis.commands.submit.run_submission_intent", _fake_submission_router)
+    monkeypatch.setattr(
+        "frontend_project_analysis.commands.submit.run_submission_intent",
+        _fake_submission_router,
+    )
 
     result = invoke_with_root(tmp_path, ["submit", "帮我提交当前生成物"])
 
@@ -77,7 +83,10 @@ def test_submit_command_routes_to_downstream_submit(tmp_path: Path, monkeypatch)
 def test_submit_command_rejects_ambiguous_request(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("FPA_LLM_PROVIDER", "mock")
     monkeypatch.setenv("FPA_LLM_MODEL", "mock-model")
-    monkeypatch.setattr("frontend_project_analysis.commands.submit.run_submission_intent", _fake_submission_router)
+    monkeypatch.setattr(
+        "frontend_project_analysis.commands.submit.run_submission_intent",
+        _fake_submission_router,
+    )
 
     result = invoke_with_root(tmp_path, ["submit", "请帮我处理一下"])
 

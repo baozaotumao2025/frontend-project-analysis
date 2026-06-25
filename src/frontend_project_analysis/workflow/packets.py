@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from ..core.domain import SEMANTIC_REVIEW_RUBRICS
 from ..models import Artifact, Project
-from .evidence import build_semantic_evidence_snapshot, artifact_ref
+from .evidence import artifact_ref, build_semantic_evidence_snapshot
 
 
 def build_semantic_packet(session, project: Project, artifact: Artifact) -> dict:

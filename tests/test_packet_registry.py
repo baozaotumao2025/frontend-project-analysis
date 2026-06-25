@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from frontend_project_analysis.core.config import Settings
-from frontend_project_analysis.core.packet_specs import PACKET_SPECS
 from frontend_project_analysis.core.packet_registry import (
     PACKET_REGISTRY,
     get_packet_spec,
     list_packet_specs,
 )
+from frontend_project_analysis.core.packet_specs import PACKET_SPECS
 from frontend_project_analysis.core.packets import (
     build_brief_assistant_packet,
     build_review_llm_context,

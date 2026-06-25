@@ -4,7 +4,7 @@
 
 在这条主链路之外，仓库还定义了一层 evidence-gated abstraction：先枚举 `analysis_inventory`，再做 `coverage ledger` 对账，随后冻结 `frozen packet`，最后让 `independent worker` 做语义判断。相关规范见 [references/evidence-gated-abstraction.md](references/evidence-gated-abstraction.md) 和 [references/adr/0009-evidence-gated-abstraction-control-layer.md](references/adr/0009-evidence-gated-abstraction-control-layer.md)。
 
-当前发布版本为 `1.3.4`。
+当前发布版本为 `1.4.0`。
 
 ## 快速开始
 
@@ -14,8 +14,8 @@
 uv sync
 uv run fpa brief confirm --input ./project-brief.md --output ./project-brief.confirmed.md
 uv run fpa init --project crm-web --name "CRM Web" --brief-file ./project-brief.confirmed.md
-uv run fpa artifact add --project crm-web --type persona --slug sales-rep --title "Sales Rep"
-uv run fpa review structural --project crm-web --artifact persona:sales-rep
+uv run fpa artifact add --project crm-web --type persona --slug alpha-persona --title "Alpha Persona"
+uv run fpa review structural --project crm-web --artifact persona:alpha-persona
 ```
 
 ## 两种使用方法
@@ -102,8 +102,11 @@ analysis/pages/index.md
 analysis/features/
 analysis/features/index.md
 analysis/relations/
+analysis/relations/index.md
 analysis/relations/persona-story-page-matrix.md
 analysis/relations/feature-coverage-matrix.md
+analysis/relations/gwt-feature-matrix.md
+analysis/relations/graph.html
 analysis/gwt/
 analysis/specs/features/
 ```
@@ -146,11 +149,35 @@ CLI 层面的用户影响和命令约束见 [references/cli-contract.md](referen
 ### Import / Export
 
 - `export manifest`：导出完整 JSON manifest
-- `export relations`：导出关系矩阵 Markdown
+- `export relations`：导出统一 row set 投影的关系矩阵 Markdown，并带可点击文件链接与图深链
+- `export graph-json`：导出节点、边、统一 row set、稳定 `group/layout` 和预计算遍历字段的关系图 JSON
+- `export graph-html`：导出可直接打开的静态 HTML 关系图，支持 URL 恢复当前筛选和路径视角
 - `import manifest`：从 JSON manifest 预览或写回数据库
 - `import markdown-scan`：扫描 Markdown frontmatter 和文件身份变更，并把结果回写到数据库
 
 `analysis/` 里的 Markdown 是人类可读、可编辑的投影层，不是和 SQLite 并列的第二套权威状态源。你直接改了 Markdown 之后，仍然需要运行对应的 import 命令把变更收敛进数据库；在那之前，数据库仍然视为权威，衍生索引和矩阵也可能暂时过期。
+
+### 关系导出与关系图
+
+当前关系导出有三层：
+
+1. `export relations`
+   - 生成三张矩阵：
+     - `analysis/relations/persona-story-page-matrix.md`
+     - `analysis/relations/feature-coverage-matrix.md`
+     - `analysis/relations/gwt-feature-matrix.md`
+   - 三张矩阵共用统一 row set
+   - 每个 artifact 单元格都可以点击回到原文件，并带 `↗` 深链进入关系图
+
+2. `export graph-json`
+   - 生成 `.frontend-project-analysis/exports/<project>-graph.json`
+   - 包含 `nodes`、`edges`、`rows`
+   - 每个节点还会包含 `group`、`layout`、`adjacent_refs`、`direct_upstream_refs`、`direct_downstream_refs`、`upstream_refs`、`downstream_refs`
+
+3. `export graph-html`
+   - 生成 `analysis/relations/graph.html`
+   - 支持 `Persona Focus`、`Feature Focus`、`Path Scope`、`hard dependency` 过滤
+   - URL 会自动同步当前筛选状态，方便分享和复现
 
 ### Database Maintenance
 
@@ -234,9 +261,9 @@ uv run fpa brief assistant --output ./project-brief.md
 ### 3.4 录入 artifact 和依赖
 
 ```bash
-uv run fpa artifact add --project crm-web --type persona --slug sales-rep --title "Sales Rep"
-uv run fpa artifact add --project crm-web --type feature --slug customer-assignment --title "Customer Assignment"
-uv run fpa artifact link --project crm-web --from feature:customer-assignment --to persona:sales-rep
+uv run fpa artifact add --project crm-web --type persona --slug alpha-persona --title "Alpha Persona"
+uv run fpa artifact add --project crm-web --type feature --slug alpha-feature --title "Alpha Feature"
+uv run fpa artifact link --project crm-web --from feature:alpha-feature --to persona:alpha-persona
 uv run fpa artifact list --project crm-web
 uv run fpa artifact ready --project crm-web
 ```
@@ -244,19 +271,19 @@ uv run fpa artifact ready --project crm-web
 ### 3.5 做结构校验
 
 ```bash
-uv run fpa review structural --project crm-web --artifact persona:sales-rep
+uv run fpa review structural --project crm-web --artifact persona:alpha-persona
 uv run fpa review structural --project crm-web
 ```
 
 ### 3.6 做语义审查
 
 ```bash
-uv run fpa review semantic-packet --project crm-web --artifact feature:customer-assignment --output /tmp/feature-review.json
-uv run fpa review semantic-run --project crm-web --artifact feature:customer-assignment
-uv run fpa review semantic-record --project crm-web --artifact feature:customer-assignment --input /tmp/review-result.json
-uv run fpa review resubmit --project crm-web --artifact feature:customer-assignment
-uv run fpa review approve --project crm-web --artifact feature:customer-assignment
-uv run fpa review reject --project crm-web --artifact feature:customer-assignment
+uv run fpa review semantic-packet --project crm-web --artifact feature:alpha-feature --output /tmp/feature-review.json
+uv run fpa review semantic-run --project crm-web --artifact feature:alpha-feature
+uv run fpa review semantic-record --project crm-web --artifact feature:alpha-feature --input /tmp/review-result.json
+uv run fpa review resubmit --project crm-web --artifact feature:alpha-feature
+uv run fpa review approve --project crm-web --artifact feature:alpha-feature
+uv run fpa review reject --project crm-web --artifact feature:alpha-feature
 ```
 
 `host` 模式下，`semantic-run` 不会调用外部模型，而是直接把 packet 交给 fresh reviewer context 做判断，再用 `semantic-record` 记录结果。审查输出要先找 counterexamples，并且每条 finding 都要带 evidence，否则会被降级成 `needs_revision`。这里遵循前面的 `Host Review Isolation` 规则。
@@ -283,13 +310,15 @@ uv run fpa submit "请把 skill 仓库发版到远端"
 ```bash
 uv run fpa export manifest --project crm-web
 uv run fpa export relations --project crm-web
+uv run fpa export graph-json --project crm-web
+uv run fpa export graph-html --project crm-web
 uv run fpa import manifest --project crm-web --input /tmp/manifest.json
 uv run fpa import manifest --project crm-web --input /tmp/manifest.json --apply
 uv run fpa import markdown-scan --project crm-web
 uv run fpa import markdown-scan --project crm-web --apply
 ```
 
-`import markdown-scan --apply` 不只会把 Markdown frontmatter 同步进数据库，还会刷新 `analysis/index.md`、各层级的 index 页，以及 `analysis/relations/` 下的关系矩阵。
+`import markdown-scan --apply` 不只会把 Markdown frontmatter 同步进数据库，还会刷新 `analysis/index.md`、各层级的 index 页，以及 `analysis/relations/` 下的关系矩阵与 `relations/index.md`。
 
 ### 3.10 维护数据库
 
@@ -401,6 +430,7 @@ Primary targets:
 - `make release.publish`
 - `make test.smoke`
 - `make test.full`
+- `make test.coverage`
 - `make test.check`
 - `make quality.compile`
 - `make quality.lint`
@@ -408,6 +438,7 @@ Primary targets:
 Compatibility aliases:
 
 - `make release-card`
+- `make coverage`
 - `make release-publish`
 
 ### 发布边界

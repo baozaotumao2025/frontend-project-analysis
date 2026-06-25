@@ -50,7 +50,7 @@ def test_review_semantic_packet_and_exports(
             "--project",
             "crm-web",
             "--artifact",
-            "feature:customer-assignment",
+            "feature:alpha-feature",
             "--output",
             str(packet_path),
         ],
@@ -58,7 +58,7 @@ def test_review_semantic_packet_and_exports(
     assert packet_result.exit_code == 0, packet_result.output
     assert packet_path.exists()
     packet = json.loads(packet_path.read_text(encoding="utf-8"))
-    assert packet["artifact"]["ref"] == "feature:customer-assignment"
+    assert packet["artifact"]["ref"] == "feature:alpha-feature"
     assert packet["llm"]["provider"] == "host"
     assert packet["llm"]["review_isolation"]["mode"] == "fresh_reviewer_subagent"
     assert packet["llm"]["review_isolation"]["fork_context"] is False
@@ -78,7 +78,7 @@ def test_review_semantic_packet_and_exports(
     assert manifest_path.exists()
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     assert manifest["project"]["key"] == "crm-web"
-    assert any(item["ref"] == "feature:customer-assignment" for item in manifest["artifacts"])
+    assert any(item["ref"] == "feature:alpha-feature" for item in manifest["artifacts"])
 
     relations_result = invoke_with_root(
         tmp_path,
@@ -92,12 +92,20 @@ def test_review_semantic_packet_and_exports(
     assert relations_result.exit_code == 0, relations_result.output
     psp_path = tmp_path / "analysis" / "relations" / "persona-story-page-matrix.md"
     feature_path = tmp_path / "analysis" / "relations" / "feature-coverage-matrix.md"
+    gwt_feature_path = tmp_path / "analysis" / "relations" / "gwt-feature-matrix.md"
     assert psp_path.exists()
     assert feature_path.exists()
+    assert gwt_feature_path.exists()
     assert "Persona Story Page Matrix" in psp_path.read_text(encoding="utf-8")
     assert "Feature Coverage Matrix" in feature_path.read_text(encoding="utf-8")
-    assert "| Persona | Story Map | Page | Feature |" in psp_path.read_text(encoding="utf-8")
-    assert "| Feature | Service Persona | Source Page | Covered Story |" in feature_path.read_text(
+    assert "GWT Feature Matrix" in gwt_feature_path.read_text(encoding="utf-8")
+    assert "| Persona | Story Map | Page | Feature | GWT |" in psp_path.read_text(
+        encoding="utf-8"
+    )
+    assert "| Feature | Persona | Page | Story Map | GWT |" in feature_path.read_text(
+        encoding="utf-8"
+    )
+    assert "| GWT | Feature | Page | Persona | Story Map |" in gwt_feature_path.read_text(
         encoding="utf-8"
     )
 
@@ -126,14 +134,14 @@ def test_review_semantic_run_updates_state(tmp_path: Path, monkeypatch: pytest.M
             "--project",
             "crm-web",
             "--artifact",
-            "feature:customer-assignment",
+            "feature:alpha-feature",
         ],
     )
     assert run_result.exit_code == 0, run_result.output
 
     with session_scope(project_paths(tmp_path)) as session:
         project_row = get_project(session, "crm-web")
-        artifact_row = get_artifact_by_ref(session, project_row, "feature:customer-assignment")
+        artifact_row = get_artifact_by_ref(session, project_row, "feature:alpha-feature")
         review = session.scalar(
             select(ArtifactReview).where(
                 ArtifactReview.artifact_id == artifact_row.id,
@@ -156,7 +164,7 @@ def test_review_semantic_run_host_mode_emits_packet_without_recording(
 
     with session_scope(project_paths(tmp_path)) as session:
         project_row = get_project(session, "crm-web")
-        artifact_row = get_artifact_by_ref(session, project_row, "feature:customer-assignment")
+        artifact_row = get_artifact_by_ref(session, project_row, "feature:alpha-feature")
         review_count_before = len(
             session.scalars(
                 select(ArtifactReview).where(ArtifactReview.artifact_id == artifact_row.id)
@@ -172,7 +180,7 @@ def test_review_semantic_run_host_mode_emits_packet_without_recording(
             "--project",
             "crm-web",
             "--artifact",
-            "feature:customer-assignment",
+            "feature:alpha-feature",
             "--output",
             str(packet_path),
         ],
@@ -190,7 +198,7 @@ def test_review_semantic_run_host_mode_emits_packet_without_recording(
 
     with session_scope(project_paths(tmp_path)) as session:
         project_row = get_project(session, "crm-web")
-        artifact_row = get_artifact_by_ref(session, project_row, "feature:customer-assignment")
+        artifact_row = get_artifact_by_ref(session, project_row, "feature:alpha-feature")
         review_count_after = len(
             session.scalars(
                 select(ArtifactReview).where(ArtifactReview.artifact_id == artifact_row.id)
@@ -220,8 +228,8 @@ def test_review_semantic_run_blocks_when_focus_source_is_missing(
     monkeypatch.setenv("FPA_LLM_PROVIDER", "mock")
     with session_scope(project_paths(tmp_path)) as session:
         project_row = get_project(session, "crm-web")
-        artifact_row = get_artifact_by_ref(session, project_row, "feature:customer-assignment")
-        artifact_row.source_path = "analysis/features/customer-assignment.md"
+        artifact_row = get_artifact_by_ref(session, project_row, "feature:alpha-feature")
+        artifact_row.source_path = "analysis/features/alpha-feature.md"
         session.commit()
 
     run_result = invoke_with_root(
@@ -232,7 +240,7 @@ def test_review_semantic_run_blocks_when_focus_source_is_missing(
             "--project",
             "crm-web",
             "--artifact",
-            "feature:customer-assignment",
+            "feature:alpha-feature",
         ],
     )
     assert run_result.exit_code != 0, run_result.output
@@ -266,14 +274,14 @@ def test_review_semantic_run_passed_waits_for_human_approval_by_default(
             "--project",
             "crm-web",
             "--artifact",
-            "feature:customer-assignment",
+            "feature:alpha-feature",
         ],
     )
     assert run_result.exit_code == 0, run_result.output
 
     with session_scope(project_paths(tmp_path)) as session:
         project_row = get_project(session, "crm-web")
-        artifact_row = get_artifact_by_ref(session, project_row, "feature:customer-assignment")
+        artifact_row = get_artifact_by_ref(session, project_row, "feature:alpha-feature")
         review = session.scalar(
             select(ArtifactReview)
             .where(
@@ -314,14 +322,14 @@ def test_review_semantic_run_passed_can_auto_approve(
             "--project",
             "crm-web",
             "--artifact",
-            "feature:customer-assignment",
+            "feature:alpha-feature",
         ],
     )
     assert run_result.exit_code == 0, run_result.output
 
     with session_scope(project_paths(tmp_path)) as session:
         project_row = get_project(session, "crm-web")
-        artifact_row = get_artifact_by_ref(session, project_row, "feature:customer-assignment")
+        artifact_row = get_artifact_by_ref(session, project_row, "feature:alpha-feature")
         review = session.scalar(
             select(ArtifactReview)
             .where(
@@ -348,7 +356,7 @@ def test_review_approve_requires_recorded_semantic_review(
             "--project",
             "crm-web",
             "--artifact",
-            "feature:customer-assignment",
+            "feature:alpha-feature",
         ],
     )
     assert approve_result.exit_code == 1, approve_result.output
@@ -393,7 +401,7 @@ def test_review_semantic_record_missing_evidence_is_downgraded(
             "--project",
             "crm-web",
             "--artifact",
-            "feature:customer-assignment",
+            "feature:alpha-feature",
             "--input",
             str(feature_review_path),
         ],
@@ -402,7 +410,7 @@ def test_review_semantic_record_missing_evidence_is_downgraded(
 
     with session_scope(project_paths(tmp_path)) as session:
         project_row = get_project(session, "crm-web")
-        artifact_row = get_artifact_by_ref(session, project_row, "feature:customer-assignment")
+        artifact_row = get_artifact_by_ref(session, project_row, "feature:alpha-feature")
         review = session.scalar(
             select(ArtifactReview)
             .where(
@@ -452,12 +460,12 @@ def test_review_resubmit_reconciles_stale_markdown_and_records_semantic_review(
     assert import_result.exit_code == 0, import_result.output
 
     review_payload = write_review_payload(root, filename="resubmit-review.json")
-    run_review_cycle(root, "persona:sales-rep", review_payload)
-    run_review_cycle(root, "story_map:sales-rep", review_payload)
-    run_review_cycle(root, "page:customer-profile", review_payload)
-    run_review_cycle(root, "feature:customer-assignment", review_payload)
+    run_review_cycle(root, "persona:alpha-persona", review_payload)
+    run_review_cycle(root, "story_map:alpha-persona", review_payload)
+    run_review_cycle(root, "page:alpha-page", review_payload)
+    run_review_cycle(root, "feature:alpha-feature", review_payload)
 
-    feature_path = root / "analysis" / "features" / "customer-assignment.md"
+    feature_path = root / "analysis" / "features" / "alpha-feature.md"
     feature_text = feature_path.read_text(encoding="utf-8")
     feature_path.write_text(
         feature_text.replace(
@@ -487,14 +495,14 @@ def test_review_resubmit_reconciles_stale_markdown_and_records_semantic_review(
             "--project",
             PROJECT_KEY,
             "--artifact",
-            "feature:customer-assignment",
+            "feature:alpha-feature",
         ],
     )
     assert resubmit_result.exit_code == 0, resubmit_result.output
 
     with session_scope(project_paths(root)) as session:
         project_row = get_project(session, PROJECT_KEY)
-        artifact_row = get_artifact_by_ref(session, project_row, "feature:customer-assignment")
+        artifact_row = get_artifact_by_ref(session, project_row, "feature:alpha-feature")
         review = session.scalar(
             select(ArtifactReview)
             .where(
@@ -518,7 +526,7 @@ def test_review_resubmit_host_mode_writes_packet_without_recording_semantic_revi
 
     with session_scope(project_paths(tmp_path)) as session:
         project_row = get_project(session, "crm-web")
-        artifact_row = get_artifact_by_ref(session, project_row, "feature:customer-assignment")
+        artifact_row = get_artifact_by_ref(session, project_row, "feature:alpha-feature")
         semantic_before = len(
             session.scalars(
                 select(ArtifactReview).where(
@@ -536,7 +544,7 @@ def test_review_resubmit_host_mode_writes_packet_without_recording_semantic_revi
             "--project",
             "crm-web",
             "--artifact",
-            "feature:customer-assignment",
+            "feature:alpha-feature",
         ],
     )
     assert resubmit_result.exit_code == 0, resubmit_result.output
@@ -546,7 +554,7 @@ def test_review_resubmit_host_mode_writes_packet_without_recording_semantic_revi
         tmp_path
         / ".frontend-project-analysis"
         / "exports"
-        / "feature-customer-assignment-resubmit-semantic-packet.json"
+        / "feature-alpha-feature-resubmit-semantic-packet.json"
     )
     assert packet_path.exists()
     packet = json.loads(packet_path.read_text(encoding="utf-8"))
@@ -556,7 +564,7 @@ def test_review_resubmit_host_mode_writes_packet_without_recording_semantic_revi
 
     with session_scope(project_paths(tmp_path)) as session:
         project_row = get_project(session, "crm-web")
-        artifact_row = get_artifact_by_ref(session, project_row, "feature:customer-assignment")
+        artifact_row = get_artifact_by_ref(session, project_row, "feature:alpha-feature")
         semantic_after = len(
             session.scalars(
                 select(ArtifactReview).where(
@@ -591,7 +599,7 @@ def test_review_approve_rejects_stale_hard_dependencies(
                         "severity": "INFO",
                         "code": "feature_boundary",
                         "message": "The feature slice has a concrete boundary.",
-                        "evidence": ["customer-assignment"],
+                        "evidence": ["alpha-feature"],
                         "details": {},
                     }
                 ],
@@ -609,7 +617,7 @@ def test_review_approve_rejects_stale_hard_dependencies(
             "--project",
             "crm-web",
             "--artifact",
-            "feature:customer-assignment",
+            "feature:alpha-feature",
             "--input",
             str(feature_review_path),
         ],
@@ -626,9 +634,9 @@ def test_review_approve_rejects_stale_hard_dependencies(
             "--type",
             "page",
             "--slug",
-            "ops-overview",
+            "beta-page",
             "--title",
-            "Ops Overview",
+            "Beta Page",
         ],
     )
     assert add_page.exit_code == 0, add_page.output
@@ -641,9 +649,9 @@ def test_review_approve_rejects_stale_hard_dependencies(
             "--project",
             "crm-web",
             "--from",
-            "persona:sales-rep",
+            "persona:alpha-persona",
             "--to",
-            "page:ops-overview",
+            "page:beta-page",
         ],
     )
     assert link_page.exit_code == 0, link_page.output
@@ -656,12 +664,12 @@ def test_review_approve_rejects_stale_hard_dependencies(
             "--project",
             "crm-web",
             "--artifact",
-            "feature:customer-assignment",
+            "feature:alpha-feature",
         ],
     )
     assert approve_result.exit_code == 1, approve_result.output
     assert "hard dependencies are not approved" in approve_result.output.lower()
-    assert "persona:sales-rep" in approve_result.output
+    assert "persona:alpha-persona" in approve_result.output
     assert "stale" in approve_result.output.lower()
 
 

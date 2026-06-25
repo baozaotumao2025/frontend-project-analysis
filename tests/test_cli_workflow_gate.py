@@ -34,24 +34,24 @@ class RecoveryMatrixCase:
 RECOVERY_MATRIX: tuple[RecoveryMatrixCase, ...] = (
     RecoveryMatrixCase(
         round_number=4,
-        stale_source_ref="page:customer-profile",
-        blocked_ref="page:customer-profile",
-        wrong_recovery_ref="feature:customer-assignment",
-        correct_recovery_ref="page:customer-profile",
+        stale_source_ref="page:alpha-page",
+        blocked_ref="page:alpha-page",
+        wrong_recovery_ref="feature:alpha-feature",
+        correct_recovery_ref="page:alpha-page",
     ),
     RecoveryMatrixCase(
         round_number=5,
-        stale_source_ref="page:customer-profile",
-        blocked_ref="feature:customer-assignment",
-        wrong_recovery_ref="gwt:customer-assignment",
-        correct_recovery_ref="feature:customer-assignment",
+        stale_source_ref="page:alpha-page",
+        blocked_ref="feature:alpha-feature",
+        wrong_recovery_ref="gwt:alpha-feature",
+        correct_recovery_ref="feature:alpha-feature",
     ),
     RecoveryMatrixCase(
         round_number=6,
-        stale_source_ref="page:customer-profile",
-        blocked_ref="gwt:customer-assignment",
-        wrong_recovery_ref="feature_spec:customer-assignment",
-        correct_recovery_ref="gwt:customer-assignment",
+        stale_source_ref="page:alpha-page",
+        blocked_ref="gwt:alpha-feature",
+        wrong_recovery_ref="feature_spec:alpha-feature",
+        correct_recovery_ref="gwt:alpha-feature",
     ),
 )
 
@@ -59,12 +59,12 @@ RECOVERY_MATRIX: tuple[RecoveryMatrixCase, ...] = (
 def _seed_full_chain(tmp_path: Path):
     paths = prepare_database(tmp_path)
     files = {
-        "persona": tmp_path / "docs" / "personas" / "sales-rep.md",
+        "persona": tmp_path / "docs" / "personas" / "alpha-persona.md",
         "story_map": tmp_path / "docs" / "story-maps" / "sales-assignment.md",
-        "page": tmp_path / "docs" / "pages" / "customer-profile.md",
-        "feature": tmp_path / "docs" / "features" / "customer-assignment.md",
-        "gwt": tmp_path / "docs" / "gwt" / "customer-assignment.feature",
-        "feature_spec": tmp_path / "specs" / "features" / "customer-assignment-spec.md",
+        "page": tmp_path / "docs" / "pages" / "alpha-page.md",
+        "feature": tmp_path / "docs" / "features" / "alpha-feature.md",
+        "gwt": tmp_path / "docs" / "gwt" / "alpha-feature.feature",
+        "feature_spec": tmp_path / "specs" / "features" / "alpha-feature-spec.md",
     }
     for path in files.values():
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -77,8 +77,8 @@ def _seed_full_chain(tmp_path: Path):
             session=session,
             project=project,
             artifact_type=ArtifactType.PERSONA,
-            slug="sales-rep",
-            title="Sales Rep",
+            slug="alpha-persona",
+            title="Alpha Persona",
             source_path=str(files["persona"].relative_to(tmp_path)),
             status=ArtifactStatus.DRAFT,
             metadata={},
@@ -101,7 +101,7 @@ def _seed_full_chain(tmp_path: Path):
             session=session,
             project=project,
             from_ref="story_map:sales-assignment",
-            to_ref="persona:sales-rep",
+            to_ref="persona:alpha-persona",
             dependency_type=DependencyType.REQUIRES,
             is_hard=True,
         )
@@ -111,8 +111,8 @@ def _seed_full_chain(tmp_path: Path):
             session=session,
             project=project,
             artifact_type=ArtifactType.PAGE,
-            slug="customer-profile",
-            title="Customer Profile",
+            slug="alpha-page",
+            title="Alpha Page",
             source_path=str(files["page"].relative_to(tmp_path)),
             status=ArtifactStatus.DRAFT,
             metadata={},
@@ -121,7 +121,7 @@ def _seed_full_chain(tmp_path: Path):
         add_dependency(
             session=session,
             project=project,
-            from_ref="page:customer-profile",
+            from_ref="page:alpha-page",
             to_ref="story_map:sales-assignment",
             dependency_type=DependencyType.REQUIRES,
             is_hard=True,
@@ -132,8 +132,8 @@ def _seed_full_chain(tmp_path: Path):
             session=session,
             project=project,
             artifact_type=ArtifactType.FEATURE,
-            slug="customer-assignment",
-            title="Customer Assignment",
+            slug="alpha-feature",
+            title="Alpha Feature",
             source_path=str(files["feature"].relative_to(tmp_path)),
             status=ArtifactStatus.DRAFT,
             metadata={},
@@ -142,8 +142,8 @@ def _seed_full_chain(tmp_path: Path):
         add_dependency(
             session=session,
             project=project,
-            from_ref="feature:customer-assignment",
-            to_ref="page:customer-profile",
+            from_ref="feature:alpha-feature",
+            to_ref="page:alpha-page",
             dependency_type=DependencyType.REQUIRES,
             is_hard=True,
         )
@@ -153,8 +153,8 @@ def _seed_full_chain(tmp_path: Path):
             session=session,
             project=project,
             artifact_type=ArtifactType.GWT,
-            slug="customer-assignment",
-            title="Customer Assignment",
+            slug="alpha-feature",
+            title="Alpha Feature",
             source_path=str(files["gwt"].relative_to(tmp_path)),
             status=ArtifactStatus.DRAFT,
             metadata={},
@@ -163,8 +163,8 @@ def _seed_full_chain(tmp_path: Path):
         add_dependency(
             session=session,
             project=project,
-            from_ref="gwt:customer-assignment",
-            to_ref="feature:customer-assignment",
+            from_ref="gwt:alpha-feature",
+            to_ref="feature:alpha-feature",
             dependency_type=DependencyType.REQUIRES,
             is_hard=True,
         )
@@ -174,8 +174,8 @@ def _seed_full_chain(tmp_path: Path):
             session=session,
             project=project,
             artifact_type=ArtifactType.FEATURE_SPEC,
-            slug="customer-assignment",
-            title="Customer Assignment",
+            slug="alpha-feature",
+            title="Alpha Feature",
             source_path=str(files["feature_spec"].relative_to(tmp_path)),
             status=ArtifactStatus.DRAFT,
             metadata={},
@@ -184,8 +184,8 @@ def _seed_full_chain(tmp_path: Path):
         add_dependency(
             session=session,
             project=project,
-            from_ref="feature_spec:customer-assignment",
-            to_ref="gwt:customer-assignment",
+            from_ref="feature_spec:alpha-feature",
+            to_ref="gwt:alpha-feature",
             dependency_type=DependencyType.REQUIRES,
             is_hard=True,
         )
@@ -211,8 +211,8 @@ def test_workflow_start_reports_the_correct_blocking_ref_for_stale_chain(
             session=session,
             project=project,
             artifact_type=ArtifactType.PAGE,
-            slug="customer-profile",
-            title="Customer Profile",
+            slug="alpha-page",
+            title="Alpha Page",
             source_path=str(source_path.relative_to(tmp_path)),
             status=ArtifactStatus.DRAFT,
             metadata={},
@@ -253,8 +253,8 @@ def test_workflow_start_stays_blocked_when_only_a_lower_downstream_layer_is_reva
             session=session,
             project=project,
             artifact_type=ArtifactType.PAGE,
-            slug="customer-profile",
-            title="Customer Profile",
+            slug="alpha-page",
+            title="Alpha Page",
             source_path=str(source_path.relative_to(tmp_path)),
             status=ArtifactStatus.DRAFT,
             metadata={},
@@ -293,19 +293,19 @@ def test_workflow_start_stays_blocked_when_only_a_lower_downstream_layer_is_reva
         elif case.round_number == 5:
             with pytest.raises(WorkflowStateError, match="hard dependencies are not approved"):
                 approve_artifact(session, correct_recovery)
-            page = get_artifact_by_ref(session, project, "page:customer-profile")
+            page = get_artifact_by_ref(session, project, "page:alpha-page")
             approve_artifact(session, page)
             approve_artifact(session, correct_recovery)
             session.commit()
         elif case.round_number == 6:
             with pytest.raises(WorkflowStateError, match="hard dependencies are not approved"):
                 approve_artifact(session, correct_recovery)
-            page = get_artifact_by_ref(session, project, "page:customer-profile")
-            feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
+            page = get_artifact_by_ref(session, project, "page:alpha-page")
+            feature = get_artifact_by_ref(session, project, "feature:alpha-feature")
             approve_artifact(session, page)
             approve_artifact(session, feature)
             approve_artifact(session, correct_recovery)
-            feature_spec = get_artifact_by_ref(session, project, "feature_spec:customer-assignment")
+            feature_spec = get_artifact_by_ref(session, project, "feature_spec:alpha-feature")
             approve_artifact(session, feature_spec)
             session.commit()
         else:
@@ -340,7 +340,7 @@ def test_workflow_gate_blocks_round_2_until_persona_is_approved(tmp_path: Path) 
         ],
     )
     assert blocked_result.exit_code == 1, blocked_result.output
-    assert "persona:sales-rep" in blocked_result.output
+    assert "persona:alpha-persona" in blocked_result.output
     assert "draft" in blocked_result.output
 
     prepare_feature_for_semantic_review(tmp_path)
@@ -374,7 +374,7 @@ def test_workflow_start_allows_explore_mode_with_draft_persona(tmp_path: Path) -
         ],
     )
     assert blocked_result.exit_code == 1, blocked_result.output
-    assert "persona:sales-rep" in blocked_result.output
+    assert "persona:alpha-persona" in blocked_result.output
     assert "draft" in blocked_result.output
 
     explore_result = invoke_with_root(
@@ -438,7 +438,7 @@ def test_workflow_start_blocks_when_approved_story_map_becomes_stale(
     tmp_path: Path,
 ) -> None:
     paths = prepare_database(tmp_path)
-    persona_path = tmp_path / "docs" / "personas" / "sales-rep.md"
+    persona_path = tmp_path / "docs" / "personas" / "alpha-persona.md"
     story_map_path = tmp_path / "docs" / "story-maps" / "sales-assignment.md"
     persona_path.parent.mkdir(parents=True, exist_ok=True)
     story_map_path.parent.mkdir(parents=True, exist_ok=True)
@@ -451,8 +451,8 @@ def test_workflow_start_blocks_when_approved_story_map_becomes_stale(
             session=session,
             project=project,
             artifact_type=ArtifactType.PERSONA,
-            slug="sales-rep",
-            title="Sales Rep",
+            slug="alpha-persona",
+            title="Alpha Persona",
             source_path=str(persona_path.relative_to(tmp_path)),
             status=ArtifactStatus.DRAFT,
             metadata={},
@@ -475,7 +475,7 @@ def test_workflow_start_blocks_when_approved_story_map_becomes_stale(
             session=session,
             project=project,
             from_ref="story_map:sales-assignment",
-            to_ref="persona:sales-rep",
+            to_ref="persona:alpha-persona",
             dependency_type=DependencyType.REQUIRES,
             is_hard=True,
         )
@@ -502,8 +502,8 @@ def test_workflow_start_blocks_when_approved_story_map_becomes_stale(
             session=session,
             project=project,
             artifact_type=ArtifactType.PERSONA,
-            slug="sales-rep",
-            title="Sales Rep",
+            slug="alpha-persona",
+            title="Alpha Persona",
             source_path=str(persona_path.relative_to(tmp_path)),
             status=ArtifactStatus.DRAFT,
             metadata={},
@@ -531,7 +531,7 @@ def test_workflow_start_blocks_when_approved_story_map_becomes_stale(
 
     with session_scope(paths) as session:
         project = get_project(session, "crm-web")
-        persona = get_artifact_by_ref(session, project, "persona:sales-rep")
+        persona = get_artifact_by_ref(session, project, "persona:alpha-persona")
         approve_artifact(session, persona)
         story_map = get_artifact_by_ref(session, project, "story_map:sales-assignment")
         assert story_map.status == ArtifactStatus.STALE
@@ -575,14 +575,14 @@ def test_workflow_start_blocks_round_4_when_page_becomes_stale(tmp_path: Path) -
             session=session,
             project=project,
             artifact_type=ArtifactType.PAGE,
-            slug="customer-profile",
-            title="Customer Profile",
+            slug="alpha-page",
+            title="Alpha Page",
             source_path=str(files["page"].relative_to(tmp_path)),
             status=ArtifactStatus.DRAFT,
             metadata={},
             created_by="test",
         )
-        feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
+        feature = get_artifact_by_ref(session, project, "feature:alpha-feature")
         assert page.status == ArtifactStatus.STALE
         assert feature.status == ArtifactStatus.STALE
         session.commit()
@@ -599,28 +599,28 @@ def test_workflow_start_blocks_round_4_when_page_becomes_stale(tmp_path: Path) -
         ],
     )
     assert blocked_gate.exit_code == 1, blocked_gate.output
-    assert "page:customer-profile" in blocked_gate.output
+    assert "page:alpha-page" in blocked_gate.output
     assert "stale" in blocked_gate.output.lower()
 
     with session_scope(paths) as session:
         project = get_project(session, "crm-web")
-        feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
+        feature = get_artifact_by_ref(session, project, "feature:alpha-feature")
         with pytest.raises(WorkflowStateError, match="hard dependencies are not approved"):
             approve_artifact(session, feature)
 
     with session_scope(paths) as session:
         project = get_project(session, "crm-web")
-        page = get_artifact_by_ref(session, project, "page:customer-profile")
+        page = get_artifact_by_ref(session, project, "page:alpha-page")
         approve_artifact(session, page)
-        feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
+        feature = get_artifact_by_ref(session, project, "feature:alpha-feature")
         approve_artifact(session, feature)
         session.commit()
 
     with session_scope(paths) as session:
         project = get_project(session, "crm-web")
-        page = get_artifact_by_ref(session, project, "page:customer-profile")
+        page = get_artifact_by_ref(session, project, "page:alpha-page")
         approve_artifact(session, page)
-        feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
+        feature = get_artifact_by_ref(session, project, "feature:alpha-feature")
         approve_artifact(session, feature)
         session.commit()
 
@@ -661,14 +661,14 @@ def test_workflow_start_blocks_round_5_when_feature_becomes_stale(tmp_path: Path
             session=session,
             project=project,
             artifact_type=ArtifactType.PAGE,
-            slug="customer-profile",
-            title="Customer Profile",
+            slug="alpha-page",
+            title="Alpha Page",
             source_path=str(files["page"].relative_to(tmp_path)),
             status=ArtifactStatus.DRAFT,
             metadata={},
             created_by="test",
         )
-        feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
+        feature = get_artifact_by_ref(session, project, "feature:alpha-feature")
         assert page.status == ArtifactStatus.STALE
         assert feature.status == ArtifactStatus.STALE
         session.commit()
@@ -685,20 +685,20 @@ def test_workflow_start_blocks_round_5_when_feature_becomes_stale(tmp_path: Path
         ],
     )
     assert blocked_gate.exit_code == 1, blocked_gate.output
-    assert "feature:customer-assignment" in blocked_gate.output
+    assert "feature:alpha-feature" in blocked_gate.output
     assert "stale" in blocked_gate.output.lower()
 
     with session_scope(paths) as session:
         project = get_project(session, "crm-web")
-        gwt = get_artifact_by_ref(session, project, "gwt:customer-assignment")
+        gwt = get_artifact_by_ref(session, project, "gwt:alpha-feature")
         with pytest.raises(WorkflowStateError, match="hard dependencies are not approved"):
             approve_artifact(session, gwt)
 
     with session_scope(paths) as session:
         project = get_project(session, "crm-web")
-        page = get_artifact_by_ref(session, project, "page:customer-profile")
+        page = get_artifact_by_ref(session, project, "page:alpha-page")
         approve_artifact(session, page)
-        feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
+        feature = get_artifact_by_ref(session, project, "feature:alpha-feature")
         approve_artifact(session, feature)
         session.commit()
 
@@ -741,19 +741,19 @@ def test_workflow_start_blocks_round_6_when_feature_spec_becomes_stale(
             session=session,
             project=project,
             artifact_type=ArtifactType.PAGE,
-            slug="customer-profile",
-            title="Customer Profile",
+            slug="alpha-page",
+            title="Alpha Page",
             source_path=str(files["page"].relative_to(tmp_path)),
             status=ArtifactStatus.DRAFT,
             metadata={},
             created_by="test",
         )
-        feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
-        feature_spec = get_artifact_by_ref(session, project, "feature_spec:customer-assignment")
+        feature = get_artifact_by_ref(session, project, "feature:alpha-feature")
+        feature_spec = get_artifact_by_ref(session, project, "feature_spec:alpha-feature")
         assert page.status == ArtifactStatus.STALE
         assert feature.status == ArtifactStatus.STALE
         assert (
-            get_artifact_by_ref(session, project, "gwt:customer-assignment").status
+            get_artifact_by_ref(session, project, "gwt:alpha-feature").status
             == ArtifactStatus.STALE
         )
         assert feature_spec.status == ArtifactStatus.STALE
@@ -771,22 +771,22 @@ def test_workflow_start_blocks_round_6_when_feature_spec_becomes_stale(
         ],
     )
     assert blocked_gate.exit_code == 1, blocked_gate.output
-    assert "gwt:customer-assignment" in blocked_gate.output
+    assert "gwt:alpha-feature" in blocked_gate.output
     assert "stale" in blocked_gate.output.lower()
 
     with session_scope(paths) as session:
         project = get_project(session, "crm-web")
-        page = get_artifact_by_ref(session, project, "page:customer-profile")
+        page = get_artifact_by_ref(session, project, "page:alpha-page")
         with pytest.raises(WorkflowStateError, match="hard dependencies are not approved"):
             approve_artifact(
-                session, get_artifact_by_ref(session, project, "feature_spec:customer-assignment")
+                session, get_artifact_by_ref(session, project, "feature_spec:alpha-feature")
             )
         approve_artifact(session, page)
-        feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
+        feature = get_artifact_by_ref(session, project, "feature:alpha-feature")
         approve_artifact(session, feature)
-        gwt = get_artifact_by_ref(session, project, "gwt:customer-assignment")
+        gwt = get_artifact_by_ref(session, project, "gwt:alpha-feature")
         approve_artifact(session, gwt)
-        feature_spec = get_artifact_by_ref(session, project, "feature_spec:customer-assignment")
+        feature_spec = get_artifact_by_ref(session, project, "feature_spec:alpha-feature")
         approve_artifact(session, feature_spec)
         session.commit()
 
@@ -816,16 +816,16 @@ def test_workflow_start_keeps_round_6_blocked_until_all_downstream_revalidated(
             session=session,
             project=project,
             artifact_type=ArtifactType.PAGE,
-            slug="customer-profile",
-            title="Customer Profile",
+            slug="alpha-page",
+            title="Alpha Page",
             source_path=str(files["page"].relative_to(tmp_path)),
             status=ArtifactStatus.DRAFT,
             metadata={},
             created_by="test",
         )
-        feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
-        gwt = get_artifact_by_ref(session, project, "gwt:customer-assignment")
-        feature_spec = get_artifact_by_ref(session, project, "feature_spec:customer-assignment")
+        feature = get_artifact_by_ref(session, project, "feature:alpha-feature")
+        gwt = get_artifact_by_ref(session, project, "gwt:alpha-feature")
+        feature_spec = get_artifact_by_ref(session, project, "feature_spec:alpha-feature")
         assert page.status == ArtifactStatus.STALE
         assert feature.status == ArtifactStatus.STALE
         assert gwt.status == ArtifactStatus.STALE
@@ -834,7 +834,7 @@ def test_workflow_start_keeps_round_6_blocked_until_all_downstream_revalidated(
 
     with session_scope(paths) as session:
         project = get_project(session, "crm-web")
-        page = get_artifact_by_ref(session, project, "page:customer-profile")
+        page = get_artifact_by_ref(session, project, "page:alpha-page")
         approve_artifact(session, page)
         session.commit()
 
@@ -850,5 +850,5 @@ def test_workflow_start_keeps_round_6_blocked_until_all_downstream_revalidated(
         ],
     )
     assert still_blocked_gate.exit_code == 1, still_blocked_gate.output
-    assert "gwt:customer-assignment" in still_blocked_gate.output
+    assert "gwt:alpha-feature" in still_blocked_gate.output
     assert "stale" in still_blocked_gate.output.lower()

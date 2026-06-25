@@ -10,6 +10,8 @@ It separates four concerns:
 - `index/matrix`: derived projections for browsing and reporting
 - `evidence control`: round-local inventory and coverage state used to freeze review inputs
 
+The concrete `Feature Spec` section shape is defined in `references/templates.md` and enforced by `references/quality-gates.md`; this sketch stays aligned with those documents instead of replacing them.
+
 The rule of thumb is simple: if something needs its own approval, stale propagation, or rollback lineage, it belongs on a node. If it only expresses a relationship, it belongs on an edge. If it is primarily a view for humans, it belongs in an index or matrix. If it is only needed to decide whether a round has fully enumerated and reconciled its evidence, it belongs in the evidence control layer rather than becoming a durable graph node.
 
 ## Node Layer
@@ -38,7 +40,7 @@ The rule of thumb is simple: if something needs its own approval, stale propagat
 | `Story Map` | `Activity -> Step -> Story` text | start/end markers if needed for rendering | individual steps as stateful nodes |
 | `Page` | route scope, accessible Persona, page responsibility, Story Step coverage | route alias, page category | route fragments, micro-interactions |
 | `Feature` | feature responsibility, page, Persona served, state type, reuse notes, source story | implementation hints | sentence-level acceptance fragments |
-| `GWT` | scenarios and Given/When/Then blocks | scenario labels, grouping hints | individual scenario clauses |
+| `GWT` | scenarios, Given/When/Then blocks, and explicit Feature binding | scenario labels, grouping hints, feature reference | individual scenario clauses |
 | `Feature Spec` | implementation boundary, dependency notes, delivery constraints, cross-cutting concerns | release flags, environment notes | paragraph-level subclaims |
 
 ## Edge Layer
@@ -83,8 +85,11 @@ These files are projections, not source of truth. They should be regenerated fro
 | `analysis/story-maps/index.md` | Story Map browsing | Persona, Story Map, Start, End |
 | `analysis/pages/index.md` | Page inventory | Route, Page Name, Accessible Persona, Responsibility |
 | `analysis/features/index.md` | Feature inventory | Feature, Responsibility, Page, Persona Served, State Type, Cross-Page Reuse |
-| `analysis/relations/persona-story-page-matrix.md` | lineage matrix | Persona, Story Map, Page, Feature |
-| `analysis/relations/feature-coverage-matrix.md` | feature coverage matrix | Feature, Service Persona, Source Page, Covered Story |
+| `analysis/relations/index.md` | relationship navigation | matrix views, graph view |
+| `analysis/relations/persona-story-page-matrix.md` | lineage matrix | Persona, Story Map, Page, Feature, GWT |
+| `analysis/relations/feature-coverage-matrix.md` | feature coverage matrix | Feature, Persona, Page, Story Map, GWT |
+| `analysis/relations/gwt-feature-matrix.md` | GWT binding matrix | GWT, Feature, Page, Persona, Story Map |
+| `analysis/relations/graph.html` | interactive relationship graph | filters, focus state, path scope |
 | round-local inventory / coverage view | evidence control projection | File, Disposition, Reason, Frozen Packet Reference |
 
 ### What belongs in a matrix instead of a node

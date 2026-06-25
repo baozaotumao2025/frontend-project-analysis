@@ -154,25 +154,25 @@ def write_round_artifacts(
 
 
 def _write_persona(root: Path) -> None:
-    path = root / "analysis" / "personas" / "sales-rep.md"
+    path = root / "analysis" / "personas" / "alpha-persona.md"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         "\n".join(
             [
                 "---",
                 "artifact_type: persona",
-                "slug: sales-rep",
+                "slug: alpha-persona",
                 "round: 1",
                 "status: draft",
                 "project: crm-web",
-                "title: Sales Rep",
+                "title: Alpha Persona",
                 "---",
                 "",
                 "| Persona Name | Core Goal | Key Difference From Other Persona | "
                 "Permission Boundary | Invisible Pages Or Capabilities |",
                 "| --- | --- | --- | --- | --- |",
-                "| Sales Rep | Reassign customer ownership while working leads | "
-                "Needs fast access to customer records and assignment controls | "
+                "| Alpha Persona | Review and update customer records in the test flow | "
+                "Needs access to the core record and action controls | "
                 "Can edit assignment data for assigned accounts only | "
                 "Admin settings, billing, and system configuration |",
                 "",
@@ -184,16 +184,16 @@ def _write_persona(root: Path) -> None:
 
 
 def _write_story_map(root: Path, *, complete: bool) -> None:
-    path = root / "analysis" / "story-maps" / "sales-rep.md"
+    path = root / "analysis" / "story-maps" / "alpha-persona.md"
     path.parent.mkdir(parents=True, exist_ok=True)
     body = (
         "---\n"
         "artifact_type: story_map\n"
-        "slug: sales-rep\n"
+        "slug: alpha-persona\n"
         "round: 2\n"
         "status: draft\n"
         "project: crm-web\n"
-        "title: Sales Rep Story Map\n"
+        "title: Alpha Persona Story Map\n"
         "---\n"
         "\n"
         "## Start\n"
@@ -219,71 +219,71 @@ def _write_story_map(root: Path, *, complete: bool) -> None:
 
 
 def _write_page(root: Path, *, complete: bool) -> None:
-    path = root / "analysis" / "pages" / "customer-profile.md"
+    path = root / "analysis" / "pages" / "alpha-page.md"
     path.parent.mkdir(parents=True, exist_ok=True)
     body = (
         "---\n"
         "artifact_type: page\n"
-        "slug: customer-profile\n"
+        "slug: alpha-page\n"
         "round: 3\n"
         "status: draft\n"
         "project: crm-web\n"
-        "title: Customer Profile\n"
+        "title: Alpha Page\n"
         "---\n"
         "\n"
-        "# Customer Profile\n"
+        "# Alpha Page\n"
         "\n"
         "## Route Information\n"
-        "- Route: `/customers/:customerId`\n"
+        "- Route: `/alpha-pages/:alphaPageId`\n"
         "\n"
         "## Accessible Persona\n"
-        "- Sales Rep\n"
+        "- Alpha Persona\n"
         "\n"
     )
     if complete:
         body += (
             "\n"
             "## Story Steps Covered\n"
-            "- Open a customer record\n"
+            "- Open the record\n"
             "- Confirm the current owner\n"
-            "- Open assignment controls\n"
+            "- Open the action controls\n"
             "- Save the change\n"
             "\n"
             "## Page Responsibility\n"
-            "Shows a customer record and lets a Sales Rep update ownership.\n"
+            "Shows a record and lets the test persona update ownership.\n"
             "\n"
             "## Related Features\n"
-            "- Customer Assignment\n"
+            "- Alpha Feature\n"
         )
     path.write_text(body, encoding="utf-8")
 
 
 def _write_feature(root: Path, *, complete: bool) -> None:
-    path = root / "analysis" / "features" / "customer-assignment.md"
+    path = root / "analysis" / "features" / "alpha-feature.md"
     path.parent.mkdir(parents=True, exist_ok=True)
     body = (
         "---\n"
         "artifact_type: feature\n"
-        "slug: customer-assignment\n"
+        "slug: alpha-feature\n"
         "round: 4\n"
         "status: draft\n"
         "project: crm-web\n"
-        "title: Customer Assignment\n"
+        "title: Alpha Feature\n"
         "---\n"
         "\n"
-        "# Customer Assignment\n"
+        "# Alpha Feature\n"
         "\n"
         "## Page\n"
-        "- Customer Profile\n"
+        "- Alpha Page\n"
         "\n"
     )
     if complete:
         body += (
             "## Persona Served\n"
-            "- Sales Rep\n"
+            "- Alpha Persona\n"
             "\n"
             "## Business Responsibility\n"
-            "Lets a Sales Rep reassign a customer to another owner.\n"
+            "Lets the test persona reassign a record to another owner.\n"
             "\n"
             "## State Type\n"
             "- both\n"
@@ -295,21 +295,19 @@ def _write_feature(root: Path, *, complete: bool) -> None:
             "- Save the change\n"
             "\n"
             "## Discovery And Evidence\n"
-            "- Sales support and operations both need to reassign customer "
-            "ownership during handoffs.\n"
-            "- The brief assumes ownership changes are backed by the customer "
-            "profile service.\n"
+            "- The test suite needs a discrete capability to reassign ownership.\n"
+            "- The brief assumes ownership changes are backed by the page data service.\n"
             "\n"
             "## Risks And Assumptions\n"
             "- Ownership conflicts can occur if two users edit the same record.\n"
             "- The assignment lookup is assumed to be stable during the release.\n"
             "\n"
             "## Accessibility\n"
-            "- The assignment drawer must be keyboard reachable.\n"
+            "- The action drawer must be keyboard reachable.\n"
             "- Screen readers need the selected owner and confirmation state announced.\n"
             "\n"
             "## Observability\n"
-            "- Track assignment success and failure counts.\n"
+            "- Track success and failure counts.\n"
             "- Emit a trace or log entry when ownership changes are saved.\n"
             "\n"
             "## Release And Compliance\n"
@@ -320,88 +318,100 @@ def _write_feature(root: Path, *, complete: bool) -> None:
 
 
 def _write_gwt(root: Path, *, complete: bool) -> None:
-    path = root / "analysis" / "gwt" / "customer-assignment.feature"
+    path = root / "analysis" / "gwt" / "alpha-feature.feature"
     path.parent.mkdir(parents=True, exist_ok=True)
-    body = "Feature: Customer Assignment\n\n"
+    body = (
+        "---\n"
+        "artifact_type: gwt\n"
+        "slug: alpha-feature\n"
+        "round: 5\n"
+        "status: draft\n"
+        "project: crm-web\n"
+        "feature: alpha-feature\n"
+        "title: Alpha Feature\n"
+        "---\n"
+        "\n"
+        "Feature: Alpha Feature\n\n"
+    )
     if complete:
         body += (
             "  Scenario: Happy Path\n"
-            "    Given a Sales Rep can access a customer record\n"
-            "    When the Sales Rep reassigns the customer\n"
-            "    Then the customer owner is updated\n"
+            "    Given the Alpha Persona can access the record\n"
+            "    When the Alpha Persona reassigns the record\n"
+            "    Then the owner is updated\n"
             "\n"
             "  Scenario: Permission Case\n"
             "    Given a user lacks assignment permission\n"
-            "    When the user tries to reassign a customer\n"
+            "    When the user tries to reassign the record\n"
             "    Then the action is blocked\n"
             "\n"
             "  Scenario: Error Case\n"
-            "    Given the assignment service is unavailable\n"
-            "    When the Sales Rep reassigns the customer\n"
+            "    Given the page service is unavailable\n"
+            "    When the Alpha Persona reassigns the record\n"
             "    Then an error is shown\n"
             "\n"
             "  Scenario: Edge Case\n"
-            "    Given the customer is already assigned to the selected owner\n"
-            "    When the Sales Rep reassigns the customer\n"
+            "    Given the record is already assigned to the selected owner\n"
+            "    When the Alpha Persona reassigns the record\n"
             "    Then the assignment remains consistent\n"
             "\n"
             "  Scenario: Accessibility Case\n"
-            "    Given a keyboard-only Sales Rep is on the assignment drawer\n"
-            "    When the Sales Rep navigates and confirms the reassignment with the keyboard\n"
-            "    Then the reassignment can be completed without a mouse\n"
+            "    Given a keyboard-only Alpha Persona is on the action drawer\n"
+            "    When the Alpha Persona navigates and confirms the change with the keyboard\n"
+            "    Then the change can be completed without a mouse\n"
         )
     else:
         body += (
             "  Scenario: Happy Path\n"
-            "    Given a Sales Rep can access a customer record\n"
-            "    Then the customer owner is updated\n"
+            "    Given the Alpha Persona can access the record\n"
+            "    Then the owner is updated\n"
             "\n"
             "  Scenario: Permission Case\n"
             "    Given a user lacks assignment permission\n"
-            "    When the user tries to reassign a customer\n"
+            "    When the user tries to reassign the record\n"
             "    Then the action is blocked\n"
             "\n"
             "  Scenario: Error Case\n"
-            "    Given the assignment service is unavailable\n"
-            "    When the Sales Rep reassigns the customer\n"
+            "    Given the page service is unavailable\n"
+            "    When the Alpha Persona reassigns the record\n"
             "    Then an error is shown\n"
             "\n"
             "  Scenario: Edge Case\n"
-            "    Given the customer is already assigned to the selected owner\n"
-            "    When the Sales Rep reassigns the customer\n"
+            "    Given the record is already assigned to the selected owner\n"
+            "    When the Alpha Persona reassigns the record\n"
             "    Then the assignment remains consistent\n"
             "\n"
             "  Scenario: Accessibility Case\n"
-            "    Given a keyboard-only Sales Rep is on the assignment drawer\n"
-            "    When the Sales Rep navigates and confirms the reassignment with the keyboard\n"
-            "    Then the reassignment can be completed without a mouse\n"
+            "    Given a keyboard-only Alpha Persona is on the action drawer\n"
+            "    When the Alpha Persona navigates and confirms the change with the keyboard\n"
+            "    Then the change can be completed without a mouse\n"
         )
     path.write_text(body, encoding="utf-8")
 
 
 def _write_feature_spec(root: Path, *, complete: bool) -> None:
-    path = root / "analysis" / "specs" / "features" / "customer-assignment-spec.md"
+    path = root / "analysis" / "specs" / "features" / "alpha-feature-spec.md"
     path.parent.mkdir(parents=True, exist_ok=True)
     body = (
         "---\n"
         "artifact_type: feature_spec\n"
-        "slug: customer-assignment\n"
+        "slug: alpha-feature\n"
         "round: 6\n"
         "status: draft\n"
         "project: crm-web\n"
-        "title: Customer Assignment Spec\n"
+        "title: Alpha Feature Spec\n"
         "---\n"
         "\n"
-        "# Customer Assignment - Feature Spec\n"
+        "# Alpha Feature - Feature Spec\n"
         "\n"
         "## Basic Information\n"
-        "- Feature: Customer Assignment\n"
-        "- Page: Customer Profile\n"
-        "- Persona: Sales Rep\n"
+        "- Feature: Alpha Feature\n"
+        "- Page: Alpha Page\n"
+        "- Persona: Alpha Persona\n"
         "- Round: 6\n"
         "\n"
         "## Roles And Permissions\n"
-        "- Sales Rep can update ownership for customer records they can access.\n"
+        "- The Alpha Persona can update ownership for records they can access.\n"
         "- Unauthorized users cannot change ownership.\n"
         "\n"
         "## Component Breakdown\n"
@@ -426,7 +436,7 @@ def _write_feature_spec(root: Path, *, complete: bool) -> None:
         "- Assignment lookup data\n"
         "\n"
         "## Given-When-Then Acceptance Spec\n"
-        "- Reuse the Customer Assignment GWT file as the acceptance contract.\n"
+        "- Reuse the Alpha Feature GWT file as the acceptance contract.\n"
     )
     if complete:
         body = body.replace(

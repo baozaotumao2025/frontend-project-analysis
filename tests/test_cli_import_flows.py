@@ -28,14 +28,14 @@ def test_import_manifest_apply_updates_state(tmp_path: Path) -> None:
             {
                 "artifacts": [
                     {
-                        "ref": "page:customer-profile",
-                        "title": "Customer Profile",
+                        "ref": "page:alpha-page",
+                        "title": "Alpha Page",
                         "status": "draft",
-                        "source_path": "analysis/pages/customer-profile.md",
-                        "metadata": {"slug": "customer-profile"},
+                        "source_path": "analysis/pages/alpha-page.md",
+                        "metadata": {"slug": "alpha-page"},
                         "dependencies": [
                             {
-                                "to": "persona:sales-rep",
+                                "to": "persona:alpha-persona",
                                 "type": "requires",
                                 "is_hard": True,
                             }
@@ -78,9 +78,9 @@ def test_import_manifest_apply_updates_state(tmp_path: Path) -> None:
 
     with session_scope(project_paths(tmp_path)) as session:
         project_row = get_project(session, "crm-web")
-        page = get_artifact_by_ref(session, project_row, "page:customer-profile")
+        page = get_artifact_by_ref(session, project_row, "page:alpha-page")
         assert page.status == ArtifactStatus.DRAFT
-        assert any(dep.to_artifact.slug == "sales-rep" for dep in page.outgoing_dependencies)
+        assert any(dep.to_artifact.slug == "alpha-persona" for dep in page.outgoing_dependencies)
 
 
 def test_import_manifest_ignores_inbound_status_override(tmp_path: Path) -> None:
@@ -91,11 +91,11 @@ def test_import_manifest_ignores_inbound_status_override(tmp_path: Path) -> None
             {
                 "artifacts": [
                     {
-                        "ref": "page:customer-profile",
-                        "title": "Customer Profile",
+                        "ref": "page:alpha-page",
+                        "title": "Alpha Page",
                         "status": "approved",
-                        "source_path": "analysis/pages/customer-profile.md",
-                        "metadata": {"slug": "customer-profile"},
+                        "source_path": "analysis/pages/alpha-page.md",
+                        "metadata": {"slug": "alpha-page"},
                     }
                 ]
             },
@@ -120,29 +120,29 @@ def test_import_manifest_ignores_inbound_status_override(tmp_path: Path) -> None
 
     with session_scope(project_paths(tmp_path)) as session:
         project_row = get_project(session, "crm-web")
-        page = get_artifact_by_ref(session, project_row, "page:customer-profile")
+        page = get_artifact_by_ref(session, project_row, "page:alpha-page")
         assert page.status == ArtifactStatus.DRAFT
 
 
 def test_import_markdown_content_change_resets_to_draft(tmp_path: Path) -> None:
     bootstrap_project(tmp_path)
-    markdown_path = tmp_path / "analysis" / "pages" / "customer-profile.md"
+    markdown_path = tmp_path / "analysis" / "pages" / "alpha-page.md"
     markdown_path.write_text(
         "---\n"
         "artifact_type: page\n"
-        "slug: customer-profile\n"
+        "slug: alpha-page\n"
         "round: 3\n"
         "status: draft\n"
         "project: crm-web\n"
-        "title: Customer Profile\n"
+        "title: Alpha Page\n"
         "---\n"
-        "# Customer Profile\n"
+        "# Alpha Page\n"
         "\n"
         "## Route Information\n"
-        "- Route: `/customer-profile`\n"
+        "- Route: `/alpha-page`\n"
         "\n"
         "## Accessible Persona\n"
-        "- Sales Rep\n"
+        "- Alpha Persona\n"
         "\n"
         "## Story Steps Covered\n"
         "- Review customer details\n"
@@ -151,7 +151,7 @@ def test_import_markdown_content_change_resets_to_draft(tmp_path: Path) -> None:
         "Shows the customer profile.\n"
         "\n"
         "## Related Features\n"
-        "- Customer Assignment\n",
+        "- Alpha Feature\n",
         encoding="utf-8",
     )
 
@@ -175,7 +175,7 @@ def test_import_markdown_content_change_resets_to_draft(tmp_path: Path) -> None:
             "--project",
             "crm-web",
             "--artifact",
-            "page:customer-profile",
+            "page:alpha-page",
         ],
     )
     assert structural_result.exit_code == 0, structural_result.output
@@ -183,19 +183,19 @@ def test_import_markdown_content_change_resets_to_draft(tmp_path: Path) -> None:
     markdown_path.write_text(
         "---\n"
         "artifact_type: page\n"
-        "slug: customer-profile\n"
+        "slug: alpha-page\n"
         "round: 3\n"
         "status: draft\n"
         "project: crm-web\n"
-        "title: Customer Profile\n"
+        "title: Alpha Page\n"
         "---\n"
-        "# Customer Profile\n"
+        "# Alpha Page\n"
         "\n"
         "## Route Information\n"
-        "- Route: `/customer-profile`\n"
+        "- Route: `/alpha-page`\n"
         "\n"
         "## Accessible Persona\n"
-        "- Sales Rep\n"
+        "- Alpha Persona\n"
         "\n"
         "## Story Steps Covered\n"
         "- Review customer details\n"
@@ -204,7 +204,7 @@ def test_import_markdown_content_change_resets_to_draft(tmp_path: Path) -> None:
         "Shows the customer profile.\n"
         "\n"
         "## Related Features\n"
-        "- Customer Assignment\n",
+        "- Alpha Feature\n",
         encoding="utf-8",
     )
 
@@ -222,35 +222,35 @@ def test_import_markdown_content_change_resets_to_draft(tmp_path: Path) -> None:
 
     with session_scope(project_paths(tmp_path)) as session:
         project_row = get_project(session, "crm-web")
-        page = get_artifact_by_ref(session, project_row, "page:customer-profile")
+        page = get_artifact_by_ref(session, project_row, "page:alpha-page")
         assert page.status == ArtifactStatus.DRAFT
 
 
 def test_import_markdown_scan_ignores_frontmatter_status_override(tmp_path: Path) -> None:
     bootstrap_project(tmp_path)
-    markdown_path = tmp_path / "analysis" / "pages" / "customer-profile.md"
+    markdown_path = tmp_path / "analysis" / "pages" / "alpha-page.md"
     markdown_path.write_text(
         "---\n"
         "artifact_type: page\n"
-        "slug: customer-profile\n"
+        "slug: alpha-page\n"
         "round: 3\n"
         "status: approved\n"
         "project: crm-web\n"
-        "title: Customer Profile\n"
+        "title: Alpha Page\n"
         "---\n"
-        "# Customer Profile\n"
+        "# Alpha Page\n"
         "\n"
         "## Route Information\n"
-        "- Route: `/customer-profile`\n"
+        "- Route: `/alpha-page`\n"
         "\n"
         "## Accessible Persona\n"
-        "- Sales Rep\n"
+        "- Alpha Persona\n"
         "\n"
         "## Story Steps Covered\n"
         "- Review customer details\n"
         "\n"
         "## Related Features\n"
-        "- Customer Assignment\n",
+        "- Alpha Feature\n",
         encoding="utf-8",
     )
 
@@ -268,7 +268,7 @@ def test_import_markdown_scan_ignores_frontmatter_status_override(tmp_path: Path
 
     with session_scope(project_paths(tmp_path)) as session:
         project_row = get_project(session, "crm-web")
-        page = get_artifact_by_ref(session, project_row, "page:customer-profile")
+        page = get_artifact_by_ref(session, project_row, "page:alpha-page")
         assert page.status == ArtifactStatus.DRAFT
 
 
@@ -300,18 +300,18 @@ def test_import_manifest_blocks_duplicate_artifact_refs(tmp_path: Path) -> None:
             {
                 "artifacts": [
                     {
-                        "ref": "page:customer-profile",
-                        "title": "Customer Profile",
+                        "ref": "page:alpha-page",
+                        "title": "Alpha Page",
                         "status": "draft",
-                        "source_path": "analysis/pages/customer-profile.md",
-                        "metadata": {"slug": "customer-profile"},
+                        "source_path": "analysis/pages/alpha-page.md",
+                        "metadata": {"slug": "alpha-page"},
                     },
                     {
-                        "ref": "page:customer-profile",
-                        "title": "Customer Profile Again",
+                        "ref": "page:alpha-page",
+                        "title": "Alpha Page Again",
                         "status": "draft",
-                        "source_path": "analysis/pages/customer-profile-copy.md",
-                        "metadata": {"slug": "customer-profile"},
+                        "source_path": "analysis/pages/alpha-page-copy.md",
+                        "metadata": {"slug": "alpha-page"},
                     },
                 ]
             },
@@ -351,9 +351,9 @@ def test_hard_dependency_on_approved_artifact_stales_dependents(tmp_path: Path) 
             "--type",
             "page",
             "--slug",
-            "ops-overview",
+            "beta-page",
             "--title",
-            "Ops Overview",
+            "Beta Page",
         ],
     )
     assert add_page.exit_code == 0, add_page.output
@@ -366,46 +366,46 @@ def test_hard_dependency_on_approved_artifact_stales_dependents(tmp_path: Path) 
             "--project",
             "crm-web",
             "--from",
-            "persona:sales-rep",
+            "persona:alpha-persona",
             "--to",
-            "page:ops-overview",
+            "page:beta-page",
         ],
     )
     assert link_result.exit_code == 0, link_result.output
 
     with session_scope(project_paths(tmp_path)) as session:
         project_row = get_project(session, "crm-web")
-        persona = get_artifact_by_ref(session, project_row, "persona:sales-rep")
-        feature = get_artifact_by_ref(session, project_row, "feature:customer-assignment")
+        persona = get_artifact_by_ref(session, project_row, "persona:alpha-persona")
+        feature = get_artifact_by_ref(session, project_row, "feature:alpha-feature")
         assert persona.status == ArtifactStatus.STALE
         assert feature.status == ArtifactStatus.STALE
 
 
 def test_import_markdown_scan_apply_updates_state(tmp_path: Path) -> None:
     bootstrap_project(tmp_path)
-    markdown_path = tmp_path / "analysis" / "pages" / "customer-profile.md"
+    markdown_path = tmp_path / "analysis" / "pages" / "alpha-page.md"
     markdown_path.write_text(
         "---\n"
         "artifact_type: page\n"
-        "slug: customer-profile\n"
+        "slug: alpha-page\n"
         "round: 3\n"
         "status: draft\n"
         "project: crm-web\n"
-        "title: Customer Profile\n"
+        "title: Alpha Page\n"
         "---\n"
-        "# Customer Profile\n"
+        "# Alpha Page\n"
         "\n"
         "## Route Information\n"
-        "- Route: `/customer-profile`\n"
+        "- Route: `/alpha-page`\n"
         "\n"
         "## Accessible Persona\n"
-        "- Sales Rep\n"
+        "- Alpha Persona\n"
         "\n"
         "## Story Steps Covered\n"
         "- Review customer details\n"
         "\n"
         "## Related Features\n"
-        "- Customer Assignment\n",
+        "- Alpha Feature\n",
         encoding="utf-8",
     )
 
@@ -420,7 +420,7 @@ def test_import_markdown_scan_apply_updates_state(tmp_path: Path) -> None:
     )
     assert preview_result.exit_code == 0, preview_result.output
     assert '"apply": false' in preview_result.output
-    assert "customer-profile.md" in preview_result.output
+    assert "alpha-page.md" in preview_result.output
 
     apply_result = invoke_with_root(
         tmp_path,
@@ -436,6 +436,6 @@ def test_import_markdown_scan_apply_updates_state(tmp_path: Path) -> None:
 
     with session_scope(project_paths(tmp_path)) as session:
         project_row = get_project(session, "crm-web")
-        page = get_artifact_by_ref(session, project_row, "page:customer-profile")
-        assert page.source_path == "analysis/pages/customer-profile.md"
-        assert page.title == "Customer Profile"
+        page = get_artifact_by_ref(session, project_row, "page:alpha-page")
+        assert page.source_path == "analysis/pages/alpha-page.md"
+        assert page.title == "Alpha Page"

@@ -89,7 +89,7 @@ def test_e2e_init_and_round_recovery(tmp_path: Path) -> None:
     assert explore_start.exit_code == 0, explore_start.output
     assert "ready to explore" in explore_start.output.lower()
 
-    run_review_cycle(root, "persona:sales-rep", review_payload)
+    run_review_cycle(root, "persona:alpha-persona", review_payload)
     assert_round_gate(root, 2, should_pass=True)
 
     blocked_round_3 = run_fpa(
@@ -104,7 +104,7 @@ def test_e2e_init_and_round_recovery(tmp_path: Path) -> None:
         ],
     )
     assert blocked_round_3.exit_code != 0, blocked_round_3.output
-    assert "story_map:sales-rep" in blocked_round_3.output
+    assert "story_map:alpha-persona" in blocked_round_3.output
     assert "draft" in blocked_round_3.output
 
     story_map_failure = run_fpa(
@@ -115,7 +115,7 @@ def test_e2e_init_and_round_recovery(tmp_path: Path) -> None:
             "--project",
             PROJECT_KEY,
             "--artifact",
-            "story_map:sales-rep",
+            "story_map:alpha-persona",
         ],
     )
     assert story_map_failure.exit_code != 0, story_map_failure.output
@@ -138,16 +138,16 @@ def test_e2e_init_and_round_recovery(tmp_path: Path) -> None:
     )
     assert scan_result.exit_code == 0, scan_result.output
 
-    run_review_cycle(root, "story_map:sales-rep", review_payload)
+    run_review_cycle(root, "story_map:alpha-persona", review_payload)
     assert_round_gate(root, 3, should_pass=True)
 
-    run_review_cycle(root, "page:customer-profile", review_payload)
+    run_review_cycle(root, "page:alpha-page", review_payload)
     assert_round_gate(root, 4, should_pass=True)
 
-    run_review_cycle(root, "feature:customer-assignment", review_payload)
+    run_review_cycle(root, "feature:alpha-feature", review_payload)
     assert_round_gate(root, 5, should_pass=True)
 
-    run_review_cycle(root, "gwt:customer-assignment", review_payload)
+    run_review_cycle(root, "gwt:alpha-feature", review_payload)
 
     spec_failure = run_fpa(
         root,
@@ -157,7 +157,7 @@ def test_e2e_init_and_round_recovery(tmp_path: Path) -> None:
             "--project",
             PROJECT_KEY,
             "--artifact",
-            "feature_spec:customer-assignment",
+            "feature_spec:alpha-feature",
         ],
     )
     assert spec_failure.exit_code != 0, spec_failure.output
@@ -180,7 +180,7 @@ def test_e2e_init_and_round_recovery(tmp_path: Path) -> None:
     )
     assert scan_result.exit_code == 0, scan_result.output
 
-    run_review_cycle(root, "feature_spec:customer-assignment", review_payload)
+    run_review_cycle(root, "feature_spec:alpha-feature", review_payload)
     assert_round_gate(root, 6, should_pass=True)
 
     final_gate = run_fpa(
@@ -203,12 +203,12 @@ def test_e2e_init_and_round_recovery(tmp_path: Path) -> None:
             for artifact in list_artifacts(session, project)
         }
         assert approved_refs == {
-            "persona:sales-rep",
-            "story_map:sales-rep",
-            "page:customer-profile",
-            "feature:customer-assignment",
-            "gwt:customer-assignment",
-            "feature_spec:customer-assignment",
+            "persona:alpha-persona",
+            "story_map:alpha-persona",
+            "page:alpha-page",
+            "feature:alpha-feature",
+            "gwt:alpha-feature",
+            "feature_spec:alpha-feature",
         }
 
 
@@ -230,7 +230,7 @@ def test_e2e_review_reject_and_restore_recovery(tmp_path: Path) -> None:
         ],
     )
     assert ready_result.exit_code == 0, ready_result.output
-    assert "feature:customer-assignment" in ready_result.output
+    assert "feature:alpha-feature" in ready_result.output
 
     semantic_record = run_fpa(
         root,
@@ -240,7 +240,7 @@ def test_e2e_review_reject_and_restore_recovery(tmp_path: Path) -> None:
             "--project",
             PROJECT_KEY,
             "--artifact",
-            "feature:customer-assignment",
+            "feature:alpha-feature",
             "--input",
             str(review_payload),
         ],
@@ -255,15 +255,15 @@ def test_e2e_review_reject_and_restore_recovery(tmp_path: Path) -> None:
             "--project",
             PROJECT_KEY,
             "--artifact",
-            "feature:customer-assignment",
+            "feature:alpha-feature",
         ],
     )
     assert reject_result.exit_code == 0, reject_result.output
-    assert "Rejected feature:customer-assignment" in reject_result.output
+    assert "Rejected feature:alpha-feature" in reject_result.output
 
     with session_scope(project_paths(root)) as session:
         project = get_project(session, PROJECT_KEY)
-        feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
+        feature = get_artifact_by_ref(session, project, "feature:alpha-feature")
         assert feature.status == ArtifactStatus.REJECTED
 
     blocked_round_5 = run_fpa(
@@ -278,7 +278,7 @@ def test_e2e_review_reject_and_restore_recovery(tmp_path: Path) -> None:
         ],
     )
     assert blocked_round_5.exit_code != 0, blocked_round_5.output
-    assert "feature:customer-assignment" in blocked_round_5.output
+    assert "feature:alpha-feature" in blocked_round_5.output
     assert "rejected" in blocked_round_5.output.lower()
 
     backup_result = run_fpa(root, ["db", "backup"])
@@ -296,9 +296,9 @@ def test_e2e_review_reject_and_restore_recovery(tmp_path: Path) -> None:
             "--type",
             "page",
             "--slug",
-            "ops-overview",
+            "beta-page",
             "--title",
-            "Ops Overview",
+            "Beta Page",
         ],
     )
     assert add_page.exit_code == 0, add_page.output
@@ -324,7 +324,7 @@ def test_e2e_review_reject_and_restore_recovery(tmp_path: Path) -> None:
         artifacts = list_artifacts(session, project)
         assert any(artifact.artifact_type.value == "persona" for artifact in artifacts)
         assert all(
-            not (artifact.artifact_type.value == "page" and artifact.slug == "ops-overview")
+            not (artifact.artifact_type.value == "page" and artifact.slug == "beta-page")
             for artifact in artifacts
         )
 
@@ -351,35 +351,35 @@ def test_e2e_localized_cross_references_and_sequential_review(
     )
     assert init_result.exit_code == 0, init_result.output
 
-    persona_path = root / "analysis" / "personas" / "sales-rep.md"
+    persona_path = root / "analysis" / "personas" / "alpha-persona.md"
     persona_path.write_text(
         "---\n"
         "artifact_type: persona\n"
-        "slug: sales-rep\n"
+        "slug: alpha-persona\n"
         "round: 1\n"
         "status: draft\n"
         "project: crm-web\n"
-        "title: Sales Rep\n"
+        "title: Alpha Persona\n"
         "aliases:\n"
         "  - 销售代表\n"
         "---\n"
-        "# Sales Rep\n",
+        "# Alpha Persona\n",
         encoding="utf-8",
     )
-    page_path = root / "analysis" / "pages" / "customer-profile.md"
+    page_path = root / "analysis" / "pages" / "alpha-page.md"
     page_path.write_text(
         "---\n"
         "artifact_type: page\n"
-        "slug: customer-profile\n"
+        "slug: alpha-page\n"
         "round: 3\n"
         "status: draft\n"
         "project: crm-web\n"
-        "title: Customer Profile\n"
+        "title: Alpha Page\n"
         "---\n"
-        "# Customer Profile\n"
+        "# Alpha Page\n"
         "\n"
         "## Route Information\n"
-        "- Route: `/customer-profile`\n"
+        "- Route: `/alpha-page`\n"
         "\n"
         "## Accessible Persona\n"
         "- 销售代表\n"
@@ -391,23 +391,23 @@ def test_e2e_localized_cross_references_and_sequential_review(
         "Shows the customer profile.\n"
         "\n"
         "## Related Features\n"
-        "- [客户分配](../features/customer-assignment.md)\n",
+        "- [客户分配](../features/alpha-feature.md)\n",
         encoding="utf-8",
     )
-    feature_path = root / "analysis" / "features" / "customer-assignment.md"
+    feature_path = root / "analysis" / "features" / "alpha-feature.md"
     feature_path.write_text(
         "---\n"
         "artifact_type: feature\n"
-        "slug: customer-assignment\n"
+        "slug: alpha-feature\n"
         "round: 4\n"
         "status: draft\n"
         "project: crm-web\n"
-        "title: Customer Assignment\n"
+        "title: Alpha Feature\n"
         "---\n"
-        "# Customer Assignment\n"
+        "# Alpha Feature\n"
         "\n"
         "## Page\n"
-        "- [Customer Profile](../pages/customer-profile.md)\n"
+        "- [Alpha Page](../pages/alpha-page.md)\n"
         "\n"
         "## Persona Served\n"
         "- 销售代表\n"
@@ -438,9 +438,9 @@ def test_e2e_localized_cross_references_and_sequential_review(
     )
     assert scan_result.exit_code == 0, scan_result.output
 
-    run_review_cycle(root, "persona:sales-rep", review_payload)
-    run_review_cycle(root, "page:customer-profile", review_payload)
-    run_review_cycle(root, "feature:customer-assignment", review_payload)
+    run_review_cycle(root, "persona:alpha-persona", review_payload)
+    run_review_cycle(root, "page:alpha-page", review_payload)
+    run_review_cycle(root, "feature:alpha-feature", review_payload)
 
     round_4_gate = run_fpa(
         root,
@@ -472,7 +472,7 @@ def test_e2e_artifact_link_stales_approved_dependents(tmp_path: Path) -> None:
         ],
     )
     assert link_ready.exit_code == 0, link_ready.output
-    assert "feature:customer-assignment" in link_ready.output
+    assert "feature:alpha-feature" in link_ready.output
 
     from tests.cli_support import approve_feature
 
@@ -488,9 +488,9 @@ def test_e2e_artifact_link_stales_approved_dependents(tmp_path: Path) -> None:
             "--type",
             "page",
             "--slug",
-            "ops-overview",
+            "beta-page",
             "--title",
-            "Ops Overview",
+            "Beta Page",
         ],
     )
     assert add_page.exit_code == 0, add_page.output
@@ -503,18 +503,18 @@ def test_e2e_artifact_link_stales_approved_dependents(tmp_path: Path) -> None:
             "--project",
             PROJECT_KEY,
             "--from",
-            "persona:sales-rep",
+            "persona:alpha-persona",
             "--to",
-            "page:ops-overview",
+            "page:beta-page",
         ],
     )
     assert link_result.exit_code == 0, link_result.output
-    assert "Linked persona:sales-rep -> page:ops-overview" in link_result.output
+    assert "Linked persona:alpha-persona -> page:beta-page" in link_result.output
 
     with session_scope(project_paths(root)) as session:
         project = get_project(session, PROJECT_KEY)
-        feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
-        persona = get_artifact_by_ref(session, project, "persona:sales-rep")
+        feature = get_artifact_by_ref(session, project, "feature:alpha-feature")
+        persona = get_artifact_by_ref(session, project, "persona:alpha-persona")
         assert persona.status == ArtifactStatus.STALE
         assert feature.status == ArtifactStatus.STALE
 
@@ -530,7 +530,7 @@ def test_e2e_artifact_link_stales_approved_dependents(tmp_path: Path) -> None:
         ],
     )
     assert blocked_round_5.exit_code != 0, blocked_round_5.output
-    assert "feature:customer-assignment" in blocked_round_5.output
+    assert "feature:alpha-feature" in blocked_round_5.output
     assert "stale" in blocked_round_5.output.lower()
 
 
@@ -564,14 +564,14 @@ def test_e2e_semantic_run_auto_approves_when_enabled(
             "--project",
             PROJECT_KEY,
             "--artifact",
-            "feature:customer-assignment",
+            "feature:alpha-feature",
         ],
     )
     assert run_result.exit_code == 0, run_result.output
 
     with session_scope(project_paths(root)) as session:
         project = get_project(session, PROJECT_KEY)
-        feature = get_artifact_by_ref(session, project, "feature:customer-assignment")
+        feature = get_artifact_by_ref(session, project, "feature:alpha-feature")
         assert feature.status == ArtifactStatus.APPROVED
 
 
@@ -628,10 +628,10 @@ def test_e2e_full_flow_multiple_failure_recovery(tmp_path: Path) -> None:
         ],
     )
     assert round_2_blocked.exit_code != 0, round_2_blocked.output
-    assert "persona:sales-rep" in round_2_blocked.output
+    assert "persona:alpha-persona" in round_2_blocked.output
     assert "draft" in round_2_blocked.output
 
-    run_review_cycle(root, "persona:sales-rep", review_payload)
+    run_review_cycle(root, "persona:alpha-persona", review_payload)
     assert_round_gate(root, 2, should_pass=True)
 
     round_3_blocked = run_fpa(
@@ -646,7 +646,7 @@ def test_e2e_full_flow_multiple_failure_recovery(tmp_path: Path) -> None:
         ],
     )
     assert round_3_blocked.exit_code != 0, round_3_blocked.output
-    assert "story_map:sales-rep" in round_3_blocked.output
+    assert "story_map:alpha-persona" in round_3_blocked.output
 
     story_map_failure = run_fpa(
         root,
@@ -656,7 +656,7 @@ def test_e2e_full_flow_multiple_failure_recovery(tmp_path: Path) -> None:
             "--project",
             PROJECT_KEY,
             "--artifact",
-            "story_map:sales-rep",
+            "story_map:alpha-persona",
         ],
     )
     assert story_map_failure.exit_code != 0, story_map_failure.output
@@ -680,7 +680,7 @@ def test_e2e_full_flow_multiple_failure_recovery(tmp_path: Path) -> None:
             "--apply",
         ],
     )
-    run_review_cycle(root, "story_map:sales-rep", review_payload)
+    run_review_cycle(root, "story_map:alpha-persona", review_payload)
     assert_round_gate(root, 3, should_pass=True)
 
     round_4_blocked = run_fpa(
@@ -695,7 +695,7 @@ def test_e2e_full_flow_multiple_failure_recovery(tmp_path: Path) -> None:
         ],
     )
     assert round_4_blocked.exit_code != 0, round_4_blocked.output
-    assert "page:customer-profile" in round_4_blocked.output
+    assert "page:alpha-page" in round_4_blocked.output
 
     page_failure = run_fpa(
         root,
@@ -705,7 +705,7 @@ def test_e2e_full_flow_multiple_failure_recovery(tmp_path: Path) -> None:
             "--project",
             PROJECT_KEY,
             "--artifact",
-            "page:customer-profile",
+            "page:alpha-page",
         ],
     )
     assert page_failure.exit_code != 0, page_failure.output
@@ -729,7 +729,7 @@ def test_e2e_full_flow_multiple_failure_recovery(tmp_path: Path) -> None:
             "--apply",
         ],
     )
-    run_review_cycle(root, "page:customer-profile", review_payload)
+    run_review_cycle(root, "page:alpha-page", review_payload)
     assert_round_gate(root, 4, should_pass=True)
 
     round_5_blocked = run_fpa(
@@ -744,7 +744,7 @@ def test_e2e_full_flow_multiple_failure_recovery(tmp_path: Path) -> None:
         ],
     )
     assert round_5_blocked.exit_code != 0, round_5_blocked.output
-    assert "feature:customer-assignment" in round_5_blocked.output
+    assert "feature:alpha-feature" in round_5_blocked.output
 
     feature_failure = run_fpa(
         root,
@@ -754,7 +754,7 @@ def test_e2e_full_flow_multiple_failure_recovery(tmp_path: Path) -> None:
             "--project",
             PROJECT_KEY,
             "--artifact",
-            "feature:customer-assignment",
+            "feature:alpha-feature",
         ],
     )
     assert feature_failure.exit_code != 0, feature_failure.output
@@ -778,7 +778,7 @@ def test_e2e_full_flow_multiple_failure_recovery(tmp_path: Path) -> None:
             "--apply",
         ],
     )
-    run_review_cycle(root, "feature:customer-assignment", review_payload)
+    run_review_cycle(root, "feature:alpha-feature", review_payload)
     assert_round_gate(root, 5, should_pass=True)
 
     round_6_blocked = run_fpa(
@@ -793,7 +793,7 @@ def test_e2e_full_flow_multiple_failure_recovery(tmp_path: Path) -> None:
         ],
     )
     assert round_6_blocked.exit_code != 0, round_6_blocked.output
-    assert "gwt:customer-assignment" in round_6_blocked.output
+    assert "gwt:alpha-feature" in round_6_blocked.output
 
     gwt_failure = run_fpa(
         root,
@@ -803,7 +803,7 @@ def test_e2e_full_flow_multiple_failure_recovery(tmp_path: Path) -> None:
             "--project",
             PROJECT_KEY,
             "--artifact",
-            "gwt:customer-assignment",
+            "gwt:alpha-feature",
         ],
     )
     assert gwt_failure.exit_code != 0, gwt_failure.output
@@ -827,7 +827,7 @@ def test_e2e_full_flow_multiple_failure_recovery(tmp_path: Path) -> None:
             "--apply",
         ],
     )
-    run_review_cycle(root, "gwt:customer-assignment", review_payload)
+    run_review_cycle(root, "gwt:alpha-feature", review_payload)
     assert_round_gate(root, 6, should_pass=True)
 
     spec_failure = run_fpa(
@@ -838,7 +838,7 @@ def test_e2e_full_flow_multiple_failure_recovery(tmp_path: Path) -> None:
             "--project",
             PROJECT_KEY,
             "--artifact",
-            "feature_spec:customer-assignment",
+            "feature_spec:alpha-feature",
         ],
     )
     assert spec_failure.exit_code != 0, spec_failure.output
@@ -862,7 +862,7 @@ def test_e2e_full_flow_multiple_failure_recovery(tmp_path: Path) -> None:
             "--apply",
         ],
     )
-    run_review_cycle(root, "feature_spec:customer-assignment", review_payload)
+    run_review_cycle(root, "feature_spec:alpha-feature", review_payload)
 
     final_gate = run_fpa(
         root,
@@ -916,13 +916,13 @@ def test_e2e_force_init_resets_project_state(tmp_path: Path) -> None:
     )
     assert scan_result.exit_code == 0, scan_result.output
 
-    run_review_cycle(root, "persona:sales-rep", review_payload)
+    run_review_cycle(root, "persona:alpha-persona", review_payload)
 
     with session_scope(project_paths(root)) as session:
         project = get_project(session, PROJECT_KEY)
         artifacts = list_artifacts(session, project)
         assert any(
-            artifact.artifact_type.value == "persona" and artifact.slug == "sales-rep"
+            artifact.artifact_type.value == "persona" and artifact.slug == "alpha-persona"
             for artifact in artifacts
         )
 

@@ -28,7 +28,7 @@ The rule is simple: do not let the LLM decide whether a required field exists, w
 | `Story Map` | frontmatter completeness; `Start / End`; source exists; round gate freshness | activity validity; step ordering; no UI leakage; business coherence | `Activity -> Step -> Story` is a content contract, not a graph node contract |
 | `Page` | frontmatter completeness; route / persona / responsibility / related feature references; source exists; round gate freshness | page boundary quality; surface coverage; shared-surface correctness | Matrices can report the lineage, but the page file owns the page scope |
 | `Feature` | frontmatter completeness; page / persona / responsibility / state type / reuse / source story; source exists; round gate freshness | independence; coupling quality; slice clarity; delivery boundary honesty; evidence-backed findings and counterexamples | Feature is the main vertical-slice unit in the current workflow |
-| `GWT` | scenario presence; complete `Given / When / Then`; required scenario names; source exists; round gate freshness | scenario intent; business-facing wording; behavioral coverage quality | The current code enforces scenario shape, not only syntax |
+| `GWT` | scenario presence; complete `Given / When / Then`; required scenario names; explicit Feature frontmatter reference; source exists; round gate freshness | scenario intent; business-facing wording; behavioral coverage quality; feature binding clarity | The current code enforces scenario shape and the feature binding, not only syntax |
 | `Feature Spec` | fixed section coverage; `server state` and `client state` both explicit; source exists; round gate freshness | boundary clarity; dependency honesty; cross-cutting completeness when relevant | This is where delivery-facing detail should become explicit |
 | `brief assistant` | transcript capture; brief output file; optional AI follow-up and summary sections | follow-up question quality; synthesis quality; missing-gap detection | This is the LLM-assisted entry path for creating or refining a `project brief` |
 
@@ -89,8 +89,12 @@ These files are derived views and should be regenerated from the database and ar
 | `analysis/story-maps/index.md` | Story Map bodies + metadata | code |
 | `analysis/pages/index.md` | Page bodies + metadata | code |
 | `analysis/features/index.md` | Feature bodies + metadata | code |
+| `analysis/relations/index.md` | exported relationship entrypoints | code |
 | `analysis/relations/persona-story-page-matrix.md` | artifact graph lineage | code |
 | `analysis/relations/feature-coverage-matrix.md` | artifact graph lineage | code |
+| `analysis/relations/gwt-feature-matrix.md` | artifact graph lineage | code |
+| `analysis/relations/graph.html` | exported graph projection | code |
+| `.frontend-project-analysis/exports/*-graph.json` | exported graph projection | code |
 
 Derived projections may also include round-local inventory and coverage views when those help humans inspect whether the evidence boundary was fully reconciled.
 

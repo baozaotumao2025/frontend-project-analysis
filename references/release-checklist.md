@@ -61,6 +61,8 @@ Before publishing, verify:
    - Confirm every public behavior changed in code has a matching description update
    - Confirm every public claim changed in a description file has a matching code path, test, or workflow rule
    - Confirm `references/glossary.md` still owns the vocabulary used by the release
+   - Confirm exported relationship surfaces (`analysis/relations/*.md`, `analysis/relations/graph.html`, `.frontend-project-analysis/exports/*-graph.json`) are documented consistently when their shape changes
+   - Confirm ADR scope is still correct: projection and export-surface changes normally stay in `references/*`; add or revise an ADR only when the change introduces a new durable architectural boundary, lifecycle rule, authority split, or governance decision
 
 ## Capability Readiness Criteria
 

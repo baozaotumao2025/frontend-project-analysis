@@ -23,7 +23,7 @@ The Python code follows a layered split:
 - `repositories/`: persistence helpers split into `projects`, `dependencies`, `versions`, and `reviews`
 - `workflow/`: state checks, transitions, semantic packet construction, and IO facade
 - `workflow/state/`: shared workflow state definitions, ready checks, gate checks, structural review, and transitions
-- `workflow/io/`: audit file archiving, JSON export, manifest export, relations export, Markdown import, and manifest import helpers
+- `workflow/io/`: audit file archiving, JSON export, manifest export, relations export, graph export, Markdown import, and manifest import helpers
 - `llm/`: provider routing, request builders, validation, provider helpers, and shared response types
 - `llm/providers/`: provider-specific adapters
 - `llm/transport/`: HTTP transport, error mapping, and backoff helpers
@@ -70,6 +70,11 @@ analysis/
   pages/
   features/
   relations/
+    index.md
+    persona-story-page-matrix.md
+    feature-coverage-matrix.md
+    gwt-feature-matrix.md
+    graph.html
   gwt/
   specs/features/
 ```
@@ -144,9 +149,12 @@ This is the same wiring `init` relies on when bootstrapping a fresh target proje
 - `uv run fpa import markdown-scan --project <key> --apply`
 - `uv run fpa export manifest --project <key>`
 - `uv run fpa export relations --project <key>`
+- `uv run fpa export graph-json --project <key>`
+- `uv run fpa export graph-html --project <key>`
 
-When `markdown-scan --apply` runs, the importer refreshes the document indexes and relation matrices from the current SQLite state.
-It is a reconciliation step, not a claim that Markdown and SQLite are peer sources of truth.
+When `markdown-scan --apply` runs, the importer refreshes the document indexes and relation matrix projections from the current SQLite state, including `analysis/index.md`, `analysis/features/index.md`, `analysis/relations/index.md`, and the three relation matrices.
+It does not regenerate `analysis/relations/graph.html` or `.frontend-project-analysis/exports/*-graph.json`; those stay explicit export surfaces.
+This is a reconciliation step, not a claim that Markdown and SQLite are peer sources of truth.
 
 ## Skill Integration Rule
 

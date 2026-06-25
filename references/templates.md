@@ -9,8 +9,14 @@
 - `analysis/story-maps/[persona-name].md`
 - `analysis/pages/index.md`
 - `analysis/pages/[page-slug].md`
+- `analysis/features/index.md`
 - `analysis/features/[feature-name].md`
+- `analysis/relations/index.md`
+- `analysis/relations/persona-story-page-matrix.md`
+- `analysis/relations/feature-coverage-matrix.md`
 - `analysis/gwt/[feature-name].feature`
+- `analysis/relations/gwt-feature-matrix.md`
+- `analysis/relations/graph.html`
 - `analysis/specs/features/[feature-name]-spec.md`
 
 `analysis/index.md`
@@ -125,6 +131,18 @@ Markdown links are allowed when the display text or target can still be resolved
 
 `analysis/gwt/[feature-name].feature`
 
+```yaml
+---
+artifact_type: gwt
+slug: [feature-name]
+round: 5
+status: draft
+project: [project-key]
+feature: [feature-name]
+title: [Feature Name]
+---
+```
+
 ```gherkin
 Feature: [feature-name]
 
@@ -152,6 +170,49 @@ Feature: [feature-name]
     Given []
     When []
     Then []
+```
+
+`analysis/relations/gwt-feature-matrix.md`
+
+```md
+# GWT Feature Matrix
+
+| GWT | Feature | Page | Persona | Story Map |
+| --- | --- | --- | --- | --- |
+```
+
+`analysis/relations/index.md`
+
+```md
+# Relations Index
+
+## Matrices
+
+- [Persona Story Page Matrix](./persona-story-page-matrix.md)
+- [Feature Coverage Matrix](./feature-coverage-matrix.md)
+- [GWT Feature Matrix](./gwt-feature-matrix.md)
+
+## Graph Views
+
+- [Relationship Graph](./graph.html)
+```
+
+`analysis/relations/persona-story-page-matrix.md`
+
+```md
+# Persona Story Page Matrix
+
+| Persona | Story Map | Page | Feature | GWT |
+| --- | --- | --- | --- | --- |
+```
+
+`analysis/relations/feature-coverage-matrix.md`
+
+```md
+# Feature Coverage Matrix
+
+| Feature | Persona | Page | Story Map | GWT |
+| --- | --- | --- | --- | --- |
 ```
 
 `analysis/specs/features/[feature-name]-spec.md`

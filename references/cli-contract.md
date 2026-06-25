@@ -27,6 +27,10 @@ This page summarizes the user impact of the code-enforced state gates.
 - `fpa review resubmit` is the operator-facing fast path for Markdown edits and stale revisions; it re-imports the target workspace, reruns structural review, and then either completes semantic review or exports a fresh host packet for a reviewer sub-agent.
 - `host` semantic review MUST use a fresh reviewer context; in Codex environments this means a sub-agent with `fork_context: false`. If the output lacks counterexamples or evidence, code will downgrade it to `needs_revision`.
 - The same packet-only rule applies to the release review packet and any future packet-driven semantic check that is reviewed in host mode.
+- `fpa export graph-json` writes the machine-readable relationship graph to `.frontend-project-analysis/exports/<project>-graph.json`.
+- `fpa export graph-html` writes the interactive relationship graph to `analysis/relations/graph.html`.
+- `fpa init` creates `analysis/relations/graph.html` as a placeholder browsing surface so scaffolded indexes do not point at a missing file; running `fpa export graph-html` replaces that placeholder with the live graph export.
+- `fpa import markdown-scan --apply` refreshes indexes and relation matrices from SQLite state, but it does not regenerate `graph.html` or `*-graph.json`; those remain explicit export commands.
 - `fpa artifact link` can invalidate approval lineage when it introduces a new hard dependency.
 - `fpa artifact ready` continues to report artifacts whose hard dependencies are approved, but it should be read as a scheduling hint, not a lifecycle override.
 - After a manual Markdown edit, SQLite and the file tree may diverge until `import markdown-scan --apply` or `review resubmit` runs; that transient mismatch is expected and must be resolved by re-import before downstream review or gate decisions continue.

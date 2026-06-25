@@ -26,8 +26,11 @@ analysis/
     index.md
     [feature-name].md
   relations/
+    index.md
     persona-story-page-matrix.md
     feature-coverage-matrix.md
+    gwt-feature-matrix.md
+    graph.html
   gwt/
     [feature-name].feature
   brief.md
@@ -45,7 +48,7 @@ Cross-reference sections may use canonical labels, localized aliases declared in
 - Persona files: semantic kebab-case such as `finance-manager.md`
 - Story Map files: same base name as the Persona file
 - Page files: semantic kebab-case such as `customer-detail.md`
-- Feature files: semantic kebab-case such as `customer-assignment.md`
+- Feature files: semantic kebab-case such as `alpha-feature.md`
 - GWT files: same base name as the Feature file with `.feature`
 - Spec files: same base name as the Feature file with `-spec.md`
 
@@ -55,9 +58,12 @@ Cross-reference sections may use canonical labels, localized aliases declared in
 - `analysis/story-maps/[persona-name].md`: `Activity -> Step -> Story` only
 - `analysis/pages/[page-slug].md`: page scope, accessible Persona, Story Steps, page responsibility, related Features
 - `analysis/features/[feature-name].md`: Feature summary with page, Persona, responsibility, state type, reuse, and source story
-- `analysis/relations/persona-story-page-matrix.md`: Persona to Story to Page to Feature mapping
-- `analysis/relations/feature-coverage-matrix.md`: Feature to Persona, Page, and Story mapping
-- `analysis/gwt/[feature-name].feature`: acceptance behavior
+- `analysis/relations/index.md`: entrypoint for matrix and graph relationship views
+- `analysis/relations/persona-story-page-matrix.md`: `Persona | Story Map | Page | Feature | GWT`
+- `analysis/relations/feature-coverage-matrix.md`: `Feature | Persona | Page | Story Map | GWT`
+- `analysis/relations/gwt-feature-matrix.md`: `GWT | Feature | Page | Persona | Story Map`
+- `analysis/relations/graph.html`: interactive artifact relationship graph rendered from exported graph data
+- `analysis/gwt/[feature-name].feature`: acceptance behavior with explicit Feature binding
 - `analysis/specs/features/[feature-name]-spec.md`: implementation boundary, discovery evidence, risk, accessibility, observability, release/compliance, and delivery detail
 
 ## Managed Frontmatter
@@ -67,15 +73,15 @@ Structured Markdown artifact files that participate in workflow state should inc
 ```yaml
 ---
 artifact_type: feature
-slug: customer-assignment
+slug: alpha-feature
 round: 4
 status: draft
 project: crm-web
-title: Customer Assignment
+title: Alpha Feature
 ---
 ```
 
-The CLI validates these fields during structural review for Persona, Story Map, Page, and Feature artifacts.
+The CLI validates these fields during structural review for Persona, Story Map, Page, Feature, and GWT artifacts.
 The file body remains the human-edited artifact content, while the database owns lifecycle and dependency state. Hand edits to the file still need import reconciliation before downstream workflow can trust them.
 
 ## Design Rules

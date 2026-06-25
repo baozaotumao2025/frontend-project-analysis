@@ -13,6 +13,7 @@
 - `Page Map`
 - `Feature`
 - `Feature Slicing`
+- `GWT`
 - `Given-When-Then`
 - `Feature Spec`
 - `Happy Path`
@@ -43,6 +44,7 @@
 - Write `Story Map`, not a translated substitute
 - Write `Page Map`, not a translated substitute
 - Write `Feature Slicing`, not a translated substitute
+- Write `GWT` as a shorthand when brevity helps, but prefer `Given-When-Then` as the canonical term
 - Write `Given-When-Then`, not a translated substitute
 - Write `Feature Spec` as the primary heading
 - Write `Happy Path`, `Edge Case`, `Permission Case`, and `Error Case` in English
@@ -51,6 +53,7 @@
 - Write `revision` for a versioned artifact instance
 - Write `fresh` for an approved revision that is not invalidated by upstream change
 - Write `fresh-session` for a reviewer context that must not reuse the drafting conversation
+- `fresh reviewer context`, `fresh reviewer sub-agent`, and `fresh-context` are acceptable prose variants, but prefer `fresh-session` in canonical wording
 - Write `stale` for a revision that must be revalidated because upstream changed
 - Write `superseded` for a revision replaced by a newer approved revision
 - Write `archived` for a retained revision that is no longer part of active workflow

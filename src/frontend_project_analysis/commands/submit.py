@@ -61,7 +61,9 @@ def _render_submission_result(result) -> str:
 
 
 @handle_service_error
-def submit(request: str | None = typer.Argument(None, help="Natural language request to route.")) -> None:
+def submit(
+    request: str | None = typer.Argument(None, help="Natural language request to route."),
+) -> None:
     settings = get_settings()
     paths = get_paths()
     if request is None or not request.strip():

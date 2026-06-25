@@ -57,6 +57,7 @@ The independence signals are:
 
 - [ ] Includes `Happy Path`, `Permission Case`, `Error Case`, and `Edge Case`
 - [ ] Includes `Accessibility Case`
+- [ ] Explicitly binds the GWT file to its Feature in frontmatter
 - [ ] Every Scenario has complete `Given / When / Then`
 - [ ] `Given` states the Persona clearly
 - [ ] `When` remains declarative

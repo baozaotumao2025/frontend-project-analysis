@@ -7,10 +7,10 @@ from ..core.contracts import assert_isolation_contract
 from ..core.errors import ConfigurationError
 from .brief import run_brief_assistant
 from .payloads import run_mock_review
-from .submission import run_submission_intent
 from .providers.anthropic import run_anthropic_review
 from .providers.gemini import run_gemini_review
 from .providers.openai import run_openai_compatible_review, run_openai_review
+from .submission import run_submission_intent
 from .types import ProviderResponse
 
 __all__ = [

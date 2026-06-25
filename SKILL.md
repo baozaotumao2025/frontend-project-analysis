@@ -16,6 +16,7 @@ Use this skill when the task is to analyze or decompose a frontend product into 
 - The user wants Codex or Claude Code to perform semantic review directly from a generated packet when no external LLM is configured
 - This skill is launcher-agnostic and can be used from Codex or Claude Code with the same repository files and CLI commands
 - The user wants evidence-gated analysis where each round enumerates inventory, reconciles coverage, and freezes review inputs before semantic judgment
+- The user wants to inspect relationship-heavy output through exported matrices, graph JSON, or an interactive HTML relationship graph
 
 Do not use this skill for component implementation, UI coding, or engineering execution unless the user explicitly pivots out of analysis.
 
@@ -49,6 +50,7 @@ If you need to check which document is authoritative for a topic, read `referenc
 - Treat `analysis_inventory`, `coverage ledger`, and `frozen packet` as round-local control data; do not infer coverage from prose alone
 - Prefer small focused files and progressive disclosure over large catch-all documents
 - Keep relationship-dense information in index or matrix files rather than inflating entity files
+- When relationship browsing matters, prefer the exported relation matrices or graph exports over hand-written narrative summaries
 - Keep terminology aligned with `references/glossary.md`
 - Keep artifact lifecycle semantics aligned with `references/state-machine.md`
 - Keep evidence-control semantics aligned with `references/evidence-gated-abstraction.md`
@@ -57,6 +59,7 @@ If you need to check which document is authoritative for a topic, read `referenc
 
 - Default output root is `analysis/`
 - Default document layout and file naming follow `references/structure.md`
+- Relation-heavy projections are expected to live under `analysis/relations/`, including the relations index, matrices, and relationship graph
 - Use the templates in `references/templates.md` only as a starting point; adapt them to the project context
 - Add structured frontmatter to workflow-managed Markdown artifact files so the CLI can validate type, round, status, and project alignment
 - The runtime state directory `.frontend-project-analysis/` belongs to the calling project, should stay local, and `init` ensures it is listed in that project's `.gitignore`

@@ -38,9 +38,9 @@ Use this matrix as the operator-facing lookup when a later round reveals that an
 
 | Round | Stale source | Wrong recovery layer | Correct recovery layer | Blocked ref |
 | --- | --- | --- | --- | --- |
-| 4 | `page:customer-profile` | `feature:customer-assignment` | `page:customer-profile` | `page:customer-profile` |
-| 5 | `page:customer-profile` | `gwt:customer-assignment` | `feature:customer-assignment` | `feature:customer-assignment` |
-| 6 | `page:customer-profile` | `feature_spec:customer-assignment` | `gwt:customer-assignment` | `gwt:customer-assignment` |
+| 4 | `page:alpha-page` | `feature:alpha-feature` | `page:alpha-page` | `page:alpha-page` |
+| 5 | `page:alpha-page` | `gwt:alpha-feature` | `feature:alpha-feature` | `feature:alpha-feature` |
+| 6 | `page:alpha-page` | `feature_spec:alpha-feature` | `gwt:alpha-feature` | `gwt:alpha-feature` |
 
 The table mirrors the regression matrix in `tests/test_cli_workflow_gate.py`: a lower downstream layer may be revalidated, but the gate remains blocked until the exact round input has been revalidated and approved.
 The same repository keeps `Explore mode` separate from this canonical path so exploratory analysis can continue without claiming approval.
@@ -104,6 +104,7 @@ Persona split rules:
 - Evidence input: approved Feature plus frozen packet
 - Output: `analysis/gwt/[feature-name].feature`
 - Coverage output: scenario coverage ledger
+- The GWT file must explicitly bind to the Feature slug in frontmatter so the acceptance contract is traceable
 - Process one Feature at a time, then pause
 - Round 5 MUST consume only `approved` Feature revisions that are not `stale`
 - If a Feature revision changes later, its GWT revision becomes stale

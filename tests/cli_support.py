@@ -92,9 +92,9 @@ def bootstrap_project(tmp_path: Path) -> None:
             "--type",
             "persona",
             "--slug",
-            "sales-rep",
+            "alpha-persona",
             "--title",
-            "Sales Rep",
+            "Alpha Persona",
         ],
     )
     assert add_persona.exit_code == 0, add_persona.output
@@ -108,9 +108,9 @@ def bootstrap_project(tmp_path: Path) -> None:
             "--type",
             "feature",
             "--slug",
-            "customer-assignment",
+            "alpha-feature",
             "--title",
-            "Customer Assignment",
+            "Alpha Feature",
         ],
     )
     assert add_feature.exit_code == 0, add_feature.output
@@ -122,9 +122,9 @@ def bootstrap_project(tmp_path: Path) -> None:
             "--project",
             "crm-web",
             "--from",
-            "feature:customer-assignment",
+            "feature:alpha-feature",
             "--to",
-            "persona:sales-rep",
+            "persona:alpha-persona",
         ],
     )
     assert link_result.exit_code == 0, link_result.output
@@ -139,7 +139,7 @@ def prepare_feature_for_semantic_review(tmp_path: Path) -> None:
             "--project",
             "crm-web",
             "--artifact",
-            "persona:sales-rep",
+            "persona:alpha-persona",
         ],
     )
     assert persona_structural.exit_code == 0, persona_structural.output
@@ -180,7 +180,7 @@ def prepare_feature_for_semantic_review(tmp_path: Path) -> None:
             "--project",
             "crm-web",
             "--artifact",
-            "persona:sales-rep",
+            "persona:alpha-persona",
             "--input",
             str(persona_review_path),
         ],
@@ -195,7 +195,7 @@ def prepare_feature_for_semantic_review(tmp_path: Path) -> None:
             "--project",
             "crm-web",
             "--artifact",
-            "persona:sales-rep",
+            "persona:alpha-persona",
         ],
     )
     assert persona_approve.exit_code == 0, persona_approve.output
@@ -208,7 +208,7 @@ def prepare_feature_for_semantic_review(tmp_path: Path) -> None:
             "--project",
             "crm-web",
             "--artifact",
-            "feature:customer-assignment",
+            "feature:alpha-feature",
         ],
     )
     assert feature_structural.exit_code == 0, feature_structural.output
@@ -249,7 +249,7 @@ def approve_feature(tmp_path: Path) -> None:
             "--project",
             "crm-web",
             "--artifact",
-            "feature:customer-assignment",
+            "feature:alpha-feature",
             "--input",
             str(feature_review_path),
         ],
@@ -264,7 +264,7 @@ def approve_feature(tmp_path: Path) -> None:
             "--project",
             "crm-web",
             "--artifact",
-            "feature:customer-assignment",
+            "feature:alpha-feature",
         ],
     )
     assert feature_approve.exit_code == 0, feature_approve.output

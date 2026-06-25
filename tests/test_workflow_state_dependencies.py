@@ -28,8 +28,8 @@ def test_upsert_artifact_rejects_non_draft_creation(tmp_path: Path) -> None:
                 session=session,
                 project=project,
                 artifact_type=ArtifactType.PERSONA,
-                slug="sales-rep",
-                title="Sales Rep",
+                slug="alpha-persona",
+                title="Alpha Persona",
                 source_path=None,
                 status=ArtifactStatus.APPROVED,
                 metadata={},
@@ -41,7 +41,7 @@ def test_upsert_artifact_content_change_downgrades_approved_revision_to_stale(
     tmp_path: Path,
 ) -> None:
     paths = prepare_database(tmp_path)
-    content_path = tmp_path / "docs" / "personas" / "sales-rep.md"
+    content_path = tmp_path / "docs" / "personas" / "alpha-persona.md"
     content_path.parent.mkdir(parents=True, exist_ok=True)
     content_path.write_text("first version", encoding="utf-8")
 
@@ -51,8 +51,8 @@ def test_upsert_artifact_content_change_downgrades_approved_revision_to_stale(
             session=session,
             project=project,
             artifact_type=ArtifactType.PERSONA,
-            slug="sales-rep",
-            title="Sales Rep",
+            slug="alpha-persona",
+            title="Alpha Persona",
             source_path=str(content_path.relative_to(tmp_path)),
             status=ArtifactStatus.DRAFT,
             metadata={},
@@ -65,8 +65,8 @@ def test_upsert_artifact_content_change_downgrades_approved_revision_to_stale(
             session=session,
             project=project,
             artifact_type=ArtifactType.PERSONA,
-            slug="sales-rep",
-            title="Sales Rep",
+            slug="alpha-persona",
+            title="Alpha Persona",
             source_path=str(content_path.relative_to(tmp_path)),
             status=ArtifactStatus.DRAFT,
             metadata={},
@@ -95,8 +95,8 @@ def test_add_dependency_stales_approved_source_and_approved_dependents(
             session=session,
             project=project,
             artifact_type=ArtifactType.PERSONA,
-            slug="sales-rep",
-            title="Sales Rep",
+            slug="alpha-persona",
+            title="Alpha Persona",
             source_path=None,
             status=ArtifactStatus.DRAFT,
             metadata={},
@@ -106,8 +106,8 @@ def test_add_dependency_stales_approved_source_and_approved_dependents(
             session=session,
             project=project,
             artifact_type=ArtifactType.FEATURE,
-            slug="customer-assignment",
-            title="Customer Assignment",
+            slug="alpha-feature",
+            title="Alpha Feature",
             source_path=None,
             status=ArtifactStatus.DRAFT,
             metadata={},
@@ -117,8 +117,8 @@ def test_add_dependency_stales_approved_source_and_approved_dependents(
             session=session,
             project=project,
             artifact_type=ArtifactType.PAGE,
-            slug="ops-overview",
-            title="Ops Overview",
+            slug="beta-page",
+            title="Beta Page",
             source_path=None,
             status=ArtifactStatus.DRAFT,
             metadata={},
@@ -128,8 +128,8 @@ def test_add_dependency_stales_approved_source_and_approved_dependents(
         add_dependency(
             session=session,
             project=project,
-            from_ref="feature:customer-assignment",
-            to_ref="persona:sales-rep",
+            from_ref="feature:alpha-feature",
+            to_ref="persona:alpha-persona",
             dependency_type=DependencyType.REQUIRES,
             is_hard=True,
         )
@@ -139,8 +139,8 @@ def test_add_dependency_stales_approved_source_and_approved_dependents(
         add_dependency(
             session=session,
             project=project,
-            from_ref="persona:sales-rep",
-            to_ref="page:ops-overview",
+            from_ref="persona:alpha-persona",
+            to_ref="page:beta-page",
             dependency_type=DependencyType.REQUIRES,
             is_hard=True,
         )
@@ -164,9 +164,9 @@ def test_upstream_content_change_cascades_stale_through_transitive_dependents(
     tmp_path: Path,
 ) -> None:
     paths = prepare_database(tmp_path)
-    persona_path = tmp_path / "docs" / "personas" / "sales-rep.md"
-    feature_path = tmp_path / "docs" / "features" / "customer-assignment.md"
-    page_path = tmp_path / "docs" / "pages" / "customer-profile.md"
+    persona_path = tmp_path / "docs" / "personas" / "alpha-persona.md"
+    feature_path = tmp_path / "docs" / "features" / "alpha-feature.md"
+    page_path = tmp_path / "docs" / "pages" / "alpha-page.md"
     for path, body in (
         (persona_path, "Persona v1"),
         (feature_path, "Feature v1"),
@@ -181,8 +181,8 @@ def test_upstream_content_change_cascades_stale_through_transitive_dependents(
             session=session,
             project=project,
             artifact_type=ArtifactType.PERSONA,
-            slug="sales-rep",
-            title="Sales Rep",
+            slug="alpha-persona",
+            title="Alpha Persona",
             source_path=str(persona_path.relative_to(tmp_path)),
             status=ArtifactStatus.DRAFT,
             metadata={},
@@ -192,8 +192,8 @@ def test_upstream_content_change_cascades_stale_through_transitive_dependents(
             session=session,
             project=project,
             artifact_type=ArtifactType.FEATURE,
-            slug="customer-assignment",
-            title="Customer Assignment",
+            slug="alpha-feature",
+            title="Alpha Feature",
             source_path=str(feature_path.relative_to(tmp_path)),
             status=ArtifactStatus.DRAFT,
             metadata={},
@@ -203,8 +203,8 @@ def test_upstream_content_change_cascades_stale_through_transitive_dependents(
             session=session,
             project=project,
             artifact_type=ArtifactType.PAGE,
-            slug="customer-profile",
-            title="Customer Profile",
+            slug="alpha-page",
+            title="Alpha Page",
             source_path=str(page_path.relative_to(tmp_path)),
             status=ArtifactStatus.DRAFT,
             metadata={},
@@ -213,16 +213,16 @@ def test_upstream_content_change_cascades_stale_through_transitive_dependents(
         add_dependency(
             session=session,
             project=project,
-            from_ref="feature:customer-assignment",
-            to_ref="persona:sales-rep",
+            from_ref="feature:alpha-feature",
+            to_ref="persona:alpha-persona",
             dependency_type=DependencyType.REQUIRES,
             is_hard=True,
         )
         add_dependency(
             session=session,
             project=project,
-            from_ref="page:customer-profile",
-            to_ref="feature:customer-assignment",
+            from_ref="page:alpha-page",
+            to_ref="feature:alpha-feature",
             dependency_type=DependencyType.REQUIRES,
             is_hard=True,
         )
@@ -236,8 +236,8 @@ def test_upstream_content_change_cascades_stale_through_transitive_dependents(
             session=session,
             project=project,
             artifact_type=ArtifactType.PERSONA,
-            slug="sales-rep",
-            title="Sales Rep",
+            slug="alpha-persona",
+            title="Alpha Persona",
             source_path=str(persona_path.relative_to(tmp_path)),
             status=ArtifactStatus.DRAFT,
             metadata={},
@@ -258,8 +258,8 @@ def test_add_dependency_rejects_cycles(tmp_path: Path) -> None:
             session=session,
             project=project,
             artifact_type=ArtifactType.PERSONA,
-            slug="sales-rep",
-            title="Sales Rep",
+            slug="alpha-persona",
+            title="Alpha Persona",
             source_path=None,
             status=ArtifactStatus.DRAFT,
             metadata={},
@@ -269,8 +269,8 @@ def test_add_dependency_rejects_cycles(tmp_path: Path) -> None:
             session=session,
             project=project,
             artifact_type=ArtifactType.FEATURE,
-            slug="customer-assignment",
-            title="Customer Assignment",
+            slug="alpha-feature",
+            title="Alpha Feature",
             source_path=None,
             status=ArtifactStatus.DRAFT,
             metadata={},
@@ -279,8 +279,8 @@ def test_add_dependency_rejects_cycles(tmp_path: Path) -> None:
         add_dependency(
             session=session,
             project=project,
-            from_ref="feature:customer-assignment",
-            to_ref="persona:sales-rep",
+            from_ref="feature:alpha-feature",
+            to_ref="persona:alpha-persona",
             dependency_type=DependencyType.REQUIRES,
             is_hard=True,
         )
@@ -289,8 +289,8 @@ def test_add_dependency_rejects_cycles(tmp_path: Path) -> None:
             add_dependency(
                 session=session,
                 project=project,
-                from_ref="persona:sales-rep",
-                to_ref="feature:customer-assignment",
+                from_ref="persona:alpha-persona",
+                to_ref="feature:alpha-feature",
                 dependency_type=DependencyType.REQUIRES,
                 is_hard=True,
             )

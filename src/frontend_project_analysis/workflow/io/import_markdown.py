@@ -13,6 +13,7 @@ from ...models import Project
 from ...repositories.versions import upsert_artifact
 from ..state.definitions import WorkflowStateError
 from .document_indexes import refresh_document_indexes
+from .graph_export import render_graph_placeholder_html
 from .relations import render_relations_markdown
 
 
@@ -64,18 +65,45 @@ def initialize_project(
     _ensure_gitignore_entry(paths.root, ".frontend-project-analysis/")
     refresh_document_indexes(paths.root)
     (analysis_root / "relations").mkdir(parents=True, exist_ok=True)
+    (analysis_root / "relations" / "graph.html").write_text(
+        render_graph_placeholder_html(project_key, project_name),
+        encoding="utf-8",
+    )
     for filename, title, headers in (
+        (
+            "index.md",
+            "# Relations Index",
+            (
+                "## Matrices\n\n"
+                "- [Persona Story Page Matrix](./persona-story-page-matrix.md)\n"
+                "- [Feature Coverage Matrix](./feature-coverage-matrix.md)\n"
+                "- [GWT Feature Matrix](./gwt-feature-matrix.md)\n\n"
+                "## Graph Views\n\n"
+                "- [Relationship Graph](./graph.html)"
+            ),
+        ),
         (
             "persona-story-page-matrix.md",
             "# Persona Story Page Matrix",
-            ("| Persona | Story Map | Page | Feature |\n| --- | --- | --- | --- |"),
+            (
+                "| Persona | Story Map | Page | Feature | GWT |\n"
+                "| --- | --- | --- | --- | --- |"
+            ),
         ),
         (
             "feature-coverage-matrix.md",
             "# Feature Coverage Matrix",
             (
-                "| Feature | Service Persona | Source Page | Covered Story |\n"
-                "| --- | --- | --- | --- |"
+                "| Feature | Persona | Page | Story Map | GWT |\n"
+                "| --- | --- | --- | --- | --- |"
+            ),
+        ),
+        (
+            "gwt-feature-matrix.md",
+            "# GWT Feature Matrix",
+            (
+                "| GWT | Feature | Page | Persona | Story Map |\n"
+                "| --- | --- | --- | --- | --- |"
             ),
         ),
     ):

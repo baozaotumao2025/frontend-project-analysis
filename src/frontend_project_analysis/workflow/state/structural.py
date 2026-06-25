@@ -18,6 +18,7 @@ _STRUCTURED_FRONTMATTER_TYPES = {
     ArtifactType.STORY_MAP,
     ArtifactType.PAGE,
     ArtifactType.FEATURE,
+    ArtifactType.GWT,
 }
 _MARKDOWN_LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 _REFERENCE_ALIAS_KEYS = ("aliases", "alias", "display_names", "alternate_titles")
@@ -221,6 +222,33 @@ def run_structural_checks(
                     ),
                 )
                 _append_incomplete_gherkin_scenarios(findings, ref, body)
+                gwt_feature_value = str(metadata.get("feature") or "").strip()
+                if not gwt_feature_value:
+                    findings.append(
+                        CheckFinding(
+                            severity="FAIL",
+                            code="missing_gwt_feature_reference",
+                            message=(
+                                "Missing GWT frontmatter feature reference: expected "
+                                "'feature' to point at the approved Feature slug."
+                            ),
+                            artifact_ref=ref,
+                        )
+                    )
+                else:
+                    gwt_feature_ref = (
+                        gwt_feature_value
+                        if ":" in gwt_feature_value
+                        else f"feature:{gwt_feature_value}"
+                    )
+                    _append_unknown_references(
+                        findings,
+                        ref,
+                        [gwt_feature_ref],
+                        ArtifactType.FEATURE,
+                        artifacts,
+                        "feature",
+                    )
             elif artifact.artifact_type == ArtifactType.FEATURE_SPEC:
                 _append_missing_sections(
                     findings,
@@ -469,7 +497,10 @@ def _reference_target_label(target: str) -> str:
 
 
 def _reference_labels_for_artifact(artifact: Any) -> set[str]:
+    from ...repositories.dependencies import artifact_ref
+
     labels = {
+        _normalize_reference_label(artifact_ref(artifact)),
         _normalize_reference_label(artifact.slug),
         _normalize_reference_label(artifact.title),
     }

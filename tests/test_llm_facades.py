@@ -30,7 +30,7 @@ def test_host_semantic_review_is_blocked_from_direct_llm_execution() -> None:
     with pytest.raises(ConfigurationError, match="fresh reviewer sub-agent"):
         run_semantic_review(
             {
-                "artifact": {"ref": "feature:customer-assignment"},
+                "artifact": {"ref": "feature:alpha-feature"},
                 "review_isolation": {
                     "mode": "fresh_reviewer_subagent",
                     "fork_context": False,
@@ -45,7 +45,7 @@ def test_semantic_review_requires_isolation_contract() -> None:
     settings = Settings(llm_provider="mock", llm_model="mock-model")
 
     with pytest.raises(ConfigurationError, match="fresh reviewer sub-agent contract"):
-        run_semantic_review({"artifact": {"ref": "feature:customer-assignment"}}, settings)
+        run_semantic_review({"artifact": {"ref": "feature:alpha-feature"}}, settings)
 
 
 def test_host_brief_assistant_is_blocked_from_direct_llm_execution() -> None:

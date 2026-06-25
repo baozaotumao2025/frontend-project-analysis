@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from frontend_project_analysis.core.prompts import (
     build_release_review_packet_manifest,
-    build_release_review_reviewer_card,
     build_release_review_prompt,
+    build_release_review_reviewer_card,
 )
 
 
@@ -47,4 +47,20 @@ def test_release_review_reviewer_card_mentions_isolation_contract() -> None:
 
     assert "fresh reviewer session" in card
     assert '"mode": "fresh_release_reviewer_context"' in card
+    assert "Changed surface count: `1`" in card
     assert "fresh-session isolation" in prompt
+
+
+def test_release_review_reviewer_card_uses_manifest_changed_surface_count() -> None:
+    manifest = build_release_review_packet_manifest(
+        {
+            "repository_context": {"branch": "main"},
+            "changed_surface": ["README.md", "CHANGELOG.md"],
+            "prompt_rules": ["Return JSON only."],
+            "audit_focus": ["release parity"],
+        }
+    )
+
+    card = build_release_review_reviewer_card(manifest)
+
+    assert "Changed surface count: `2`" in card

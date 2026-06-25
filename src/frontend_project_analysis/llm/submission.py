@@ -18,6 +18,7 @@ from ..schemas import (
     ProviderAuditPayload,
     SubmissionIntentPayload,
 )
+from ..submission_intent import classify_submission_intent
 from .payloads import resolve_call_ids
 from .provider_utils import (
     anthropic_api_path,
@@ -30,15 +31,14 @@ from .provider_utils import (
     require_provider_credentials,
 )
 from .providers.common import run_structured_provider
+from .specs import SUBMISSION_INTENT_SCHEMA
 from .structured import (
     build_anthropic_structured_request,
     build_gemini_structured_request,
     build_openai_structured_request,
 )
-from ..submission_intent import classify_submission_intent
 from .types import ProviderResponse
 from .validation import extract_anthropic_text, extract_gemini_text, extract_output_text
-from .specs import SUBMISSION_INTENT_SCHEMA
 
 
 def validate_submission_intent_content(

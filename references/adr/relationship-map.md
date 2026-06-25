@@ -15,6 +15,7 @@ new decisions can be checked against existing boundaries.
 | `0006-formal-and-explore-workflow-modes` | `0001`, `references/state-machine.md`, `references/workflow.md` | Splits exploratory analysis from canonical delivery |
 | `0007-locale-tolerant-cross-reference-resolution` | `references/templates.md`, `tests/test_workflow_state_integrity.py` | Defines allowed cross-reference forms without changing identity semantics |
 | `0008-llm-managed-submission-intent-routing` | `references/downstream-commit-policy.md`, `src/frontend_project_analysis/core/prompts.py`, `src/frontend_project_analysis/core/config.py` settings, `brief assistant` prompt architecture | Defines natural-language routing only; does not define submission policy |
+| `0009-evidence-gated-abstraction-control-layer` | `0001`, `0004`, `references/evidence-gated-abstraction.md`, `references/validation-matrix.md` | Defines the inventory, coverage, frozen packet, and independent worker control layer without changing canonical artifact identity |
 
 ## Relationship Notes
 
@@ -35,6 +36,7 @@ When adding or changing an ADR, check for the following accidental overlaps:
 - review isolation requirements being restated in a submission policy
 - downstream submission policy being used as a synonym for natural-language routing
 - prompt-template override behavior being hard-coded in command handlers instead of shared prompt builders
+- projection or export-surface refinements being promoted to a new ADR even though they only restate current reference-layer behavior and do not change lifecycle, authority, or governance boundaries
 
 ## Reading Order
 
@@ -46,3 +48,4 @@ Recommended order for related decisions:
 4. `0006` for explore-mode behavior
 5. `0007` for reference resolution
 6. `0008` for submission routing
+7. `0009` for evidence-gated control-layer boundaries

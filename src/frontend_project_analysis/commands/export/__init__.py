@@ -11,4 +11,4 @@ def register_export_commands(app: typer.Typer) -> None:
     app.add_typer(export_app, name="export")
 
 
-from . import manifest, relations  # noqa: E402,F401
+from . import graph_html, graph_json, manifest, relations  # noqa: E402,F401

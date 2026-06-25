@@ -6,6 +6,8 @@
 
 `Persona -> Story Map -> Page Map -> Feature -> GWT -> Feature Spec`
 
+这是一份便捷 prompt 模板，不是 canonical workflow 定义；canonical rules 仍以 `SKILL.md` 和 `references/*` 为准。
+
 ## 基本用法
 
 1. 先开一个总 `goal`，锁定这次业务拆解。

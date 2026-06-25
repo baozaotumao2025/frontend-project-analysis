@@ -116,8 +116,23 @@ def _render_root_index() -> str:
         "## Features\n\n"
         "- [Feature Index](./features/index.md)\n\n"
         "## Relations\n\n"
+        "- [Relations Index](./relations/index.md)\n"
         "- [Persona Story Page Matrix](./relations/persona-story-page-matrix.md)\n"
         "- [Feature Coverage Matrix](./relations/feature-coverage-matrix.md)\n"
+        "- [GWT Feature Matrix](./relations/gwt-feature-matrix.md)\n"
+        "- [Relationship Graph](./relations/graph.html)\n"
+    )
+
+
+def _render_relations_index() -> str:
+    return (
+        "# Relations Index\n\n"
+        "## Matrices\n\n"
+        "- [Persona Story Page Matrix](./persona-story-page-matrix.md)\n"
+        "- [Feature Coverage Matrix](./feature-coverage-matrix.md)\n"
+        "- [GWT Feature Matrix](./gwt-feature-matrix.md)\n\n"
+        "## Graph Views\n\n"
+        "- [Relationship Graph](./graph.html)\n"
     )
 
 
@@ -216,12 +231,15 @@ def refresh_document_indexes(root: Path) -> list[Path]:
     story_maps = docs_root / "story-maps" / "index.md"
     pages = docs_root / "pages" / "index.md"
     features = docs_root / "features" / "index.md"
+    relations = docs_root / "relations" / "index.md"
     root_index = docs_root / "index.md"
 
     docs_root.mkdir(parents=True, exist_ok=True)
+    relations.parent.mkdir(parents=True, exist_ok=True)
     root_index.write_text(_render_root_index(), encoding="utf-8")
     personas.write_text(_render_persona_index(root), encoding="utf-8")
     story_maps.write_text(_render_story_map_index(root), encoding="utf-8")
     pages.write_text(_render_page_index(root), encoding="utf-8")
     features.write_text(_render_feature_index(root), encoding="utf-8")
-    return [root_index, personas, story_maps, pages, features]
+    relations.write_text(_render_relations_index(), encoding="utf-8")
+    return [root_index, personas, story_maps, pages, features, relations]
